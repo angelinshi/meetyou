@@ -88,6 +88,7 @@ fi
 # Use rsync to overwrite changed files; preserve .git
 rsync -a --delete \
   --exclude='.git' \
+  --exclude='.github' \
   --exclude='sync.sh' \
   "$TMP_DIR/" "$REPO_DIR/"
 
