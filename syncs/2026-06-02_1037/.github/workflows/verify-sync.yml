@@ -1,0 +1,62 @@
+name: Verify Sync Structure
+
+# This workflow runs on every push to verify that synced folders
+# follow the syncs/YYYY-MM-DD_HHMM/ naming convention and that
+# no existing sync folders are accidentally modified.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List sync folders
+        run: |
+          echo "Existing syncs:"
+          if [ -d "syncs" ]; then
+            ls -1 syncs/ | sort
+            echo ""
+            echo "Total: $(ls -1 syncs/ | wc -l) sync(s)"
+          else
+            echo "(no syncs folder yet)"
+          fi
+
+      - name: Verify naming convention
+        run: |
+          if [ -d "syncs" ]; then
+            for dir in syncs/*/; do
+              name=$(basename "$dir")
+              if ! echo "$name" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{4}$'; then
+                echo "❌ Invalid sync folder name: $name"
+                echo "   Expected format: YYYY-MM-DD_HHMM"
+                exit 1
+              fi
+            done
+            echo "✅ All sync folders follow naming convention"
+          fi
+
+      - name: Check no historical syncs were modified
+        if: github.event_name == 'pull_request'
+        run: |
+          # Get the base commit's sync folders
+          git fetch origin ${{ github.base_ref }}
+          BASE_SYNCS=$(git ls-tree -d --name-only origin/${{ github.base_ref }} syncs/ 2>/dev/null || echo "")
+
+          # For each existing sync at base, verify it wasn't modified
+          for sync in $BASE_SYNCS; do
+            if git diff --name-only origin/${{ github.base_ref }}..HEAD -- "$sync/" | grep -q .; then
+              echo "❌ Historical sync folder modified: $sync"
+              echo "   Syncs are immutable — create a new timestamped folder instead."
+              exit 1
+            fi
+          done
+          echo "✅ No historical syncs were modified"
