@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>恋爱日记首页模块 · 顶部栏方案</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    html,body{margin:0;padding:0;background:#EDECEA;font-family:-apple-system,"PingFang SC","Helvetica Neue",system-ui,sans-serif;}
+    *{box-sizing:border-box;}
+    #root{width:100vw;height:100vh;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel">
+
+// ── 公用 token ──────────────────────────────────────────────────
+const C = {
+  rose: '#FF4D88', roseSoft: 'rgba(255,77,136,0.10)',
+  bg: '#F2F2F5', surface: '#fff',
+  textPri: '#323232', textSec: '#666', textTer: '#999',
+  line: 'rgba(0,0,0,0.08)', link: '#4f7cae',
+  font: '"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif',
+  rsm: 8, rmd: 12, rpill: 999,
+  shadow1: '0 2px 10px rgba(50,50,50,0.08)',
+};
+const USER    = { name:'女友殿下', initial:'女', bg:'#FFB5C8' };
+const PARTNER = { name:'男友先生', initial:'男', bg:'#A8C5E0' };
+
+// 剪影头像
+function Ava({ person, size=32 }) {
+  const isFemale = person === USER;
+  const bg = person.bg;
+  return (
+    <div style={{ width:size, height:size, borderRadius:'50%', background:bg,
+      overflow:'hidden', display:'flex', alignItems:'flex-end', justifyContent:'center', flexShrink:0 }}>
+      {isFemale ? (
+        <svg width={size*0.72} height={size*0.82} viewBox="0 0 36 41" fill="none">
+          <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+          <path d="M11 10 Q11 2 18 2 Q25 2 25 10" fill="rgba(255,255,255,0.92)"/>
+          <path d="M11 8 Q9 12 10 16" stroke="rgba(255,255,255,0.92)" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M25 8 Q27 12 26 16" stroke="rgba(255,255,255,0.92)" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M10 22 Q10 18 18 18 Q26 18 26 22 L29 41 H7 Z" fill="rgba(255,255,255,0.92)"/>
+        </svg>
+      ) : (
+        <svg width={size*0.72} height={size*0.82} viewBox="0 0 36 41" fill="none">
+          <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+          <path d="M11 10 Q11 3 18 3 Q25 3 25 10 L25 8 Q18 5 11 8 Z" fill="rgba(255,255,255,0.92)"/>
+          <path d="M8 22 Q8 18 18 18 Q28 18 28 22 L27 41 H9 Z" fill="rgba(255,255,255,0.92)"/>
+        </svg>
+      )}
+    </div>
+  );
+}
+
+// 帖子预览行（模拟时间轴内容，方案共用）
+function PostPreview({ authorKey, name, nameColor, text, time, daysTag, isVoice }) {
+  return (
+    <div style={{ display:'flex', paddingLeft:14, paddingRight:14, marginBottom:10 }}>
+      <div style={{ width:18, flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', paddingTop:2 }}>
+        <div style={{ width:7, height:7, borderRadius:'50%', background:C.rose }}/>
+        <div style={{ flex:1, width:1.5, background:'#E8E8E8', marginTop:3 }}/>
+      </div>
+      <div style={{ flex:1, minWidth:0, paddingLeft:8 }}>
+        <div style={{ fontSize:11.5, fontWeight:700, color:C.textPri, marginBottom:6, lineHeight:1 }}>{daysTag}</div>
+        <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:4 }}>
+          <Ava person={authorKey==='F'?USER:PARTNER} size={18}/>
+          <span style={{ fontSize:11.5, fontWeight:600, color:nameColor }}>{name}</span>
+          <span style={{ fontSize:10, color:C.textTer, marginLeft:'auto' }}>{time}</span>
+        </div>
+        <div style={{ background:C.bg, borderRadius:8, padding:'6px 10px' }}>
+          {isVoice
+            ? <span style={{ fontSize:12, color:C.textTer }}>🎙 语音 18"</span>
+            : <div style={{ fontSize:12, color:C.textPri, lineHeight:'18px',
+                overflow:'hidden', textOverflow:'ellipsis',
+                display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{text}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 查看全部按钮
+function ViewAllBtn() {
+  return (
+    <button style={{ display:'flex', alignItems:'center', justifyContent:'center',
+      width:'calc(100% - 28px)', height:40, marginTop:-14, marginLeft:14, marginBottom:12,
+      border:`1px solid ${C.line}`, borderRadius:C.rpill, background:C.surface,
+      color:C.textSec, fontSize:13, cursor:'pointer', position:'relative', zIndex:2 }}>
+      查看全部记录 ›
+    </button>
+  );
+}
+
+// 渐隐蒙层
+function FadeMask() {
+  return (
+    <div style={{ position:'absolute', top:68, left:0, right:0, height:72,
+      background:'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.97) 80%, #fff 100%)',
+      pointerEvents:'none', zIndex:1 }}/>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 方案 A — 渐变大封面（加高 + 装饰心形 + 居中头像）
+// ═══════════════════════════════════════════════════════════════
+function OptionA() {
+  return (
+    <div style={{ background:C.surface, borderRadius:C.rmd, overflow:'hidden', boxShadow:C.shadow1, width:320 }}>
+      {/* 封面 */}
+      <div style={{ height:100, position:'relative', overflow:'hidden',
+        background:'linear-gradient(135deg, #FFD3E2 0%, #FF90BE 50%, #D96FAB 100%)' }}>
+        {/* 光晕装饰 */}
+        <div style={{ position:'absolute', top:-20, right:-20, width:120, height:120, borderRadius:'50%',
+          background:'radial-gradient(circle, rgba(255,255,255,0.35) 0%, transparent 65%)' }}/>
+        <div style={{ position:'absolute', bottom:-30, left:-10, width:90, height:90, borderRadius:'50%',
+          background:'radial-gradient(circle, rgba(255,255,255,0.20) 0%, transparent 65%)' }}/>
+        {/* 浮动心形 */}
+        {[[12,10,16,'rgba(255,255,255,0.55)'],[8,40,70,'rgba(255,255,255,0.4)'],[10,20,55,'rgba(255,255,255,0.45)']].map(([s,t,l,c],i)=>(
+          <svg key={i} width={s} height={s} viewBox="0 0 24 24" style={{ position:'absolute', top:t, left:l }}>
+            <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" fill={c}/>
+          </svg>
+        ))}
+        {/* 遮罩 */}
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.28) 100%)' }}/>
+        {/* 情侣信息：居中布局 */}
+        <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', gap:16 }}>
+          <div style={{ textAlign:'center' }}>
+            <div style={{ width:44, height:44, borderRadius:'50%', overflow:'hidden', border:'2.5px solid rgba(255,255,255,0.9)', margin:'0 auto 4px', boxShadow:'0 2px 8px rgba(0,0,0,0.15)' }}>
+              <Ava person={USER} size={44}/>
+            </div>
+            <div style={{ fontSize:10.5, color:'rgba(255,255,255,0.95)', fontWeight:600, textShadow:'0 1px 2px rgba(0,0,0,0.3)' }}>女友殿下</div>
+          </div>
+          {/* 中间心形 + 天数 */}
+          <div style={{ textAlign:'center' }}>
+            <svg width="22" height="20" viewBox="0 0 24 22">
+              <path d="M12 20s-8-5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6-8 11-8 11z" fill="rgba(255,255,255,0.9)"/>
+            </svg>
+            <div style={{ fontSize:11, color:'rgba(255,255,255,0.85)', fontWeight:700, marginTop:2 }}>102天</div>
+          </div>
+          <div style={{ textAlign:'center' }}>
+            <div style={{ width:44, height:44, borderRadius:'50%', overflow:'hidden', border:'2.5px solid rgba(255,255,255,0.9)', margin:'0 auto 4px', boxShadow:'0 2px 8px rgba(0,0,0,0.15)' }}>
+              <Ava person={PARTNER} size={44}/>
+            </div>
+            <div style={{ fontSize:10.5, color:'rgba(255,255,255,0.95)', fontWeight:600, textShadow:'0 1px 2px rgba(0,0,0,0.3)' }}>男友先生</div>
+          </div>
+        </div>
+        {/* 右上角标题徽章 */}
+        <div style={{ position:'absolute', top:10, right:12,
+          background:'rgba(255,255,255,0.22)', backdropFilter:'blur(4px)',
+          borderRadius:20, padding:'3px 10px' }}>
+          <span style={{ fontSize:11, color:'#fff', fontWeight:600, letterSpacing:0.5 }}>恋爱日记</span>
+        </div>
+      </div>
+      {/* 内容 */}
+      <div style={{ position:'relative' }}>
+        <div style={{ height:140, overflow:'hidden', paddingTop:10 }}>
+          <PostPreview authorKey="F" name="女友殿下" nameColor={C.rose} text="一起走完雁荡山，下山的时候腿都软了 😂 真的好有成就感！" time="21:42" daysTag="第102天"/>
+          <PostPreview authorKey="M" name="男友先生" nameColor={C.link} isVoice time="23:08" daysTag="第101天"/>
+        </div>
+        <FadeMask/>
+        <ViewAllBtn/>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 方案 B — 双色渐变 + 大数字天数（数据感）
+// ═══════════════════════════════════════════════════════════════
+function OptionB() {
+  return (
+    <div style={{ background:C.surface, borderRadius:C.rmd, overflow:'hidden', boxShadow:C.shadow1, width:320 }}>
+      <div style={{ height:90, position:'relative', overflow:'hidden',
+        background:'linear-gradient(120deg, #FF4D88 0%, #C36ECC 55%, #9B6FC8 100%)' }}>
+        {/* 圆形装饰 */}
+        <div style={{ position:'absolute', top:-25, right:40, width:90, height:90, borderRadius:'50%',
+          background:'rgba(255,255,255,0.10)' }}/>
+        <div style={{ position:'absolute', bottom:-20, right:-10, width:70, height:70, borderRadius:'50%',
+          background:'rgba(255,255,255,0.08)' }}/>
+        {/* 左侧：头像组 */}
+        <div style={{ position:'absolute', left:16, top:0, bottom:0, display:'flex', alignItems:'center' }}>
+          <div style={{ position:'relative', width:60, height:38 }}>
+            <div style={{ position:'absolute', left:0, top:0, width:36, height:36, borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(255,255,255,0.9)', boxShadow:'0 2px 6px rgba(0,0,0,0.18)' }}>
+              <Ava person={USER} size={36}/>
+            </div>
+            <div style={{ position:'absolute', right:0, bottom:0, width:36, height:36, borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(255,255,255,0.9)', boxShadow:'0 2px 6px rgba(0,0,0,0.18)' }}>
+              <Ava person={PARTNER} size={36}/>
+            </div>
+          </div>
+        </div>
+        {/* 右侧：大数字天数 */}
+        <div style={{ position:'absolute', right:16, top:0, bottom:0, display:'flex', flexDirection:'column', alignItems:'flex-end', justifyContent:'center' }}>
+          <div style={{ display:'flex', alignItems:'baseline', gap:2 }}>
+            <span style={{ fontSize:32, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:-1,
+              textShadow:'0 2px 8px rgba(0,0,0,0.15)' }}>102</span>
+            <span style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.85)' }}>天</span>
+          </div>
+          <div style={{ fontSize:10, color:'rgba(255,255,255,0.75)', marginTop:2 }}>在一起的日子</div>
+        </div>
+        {/* 中间标题 */}
+        <div style={{ position:'absolute', left:92, right:80, top:0, bottom:0, display:'flex', flexDirection:'column', justifyContent:'center', gap:3 }}>
+          <div style={{ fontSize:13.5, fontWeight:700, color:'#fff', textShadow:'0 1px 3px rgba(0,0,0,0.2)' }}>恋爱日记</div>
+          <div style={{ fontSize:10.5, color:'rgba(255,255,255,0.80)' }}>共记 38 篇</div>
+        </div>
+      </div>
+      <div style={{ position:'relative' }}>
+        <div style={{ height:140, overflow:'hidden', paddingTop:10 }}>
+          <PostPreview authorKey="F" name="女友殿下" nameColor={C.rose} text="一起走完雁荡山，下山的时候腿都软了 😂 真的好有成就感！" time="21:42" daysTag="第102天"/>
+          <PostPreview authorKey="M" name="男友先生" nameColor={C.link} isVoice time="23:08" daysTag="第101天"/>
+        </div>
+        <FadeMask/>
+        <ViewAllBtn/>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 方案 C — 暖橙渐变 · 精简版（无头像，高度 ≈44px）
+// ═══════════════════════════════════════════════════════════════
+
+// C-1: 左标题 + 右胶囊信息 + 波浪底
+function OptionC1() {
+  return (
+    <div style={{ background:C.surface, borderRadius:C.rmd, overflow:'hidden', boxShadow:C.shadow1, width:320 }}>
+      <div style={{ height:44, position:'relative', overflow:'hidden',
+        background:'linear-gradient(120deg, #FFB347 0%, #FF8A80 55%, #FF6699 100%)' }}>
+        <svg width="320" height="20" viewBox="0 0 320 20" style={{ position:'absolute', bottom:0, left:0 }} preserveAspectRatio="none">
+          <path d="M0 12 Q80 2 160 12 Q240 22 320 12 L320 20 L0 20 Z" fill="rgba(255,255,255,0.14)"/>
+          <path d="M0 16 Q80 8 160 16 Q240 24 320 16 L320 20 L0 20 Z" fill="rgba(255,255,255,0.09)"/>
+        </svg>
+        <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 14px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <svg width="14" height="13" viewBox="0 0 24 22">
+              <path d="M12 20s-8-5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6-8 11-8 11z" fill="rgba(255,255,255,0.9)"/>
+            </svg>
+            <span style={{ fontSize:14, fontWeight:700, color:'#fff', textShadow:'0 1px 2px rgba(0,0,0,0.18)', letterSpacing:0.2 }}>恋爱日记</span>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ fontSize:11, color:'rgba(255,255,255,0.82)', background:'rgba(255,255,255,0.18)', borderRadius:99, padding:'2px 9px' }}>💕 102 天</span>
+            <span style={{ fontSize:10.5, color:'rgba(255,255,255,0.7)' }}>38 篇</span>
+          </div>
+        </div>
+      </div>
+      <div style={{ position:'relative' }}>
+        <div style={{ height:140, overflow:'hidden', paddingTop:10 }}>
+          <PostPreview authorKey="F" name="女友殿下" nameColor={C.rose} text="一起走完雁荡山，下山的时候腿都软了 😂 真的好有成就感！" time="21:42" daysTag="第102天"/>
+          <PostPreview authorKey="M" name="男友先生" nameColor={C.link} isVoice time="23:08" daysTag="第101天"/>
+        </div>
+        <FadeMask/>
+        <ViewAllBtn/>
+      </div>
+    </div>
+  );
+}
+
+// C-2: 居中标题 + 左右天数/篇数对称 + 光点装饰
+function OptionC2() {
+  return (
+    <div style={{ background:C.surface, borderRadius:C.rmd, overflow:'hidden', boxShadow:C.shadow1, width:320 }}>
+      <div style={{ height:44, position:'relative', overflow:'hidden',
+        background:'linear-gradient(120deg, #FF8A80 0%, #FF6699 55%, #C36ECC 100%)' }}>
+        {/* 光晕 */}
+        <div style={{ position:'absolute', top:-12, right:60, width:60, height:60, borderRadius:'50%',
+          background:'radial-gradient(circle, rgba(255,255,255,0.28) 0%, transparent 65%)' }}/>
+        <svg width="320" height="20" viewBox="0 0 320 20" style={{ position:'absolute', bottom:0, left:0 }} preserveAspectRatio="none">
+          <path d="M0 14 Q80 4 160 14 Q240 24 320 14 L320 20 L0 20 Z" fill="rgba(255,255,255,0.12)"/>
+        </svg>
+        <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
+          <span style={{ fontSize:11, color:'rgba(255,255,255,0.80)', fontWeight:500 }}>102 天</span>
+          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+            <svg width="12" height="11" viewBox="0 0 24 22">
+              <path d="M12 20s-8-5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6-8 11-8 11z" fill="rgba(255,255,255,0.88)"/>
+            </svg>
+            <span style={{ fontSize:14, fontWeight:700, color:'#fff', textShadow:'0 1px 2px rgba(0,0,0,0.18)', letterSpacing:0.2 }}>恋爱日记</span>
+            <svg width="12" height="11" viewBox="0 0 24 22">
+              <path d="M12 20s-8-5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6-8 11-8 11z" fill="rgba(255,255,255,0.88)"/>
+            </svg>
+          </div>
+          <span style={{ fontSize:11, color:'rgba(255,255,255,0.80)', fontWeight:500 }}>38 篇</span>
+        </div>
+      </div>
+      <div style={{ position:'relative' }}>
+        <div style={{ height:140, overflow:'hidden', paddingTop:10 }}>
+          <PostPreview authorKey="F" name="女友殿下" nameColor={C.rose} text="一起走完雁荡山，下山的时候腿都软了 😂 真的好有成就感！" time="21:42" daysTag="第102天"/>
+          <PostPreview authorKey="M" name="男友先生" nameColor={C.link} isVoice time="23:08" daysTag="第101天"/>
+        </div>
+        <FadeMask/>
+        <ViewAllBtn/>
+      </div>
+    </div>
+  );
+}
+
+// C-3: 左标题+副文，右边"102天"大字，无波浪更简洁
+function OptionC3() {
+  return (
+    <div style={{ background:C.surface, borderRadius:C.rmd, overflow:'hidden', boxShadow:C.shadow1, width:320 }}>
+      <div style={{ height:44, position:'relative', overflow:'hidden',
+        background:'linear-gradient(120deg, #FFB347 0%, #FF8A80 50%, #FF6699 100%)' }}>
+        <div style={{ position:'absolute', top:-18, right:-12, width:64, height:64, borderRadius:'50%',
+          background:'rgba(255,255,255,0.12)' }}/>
+        <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 14px' }}>
+          <div>
+            <div style={{ fontSize:14, fontWeight:700, color:'#fff', lineHeight:1, textShadow:'0 1px 2px rgba(0,0,0,0.16)' }}>恋爱日记</div>
+            <div style={{ fontSize:10, color:'rgba(255,255,255,0.75)', marginTop:3 }}>共记 38 篇</div>
+          </div>
+          <div style={{ textAlign:'right' }}>
+            <div style={{ display:'flex', alignItems:'baseline', gap:2 }}>
+              <span style={{ fontSize:22, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:-0.5, textShadow:'0 2px 6px rgba(0,0,0,0.12)' }}>102</span>
+              <span style={{ fontSize:11, color:'rgba(255,255,255,0.85)', fontWeight:600 }}>天</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ position:'relative' }}>
+        <div style={{ height:140, overflow:'hidden', paddingTop:10 }}>
+          <PostPreview authorKey="F" name="女友殿下" nameColor={C.rose} text="一起走完雁荡山，下山的时候腿都软了 😂 真的好有成就感！" time="21:42" daysTag="第102天"/>
+          <PostPreview authorKey="M" name="男友先生" nameColor={C.link} isVoice time="23:08" daysTag="第101天"/>
+        </div>
+        <FadeMask/>
+        <ViewAllBtn/>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 方案 D — 柔粉磨砂 + 纪念日徽章（温柔感）
+// ═══════════════════════════════════════════════════════════════
+function OptionD() {
+  return (
+    <div style={{ background:C.surface, borderRadius:C.rmd, overflow:'hidden', boxShadow:C.shadow1, width:320 }}>
+      <div style={{ height:92, position:'relative', overflow:'hidden',
+        background:'linear-gradient(150deg, #FFE8F0 0%, #FFC8DC 40%, #FFAAC8 100%)' }}>
+        {/* 软光晕 */}
+        <div style={{ position:'absolute', top:-10, left:100, width:120, height:120, borderRadius:'50%',
+          background:'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 60%)' }}/>
+        {/* 左：叠加头像 */}
+        <div style={{ position:'absolute', left:16, top:0, bottom:0, display:'flex', alignItems:'center' }}>
+          <div style={{ position:'relative', width:56, height:40 }}>
+            <div style={{ position:'absolute', left:0, top:2, width:36, height:36, borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(255,255,255,0.95)', boxShadow:'0 2px 8px rgba(255,100,150,0.25)' }}>
+              <Ava person={USER} size={36}/>
+            </div>
+            <div style={{ position:'absolute', right:0, bottom:2, width:36, height:36, borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(255,255,255,0.95)', boxShadow:'0 2px 8px rgba(100,150,200,0.25)' }}>
+              <Ava person={PARTNER} size={36}/>
+            </div>
+          </div>
+        </div>
+        {/* 中：名字 + 标题 */}
+        <div style={{ position:'absolute', left:88, top:0, bottom:0, display:'flex', flexDirection:'column', justifyContent:'center', gap:4 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:'#C2506E' }}>女友殿下 ❤ 男友先生</div>
+          <div style={{ fontSize:11, color:'#D97090' }}>恋爱日记 · 共同记录</div>
+        </div>
+        {/* 右：纪念日徽章 */}
+        <div style={{ position:'absolute', right:14, top:0, bottom:0, display:'flex', alignItems:'center' }}>
+          <div style={{ width:52, height:52, borderRadius:'50%',
+            background:'linear-gradient(145deg, #fff 0%, #FFE0EC 100%)',
+            boxShadow:'0 3px 10px rgba(255,100,150,0.22)',
+            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+            <div style={{ fontSize:18, fontWeight:800, color:'#D9547A', lineHeight:1, letterSpacing:-0.5 }}>102</div>
+            <div style={{ fontSize:9, color:'#E07898', fontWeight:600, marginTop:1 }}>天</div>
+          </div>
+        </div>
+      </div>
+      <div style={{ position:'relative' }}>
+        <div style={{ height:140, overflow:'hidden', paddingTop:10 }}>
+          <PostPreview authorKey="F" name="女友殿下" nameColor={C.rose} text="一起走完雁荡山，下山的时候腿都软了 😂 真的好有成就感！" time="21:42" daysTag="第102天"/>
+          <PostPreview authorKey="M" name="男友先生" nameColor={C.link} isVoice time="23:08" daysTag="第101天"/>
+        </div>
+        <FadeMask/>
+        <ViewAllBtn/>
+      </div>
+    </div>
+  );
+}
+
+// ── 主画布 ──────────────────────────────────────────────────────
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="options" title="恋爱日记首页模块 · C方案细化（无头像 · 高度≈44px）" subtitle="三个布局变体，选定后执行到 v2">
+        <DCArtboard id="c1" label="C-1 · 左标题+右胶囊 · 波浪底" width={320} height={280}>
+          <OptionC1/>
+        </DCArtboard>
+        <DCArtboard id="c2" label="C-2 · 居中标题 · 对称天数/篇数" width={320} height={280}>
+          <OptionC2/>
+        </DCArtboard>
+        <DCArtboard id="c3" label="C-3 · 左标题 · 右大字天数 · 简洁" width={320} height={280}>
+          <OptionC3/>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
