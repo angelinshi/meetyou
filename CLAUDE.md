@@ -1,5 +1,9 @@
 # Meetyou 项目说明
 
+## 文件命名规范
+- HTML 文件名中的空格一律用下划线 `_` 替代，避免 URL 出现 `%20`。
+- 例：`Meetyou_Interactive_v2.html`，不用 `Meetyou Interactive v2.html`。
+
 ## 同步到 GitHub
 - 当用户说"同步一下"或要求同步到 GitHub 时：把当前项目打包成 zip 供下载（我没有直接 push 权限）。
 - 下载文件名直接用默认名即可（无需时间戳）。
