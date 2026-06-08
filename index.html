@@ -78,8 +78,15 @@ html,body{height:100%;overflow:hidden;
 .nav-file{font-size:10px;color:var(--text-ter);margin-top:1px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* ── content ── */
-.content{flex:1;overflow:hidden;position:relative;background:var(--bg);}
+.clear-btn{
+  margin:auto 18px 18px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  height:34px;border-radius:8px;border:1px solid var(--line);
+  background:none;cursor:pointer;font-size:12px;color:var(--text-ter);
+  font-family:inherit;transition:background .12s,color .12s;flex-shrink:0;
+}
+.clear-btn:hover{background:var(--bg);color:var(--text-sec);}
+.clear-btn svg{opacity:0.5;}
 
 .welcome{
   position:absolute;inset:0;display:flex;flex-direction:column;
@@ -104,8 +111,8 @@ html,body{height:100%;overflow:hidden;
 }
 #preview.visible{opacity:1;}
 
-/* loading bar */
-.loader{
+/* ── content ── */
+.content{flex:1;overflow:hidden;position:relative;background:var(--bg);}
   position:absolute;top:0;left:0;right:0;height:2.5px;
   background:var(--line);overflow:hidden;z-index:5;
   opacity:0;transition:opacity .15s;
@@ -138,6 +145,12 @@ html,body{height:100%;overflow:hidden;
 
     <div class="nav-section">页面</div>
     <div class="nav-list" id="navList"></div>
+    <button class="clear-btn" id="clearBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+        <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      清除缓存
+    </button>
   </div>
 
   <!-- content -->
@@ -189,6 +202,23 @@ PAGES.forEach((p, i) => {
     </div>`;
   el.addEventListener('click', () => load(i, el));
   navList.appendChild(el);
+});
+
+document.getElementById('clearBtn').addEventListener('click', function() {
+  const btn = document.getElementById('clearBtn');
+  btn.textContent = '清除中…';
+  // Reload iframe with cache-bust
+  if (activeIdx >= 0) {
+    preview.src = PAGES[activeIdx].file + '?_=' + Date.now();
+  }
+  // Clear Cache API if available
+  if ('caches' in window) {
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
+  }
+  btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> 已清除';
+  setTimeout(function() {
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> 清除缓存';
+  }, 2000);
 });
 
 function load(i, el) {
