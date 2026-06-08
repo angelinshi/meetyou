@@ -333,7 +333,7 @@ function Screen1Home({ onInviteClick, onDiary, onTabChange }) {
                 邀请男友关注你的经期
               </div>
               <div style={{ fontSize: 12, color: MY.textSec, marginTop: 4, lineHeight: '18px' }}>
-                经期预测 · 每日症状 · 恋爱记
+                经期预测 · 每日症状 · 恋爱记录
               </div>
             </div>
           </div>
@@ -733,7 +733,7 @@ function Screen_RecordInvite({ onInviteClick }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: MY.textPri }}>邀请男友关注你的经期</div>
-            <div style={{ fontSize: 11.5, color: MY.textTer, marginTop: 2 }}>经期预测 · 每日症状 · 恋爱记</div>
+            <div style={{ fontSize: 11.5, color: MY.textTer, marginTop: 2 }}>经期预测 · 每日症状 · 恋爱记录</div>
           </div>
           <div style={{
             padding: '6px 12px', borderRadius: MY.rpill, background: MY.brandSoft,
