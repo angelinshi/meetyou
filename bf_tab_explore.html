@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>男友版 Tab 恋爱日记入口方案</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{background:#DCDCDC;font-family:"PingFang SC",-apple-system,sans-serif;
+      min-height:100vh;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px;}
+    .grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;max-width:1300px;}
+    .card{display:flex;flex-direction:column;align-items:center;gap:10px;}
+    .label{font-size:11.5px;font-weight:500;color:rgba(0,0,0,0.35);letter-spacing:.5px;text-align:center;max-width:200px;line-height:1.5;}
+    .desc{font-size:11px;color:rgba(0,0,0,0.25);text-align:center;max-width:200px;line-height:1.5;}
+
+    /* Phone */
+    .phone{width:280px;height:200px;background:#F2F2F5;border-radius:20px 20px 28px 28px;overflow:hidden;position:relative;
+      box-shadow:0 12px 36px rgba(0,0,0,0.18),0 0 0 1px rgba(0,0,0,0.07);font-family:"PingFang SC",sans-serif;}
+    /* 模拟首页内容区（缩略）*/
+    .hero{background:linear-gradient(120deg,#ff4d88 0%,#ff80aa 55%,#ffafc8 100%);
+      padding:12px 14px;margin:8px 10px;border-radius:10px;color:#fff;}
+    .hero-t{font-size:13px;font-weight:600;}
+    .hero-s{font-size:10px;opacity:.85;margin-top:2px;}
+    .diary-mod{background:#fff;margin:6px 10px;border-radius:8px;padding:8px 10px;
+      display:flex;align-items:center;gap:7px;}
+    .diary-mod-t{font-size:11px;font-weight:500;color:#323232;}
+    .diary-mod-s{font-size:9.5px;color:#999;margin-top:1px;}
+  </style>
+</head>
+<body>
+<div class="grid">
+
+<!-- ══ 方案A：替换「返现」为「日记」 ══ -->
+<div class="card">
+  <div class="phone">
+    <!-- content hint -->
+    <div style="padding:6px 0;">
+      <div class="hero"><div class="hero-t">距月经开始还有 3 天</div><div class="hero-s">预测经期开始日 5月30日 ›</div></div>
+      <div class="diary-mod">
+        <div style="width:24px;height:24px;border-radius:12px;background:#FFB5C8;flex-shrink:0;"></div>
+        <div><div class="diary-mod-t">恋爱日记</div><div class="diary-mod-s">第 102 天</div></div>
+      </div>
+    </div>
+    <!-- Tab bar A: 返现→日记 -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:56px;background:#fff;
+      border-top:.5px solid rgba(0,0,0,0.08);display:flex;padding-bottom:12px;">
+      <!-- 推荐 -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><g stroke="#999" strokeWidth="1.6" fill="none"><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/></g></svg>
+        推荐
+      </div>
+      <!-- 记录 -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="3" stroke="#999" strokeWidth="1.8"/><rect x="7" y="3" width="2" height="4" rx="1" fill="#999"/><rect x="15" y="3" width="2" height="4" rx="1" fill="#999"/><path d="M8 11h8M8 15h5" stroke="#999" strokeWidth="1.6" strokeLinecap="round"/></svg>
+        记录
+      </div>
+      <!-- ★ 日记 (替换返现) -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#ff4d88;font-weight:600;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff4d88"><path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/></svg>
+        日记
+      </div>
+      <!-- 消息 -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+        消息
+      </div>
+      <!-- 我 -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#999" strokeWidth="1.8"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#999" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        我
+      </div>
+    </div>
+  </div>
+  <div class="label">方案A · 替换「返现」为「日记」</div>
+  <div class="desc">直接入 5-tab，优先级提升<br/>牺牲返现曝光</div>
+</div>
+
+<!-- ══ 方案B：中间凸起爱心 FAB-tab ══ -->
+<div class="card">
+  <div class="phone">
+    <div style="padding:6px 0;">
+      <div class="hero"><div class="hero-t">距月经开始还有 3 天</div><div class="hero-s">预测经期开始日 5月30日 ›</div></div>
+      <div class="diary-mod">
+        <div style="width:24px;height:24px;border-radius:12px;background:#FFB5C8;flex-shrink:0;"></div>
+        <div><div class="diary-mod-t">恋爱日记</div><div class="diary-mod-s">第 102 天</div></div>
+      </div>
+    </div>
+    <!-- Tab bar B: 中间凸起 -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:56px;background:#fff;
+      border-top:.5px solid rgba(0,0,0,0.08);display:flex;padding-bottom:12px;overflow:visible;">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><g stroke="#999" strokeWidth="1.6" fill="none"><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/></g></svg>
+        推荐
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="3" stroke="#999" strokeWidth="1.8"/><rect x="7" y="3" width="2" height="4" rx="1" fill="#999"/><rect x="15" y="3" width="2" height="4" rx="1" fill="#999"/><path d="M8 11h8M8 15h5" stroke="#999" strokeWidth="1.6" strokeLinecap="round"/></svg>
+        记录
+      </div>
+      <!-- ★ 中间凸起 -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2px;position:relative;">
+        <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+          width:40px;height:40px;border-radius:20px;
+          background:linear-gradient(135deg,#ff7cad,#ff4d88);
+          display:flex;align-items:center;justify-content:center;
+          box-shadow:0 4px 14px rgba(255,77,136,0.42),0 0 0 3px #F2F2F5;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/></svg>
+        </div>
+        <span style="font-size:8px;color:#ff4d88;font-weight:600;margin-top:28px;">日记</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+        消息
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#999" strokeWidth="1.8"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#999" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        我
+      </div>
+    </div>
+  </div>
+  <div class="label">方案B · 中间凸起爱心 FAB</div>
+  <div class="desc">强感知，视觉焦点突出<br/>保留全部5个tab</div>
+</div>
+
+<!-- ══ 方案C：记录tab上加红点+心形徽章 ══ -->
+<div class="card">
+  <div class="phone">
+    <div style="padding:6px 0;">
+      <div class="hero"><div class="hero-t">距月经开始还有 3 天</div><div class="hero-s">预测经期开始日 5月30日 ›</div></div>
+      <div class="diary-mod">
+        <div style="width:24px;height:24px;border-radius:12px;background:#FFB5C8;flex-shrink:0;"></div>
+        <div><div class="diary-mod-t">恋爱日记</div><div class="diary-mod-s">第 102 天</div></div>
+      </div>
+    </div>
+    <!-- Tab bar C: 推荐tab上加日记徽章 -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:56px;background:#fff;
+      border-top:.5px solid rgba(0,0,0,0.08);display:flex;padding-bottom:12px;">
+      <!-- 推荐 + 日记徽章 -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#ff4d88;font-weight:600;position:relative;">
+        <div style="position:relative;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><g fill="#ff4d88"><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/><circle cx="12" cy="12" r="3" fill="#fff"/></g></svg>
+          <!-- 心形小徽章 -->
+          <div style="position:absolute;top:-4px;right:-6px;width:14px;height:14px;border-radius:7px;
+            background:#ff4d88;border:1.5px solid #fff;
+            display:flex;align-items:center;justify-content:center;">
+            <svg width="7" height="7" viewBox="0 0 12 12" fill="white"><path d="M6 10.5S1 7 1 4a2.5 2.5 0 015 0 2.5 2.5 0 015 0c0 3-5 6.5-5 6.5z"/></svg>
+          </div>
+        </div>
+        推荐
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="3" stroke="#999" strokeWidth="1.8"/><rect x="7" y="3" width="2" height="4" rx="1" fill="#999"/><rect x="15" y="3" width="2" height="4" rx="1" fill="#999"/><path d="M8 11h8M8 15h5" stroke="#999" strokeWidth="1.6" strokeLinecap="round"/></svg>
+        记录
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#999" strokeWidth="1.8"/><path d="M8.5 14.5c0 1.4 1.6 2.5 3.5 2.5s3.5-1.1 3.5-2.5c0-1.8-3.5-2.5-3.5-4C12 8.6 13.6 7.5 15.5 7.5" stroke="#999" strokeWidth="1.6" strokeLinecap="round" fill="none"/><path d="M12 6v12" stroke="#999" strokeWidth="1.6" strokeLinecap="round"/></svg>
+        返现
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+        消息
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#999" strokeWidth="1.8"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#999" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        我
+      </div>
+    </div>
+  </div>
+  <div class="label">方案C · 推荐 tab 叠加日记徽章</div>
+  <div class="desc">最克制，5个tab不变<br/>日记以心形徽章提示</div>
+</div>
+
+<!-- ══ 方案D：5tab，推荐→「日记」，首位 ══ -->
+<div class="card">
+  <div class="phone">
+    <div style="padding:6px 0;">
+      <div class="hero"><div class="hero-t">距月经开始还有 3 天</div><div class="hero-s">预测经期开始日 5月30日 ›</div></div>
+      <div class="diary-mod">
+        <div style="width:24px;height:24px;border-radius:12px;background:#FFB5C8;flex-shrink:0;"></div>
+        <div><div class="diary-mod-t">恋爱日记</div><div class="diary-mod-s">第 102 天</div></div>
+      </div>
+    </div>
+    <!-- Tab bar D: 第1位=日记 -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:56px;background:#fff;
+      border-top:.5px solid rgba(0,0,0,0.08);display:flex;padding-bottom:12px;">
+      <!-- ★ 日记 (第1位，选中) -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#ff4d88;font-weight:600;position:relative;">
+        <div style="position:relative;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff4d88"><path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/></svg>
+          <div style="position:absolute;top:-2px;right:-3px;width:6px;height:6px;border-radius:3px;background:#FF4D4D;border:1px solid #fff;"></div>
+        </div>
+        日记
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="3" stroke="#999" strokeWidth="1.8"/><rect x="7" y="3" width="2" height="4" rx="1" fill="#999"/><rect x="15" y="3" width="2" height="4" rx="1" fill="#999"/><path d="M8 11h8M8 15h5" stroke="#999" strokeWidth="1.6" strokeLinecap="round"/></svg>
+        记录
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#999" strokeWidth="1.8"/><path d="M8.5 14.5c0 1.4 1.6 2.5 3.5 2.5s3.5-1.1 3.5-2.5c0-1.8-3.5-2.5-3.5-4C12 8.6 13.6 7.5 15.5 7.5" stroke="#999" strokeWidth="1.6" strokeLinecap="round" fill="none"/><path d="M12 6v12" stroke="#999" strokeWidth="1.6" strokeLinecap="round"/></svg>
+        返现
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+        消息
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#999" strokeWidth="1.8"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#999" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        我
+      </div>
+    </div>
+  </div>
+  <div class="label">方案D · 日记占第1位（替换推荐）</div>
+  <div class="desc">男生视角以日记为核心入口<br/>推荐tab对男友版意义较低</div>
+</div>
+
+<!-- ══ 方案E：双色拼接 tab（日记+天数）══ -->
+<div class="card">
+  <div class="phone">
+    <div style="padding:6px 0;">
+      <div class="hero"><div class="hero-t">距月经开始还有 3 天</div><div class="hero-s">预测经期开始日 5月30日 ›</div></div>
+      <div class="diary-mod">
+        <div style="width:24px;height:24px;border-radius:12px;background:#FFB5C8;flex-shrink:0;"></div>
+        <div><div class="diary-mod-t">恋爱日记</div><div class="diary-mod-s">第 102 天</div></div>
+      </div>
+    </div>
+    <!-- Tab bar E: 记录tab双行（日记+102天） -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:56px;background:#fff;
+      border-top:.5px solid rgba(0,0,0,0.08);display:flex;padding-bottom:12px;">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><g stroke="#999" strokeWidth="1.6" fill="none"><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/></g></svg>
+        推荐
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="3" stroke="#999" strokeWidth="1.8"/><rect x="7" y="3" width="2" height="4" rx="1" fill="#999"/><rect x="15" y="3" width="2" height="4" rx="1" fill="#999"/><path d="M8 11h8M8 15h5" stroke="#999" strokeWidth="1.6" strokeLinecap="round"/></svg>
+        记录
+      </div>
+      <!-- ★ 日记 — 双行显示天数 -->
+      <div style="flex:1.4;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2px;font-size:8px;color:#ff4d88;font-weight:600;position:relative;">
+        <div style="display:flex;align-items:center;gap:3px;margin-bottom:2px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff4d88"><path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/></svg>
+          <span style="font-size:8px;font-weight:600;color:#ff4d88;">日记</span>
+        </div>
+        <div style="background:#ff4d88;border-radius:6px;padding:1px 5px;">
+          <span style="font-size:7.5px;color:#fff;font-weight:700;">102天</span>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+        消息
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding-bottom:2px;font-size:8px;color:#999;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#999" strokeWidth="1.8"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#999" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        我
+      </div>
+    </div>
+  </div>
+  <div class="label">方案E · 日记tab展示「102天」</div>
+  <div class="desc">tab本身承载情感信息<br/>替换返现，天数动态更新</div>
+</div>
+
+</div>
+</body>
+</html>

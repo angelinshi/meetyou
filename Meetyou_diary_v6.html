@@ -1,0 +1,2511 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>恋爱日记 · v2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    html,body{margin:0;padding:0;min-height:100%;background:#EDECEA;
+      font-family:-apple-system,"PingFang SC","Helvetica Neue",system-ui,sans-serif;overflow:auto;}
+    *{box-sizing:border-box;}
+    #root{width:100%;min-height:100vh;overflow:auto;}
+    ::-webkit-scrollbar{display:none;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    @keyframes ripple{0%{transform:scale(1);opacity:0.6}100%{transform:scale(2.4);opacity:0;}}
+    @keyframes wave{from{transform:scaleY(0.3);}to{transform:scaleY(1);}}
+    @keyframes waveBar{0%,100%{height:4px}50%{height:14px}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes heartPop{0%{transform:scale(0);opacity:0}50%{transform:scale(1.35);opacity:1}100%{transform:scale(1);opacity:1}}
+    @keyframes shake{0%,100%{transform:rotate(0) scale(1)}20%{transform:rotate(-16deg) scale(1.2)}40%{transform:rotate(16deg) scale(1.2)}60%{transform:rotate(-10deg) scale(1.1)}80%{transform:rotate(10deg) scale(1.1)}}
+    @keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
+    @keyframes slideOutRight{from{transform:translateX(0)}to{transform:translateX(100%)}}
+    @keyframes emojiRainFall{
+      0%{transform:translateY(-30px) translateX(0) rotate(0deg);opacity:1;}
+      70%{opacity:0.85;}
+      100%{transform:translateY(860px) translateX(var(--emoji-drift)) rotate(var(--emoji-spin));opacity:0;}
+    }
+    @keyframes fanPop{
+      0%{transform:scale(0);opacity:0;}
+      70%{transform:scale(1.14);opacity:1;}
+      100%{transform:scale(1);opacity:1;}
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+const { useState, useRef, useEffect, useCallback } = React;
+
+// ── Tokens ───────────────────────────────────────────────────────
+const T = {
+  rose:'#FF4D88', roseSoft:'rgba(255,77,136,0.10)', roseMid:'rgba(255,77,136,0.22)',
+  bg:'#F2F2F5', white:'#FFFFFF',
+  textPri:'#1A1A1A', textSec:'#666666', textTer:'#AAAAAA',
+  line:'rgba(0,0,0,0.07)', blue:'#A8C5E0', pink:'#FFB5C8',
+  font:'"PingFang SC","SF Pro Text","Helvetica Neue",sans-serif',
+  himStripe:'#D4856F', herStripe:'#C9A87C',
+};
+const ME    = { name:'女友殿下', color:T.pink };
+const LOVER = { name:'男友先生', color:T.blue };
+
+const STICKY_BG  = ['#FFF4ED','#EDF5F0','#FDF0F5','#FDF8ED'];
+const REACT_EMOJIS = ['❤️','🥰','😊','🫂','😂','👍'];
+const INTERACT_OPTIONS = [
+  { emoji:'🤗', label:'抱抱', color:'#FF8C42' },
+  { emoji:'😘', label:'亲亲', color:'#FF4D88' },
+  { emoji:'🥰', label:'贴贴', color:'#C084FC' },
+  { emoji:'💭', label:'想你', color:'#60A5FA' },
+  { emoji:'❤️', label:'爱你', color:'#FF4D4D' },
+];
+const INTERACT_COPY = {
+  '🤗': { title:'送出了一个大大的抱抱', titleR:'收到了一个大大的抱抱', sub:'暖暖的，包着你了' },
+  '😘': { title:'偷偷送了一个亲亲',     titleR:'偷偷收到了一个亲亲',   sub:'轻轻地，落在你额头' },
+  '🥰': { title:'发出了一个贴贴',       titleR:'收到了一个贴贴',       sub:'悄悄蹭蹭，不许躲' },
+  '💭': { title:'说了一句想你',         titleR:'TA在想你',             sub:'脑子里全是你' },
+  '❤️': { title:'说了一句爱你',        titleR:'TA说爱你',             sub:'每天都要说，不够' },
+};
+const TPL_LABELS = { card:'卡片', sticky:'便利贴', polaroid:'拍立得', envelope:'情书' };
+
+// Pure-text: card + sticky; has-media: all
+const availTpl = (hasMedia) => hasMedia
+  ? ['card','sticky','polaroid','envelope']
+  : ['card','sticky','envelope'];
+
+// ── Date helpers ─────────────────────────────────────────────────
+const START_DATE = new Date('2024-02-18');
+function daysSince(ds) {
+  const d = new Date(ds); d.setHours(0,0,0,0);
+  const s = new Date(START_DATE); s.setHours(0,0,0,0);
+  return Math.floor((d-s)/86400000)+1;
+}
+function formatDayLabel(ds) {
+  const now=new Date();now.setHours(0,0,0,0);
+  const d=new Date(ds);d.setHours(0,0,0,0);
+  const diff=Math.round((now-d)/86400000);
+  const label=diff===0?'今天':diff===1?'昨天':`${d.getMonth()+1}月${d.getDate()}日`;
+  return { label, daysStr:`第${daysSince(ds)}天` };
+}
+function formatTime(ds,ts) {
+  const now=new Date();now.setHours(0,0,0,0);
+  const d=new Date(ds);d.setHours(0,0,0,0);
+  const diff=Math.round((now-d)/86400000);
+  if(diff===0) return ts;
+  if(diff===1) return `昨天 ${ts}`;
+  const dd=new Date(ds);
+  return `${dd.getMonth()+1}月${dd.getDate()}日 ${ts}`;
+}
+
+// ── Initial posts ────────────────────────────────────────────────
+const INITIAL_POSTS = [
+  { id:1, author:ME, date:'2024-08-29', time:'21:42', kind:'text', template:'sticky',
+    text:'一起走完雁荡山，下山的时候腿都软了 😂 真的好有成就感！',
+    photos:3, photoUrls:[], hasVideo:false, hasMedia:true,
+    reactions:{ [LOVER.name]:'🥰' }, comments:[{author:LOVER,text:'辛苦你了～下次一起去麦理浩径吧 🥾'}] },
+  { id:5, author:LOVER, date:'2024-08-29', time:'14:20', kind:'text', template:'envelope',
+    text:'今天出发前帮你备好了防晒和水，出门记得带哦 ☀️ 路上注意安全，想你。',
+    photos:0, photoUrls:[], hasVideo:false, hasMedia:false,
+    reactions:{}, comments:[] },
+  { id:2, author:LOVER, date:'2024-08-28', time:'23:08', kind:'text', template:'card',
+    text:'没什么，就是想说一声，今天辛苦了 ❤︎',
+    photos:0, photoUrls:[], hasVideo:false, hasMedia:false,
+    reactions:{ [ME.name]:'🤗' }, comments:[{author:ME,text:'谢谢你这么细心 ❤︎'}] },
+  { id:3, author:ME, date:'2024-08-24', time:'20:15', kind:'text', template:'polaroid',
+    text:'你送我的玫瑰真的好惊喜，第一次有人这样认真挑花给我 🌹',
+    photos:2, photoUrls:[], hasVideo:false, hasMedia:true,
+    reactions:{ [LOVER.name]:'😘' }, comments:[{author:LOVER,text:'你笑的样子比花还好看'}] },
+  { id:4, author:LOVER, date:'2024-08-21', time:'19:30', kind:'text', template:'sticky',
+    text:'下班了，今晚想吃你做的饭 🍜',
+    photos:0, photoUrls:[], hasVideo:false, hasMedia:false,
+    reactions:{}, comments:[] },
+];
+
+// ── Ava ──────────────────────────────────────────────────────────
+function Ava({ person, size=36 }) {
+  const isFemale = person===ME;
+  return (
+    <div style={{ width:size,height:size,borderRadius:'50%',background:person.color,
+      flexShrink:0,overflow:'hidden',display:'flex',alignItems:'flex-end',justifyContent:'center' }}>
+      {isFemale ? (
+        <svg width={size*0.72} height={size*0.82} viewBox="0 0 36 41" fill="none">
+          <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+          <path d="M11 10 Q11 2 18 2 Q25 2 25 10" fill="rgba(255,255,255,0.92)"/>
+          <path d="M11 8 Q9 12 10 16" stroke="rgba(255,255,255,0.92)" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M25 8 Q27 12 26 16" stroke="rgba(255,255,255,0.92)" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M10 22 Q10 18 18 18 Q26 18 26 22 L29 41 H7 Z" fill="rgba(255,255,255,0.92)"/>
+        </svg>
+      ) : (
+        <svg width={size*0.72} height={size*0.82} viewBox="0 0 36 41" fill="none">
+          <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+          <path d="M11 10 Q11 3 18 3 Q25 3 25 10 L25 8 Q18 5 11 8 Z" fill="rgba(255,255,255,0.92)"/>
+          <path d="M8 22 Q8 18 18 18 Q28 18 28 22 L27 41 H9 Z" fill="rgba(255,255,255,0.92)"/>
+        </svg>
+      )}
+    </div>
+  );
+}
+
+// ── VoiceBubble ──────────────────────────────────────────────────
+function VoiceBubble({ sec, playing, onPlay }) {
+  const [transcript,setTranscript]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [showText,setShowText]=useState(false);
+  const bars=20;
+  const heights=Array.from({length:bars},(_,i)=>{
+    const x=i/bars;
+    return 3+Math.round(Math.sin(x*Math.PI*3+1)*5+Math.sin(x*Math.PI*7)*3+3);
+  });
+  const handleTranscribe=async(e)=>{
+    e.stopPropagation();
+    if(transcript){setShowText(s=>!s);return;}
+    setLoading(true);setShowText(true);
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+          messages:[{role:'user',content:`请模拟一段恋人之间真实自然的语音转文字结果，内容温柔甜蜜，语气口语化，长度约${Math.max(8,sec*3)}字以内，只返回转写文字本身。`}]})});
+      const data=await res.json();
+      setTranscript(data.content?.[0]?.text?.trim()||'（转写失败）');
+    }catch{setTranscript('（转写失败，请重试）');}
+    setLoading(false);
+  };
+  return (
+    <div style={{marginTop:6}}>
+      <div style={{display:'inline-flex',alignItems:'center',gap:8,
+        background:playing?T.roseSoft:T.bg,border:`1.5px solid ${playing?T.rose:'transparent'}`,
+        borderRadius:20,padding:'8px 12px 8px 14px',cursor:'pointer',transition:'all 0.2s'}}>
+        <div onClick={onPlay} style={{width:28,height:28,borderRadius:'50%',background:T.rose,
+          display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          {playing
+            ?<svg width="10" height="12" viewBox="0 0 10 12"><rect x="0" y="0" width="3.5" height="12" rx="1.5" fill="#fff"/><rect x="6.5" y="0" width="3.5" height="12" rx="1.5" fill="#fff"/></svg>
+            :<svg width="10" height="12" viewBox="0 0 10 12"><path d="M1 1l8 5-8 5V1z" fill="#fff"/></svg>}
+        </div>
+        <div onClick={onPlay} style={{display:'flex',alignItems:'center',gap:2.5,height:20}}>
+          {heights.map((h,i)=>(
+            <div key={i} style={{width:2.5,height:h,background:playing?T.rose:'#C0B8C8',borderRadius:2,
+              animation:playing?`waveBar ${0.5+i*0.04}s ease-in-out infinite alternate`:'none',
+              animationDelay:playing?`${i*0.04}s`:'0s',transition:'background 0.2s'}}/>
+          ))}
+        </div>
+        <span onClick={onPlay} style={{fontSize:12.5,color:playing?T.rose:T.textSec,fontWeight:500,flexShrink:0}}>{sec}"</span>
+        <div onClick={handleTranscribe} style={{width:22,height:22,borderRadius:'50%',flexShrink:0,
+          background:showText?T.roseSoft:'transparent',display:'flex',alignItems:'center',justifyContent:'center',
+          cursor:'pointer',marginLeft:2,border:showText?`1px solid ${T.rose}`:'1px solid transparent',transition:'all 0.15s'}}>
+          {loading
+            ?<div style={{width:10,height:10,border:`1.5px solid ${T.rose}`,borderTopColor:'transparent',
+              borderRadius:'50%',animation:'spin 0.7s linear infinite'}}/>
+            :<span style={{fontSize:10,fontWeight:700,letterSpacing:'-0.5px',
+              color:showText?T.rose:T.textTer,lineHeight:1,fontFamily:T.font}}>文字</span>}
+        </div>
+      </div>
+      {showText&&transcript&&(
+        <div style={{marginTop:6,padding:'8px 12px',background:'rgba(255,77,136,0.05)',
+          border:`1px solid ${T.roseSoft}`,borderRadius:10,fontSize:13.5,color:T.textSec,
+          lineHeight:'20px',animation:'fadeIn 0.2s ease'}}>{transcript}</div>
+      )}
+      {showText&&loading&&(
+        <div style={{marginTop:6,padding:'8px 12px',background:T.bg,borderRadius:10,
+          fontSize:12.5,color:T.textTer,display:'flex',alignItems:'center',gap:6,animation:'fadeIn 0.2s ease'}}>
+          <div style={{width:12,height:12,border:`1.5px solid ${T.rose}`,borderTopColor:'transparent',
+            borderRadius:'50%',animation:'spin 0.7s linear infinite',flexShrink:0}}/>
+          正在转写…
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PhotoGrid ────────────────────────────────────────────────────
+function PhotoGrid({ count, photoUrls=[] }) {
+  if (!count) return null;
+  const cols=count===1?1:count===2?2:3;
+  const size=count===1?160:count===2?110:80;
+  return (
+    <div style={{display:'grid',gridTemplateColumns:`repeat(${cols},${size}px)`,gap:3,margin:'8px 0'}}>
+      {Array.from({length:count}).map((_,i)=>(
+        <div key={i} style={{width:size,height:size,borderRadius:6,overflow:'hidden',
+          background:`hsl(${340+i*20},60%,${88-i*4}%)`}}>
+          {photoUrls[i]&&<img src={photoUrls[i]} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── VideoPlaceholder ─────────────────────────────────────────────
+function VideoPlaceholder() {
+  return (
+    <div style={{width:180,height:100,borderRadius:8,background:'#1a1a2e',display:'flex',
+      alignItems:'center',justifyContent:'center',marginTop:8}}>
+      <div style={{width:38,height:38,borderRadius:'50%',background:'rgba(255,255,255,0.18)',
+        display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <svg width="13" height="15" viewBox="0 0 12 14"><path d="M1 1l10 6-10 6V1z" fill="rgba(255,255,255,0.8)"/></svg>
+      </div>
+    </div>
+  );
+}
+
+// ── TemplateTag — layout picker popup ───────────────────────────
+// 固定"布局"图标，点击弹出选项面板
+const LayoutIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 2l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/>
+    <line x1="2" y1="16" x2="9" y2="9"/>
+    <line x1="2" y1="9" x2="4" y2="7"/>
+  </svg>
+);
+function TemplateTag({ post, onChangeTemplate }) {
+  const [open, setOpen] = useState(false);
+  if (post.kind==='voice') return null;
+  const avail = availTpl(post.hasMedia);
+  const cur = post.template||'card';
+  return (
+    <div style={{position:'relative',flexShrink:0}} onClick={e=>e.stopPropagation()}>
+      <div onClick={()=>setOpen(s=>!s)}
+        style={{width:24,height:24,display:'flex',alignItems:'center',justifyContent:'center',
+          cursor:'pointer',color:open?T.rose:T.textTer,
+          opacity:open?0.9:0.38,transition:'opacity 0.15s,color 0.15s'}}
+        onMouseEnter={e=>{e.currentTarget.style.opacity='0.85';e.currentTarget.style.color=T.rose;}}
+        onMouseLeave={e=>{if(!open){e.currentTarget.style.opacity='0.38';e.currentTarget.style.color=T.textTer;}}}>
+        <LayoutIcon/>
+      </div>
+      {open && (
+        <div style={{position:'absolute',top:28,right:0,
+          background:T.white,borderRadius:12,overflow:'hidden',
+          boxShadow:'0 4px 18px rgba(0,0,0,0.14)',zIndex:50,
+          display:'flex',flexDirection:'column',minWidth:96}}>
+          {avail.map(t=>(
+            <div key={t} onClick={()=>{onChangeTemplate(post.id,t);setOpen(false);}}
+              style={{display:'flex',alignItems:'center',gap:8,padding:'9px 14px',
+                cursor:'pointer',fontSize:13,fontFamily:T.font,
+                color:t===cur?T.rose:T.textPri,
+                background:t===cur?T.roseSoft:'transparent',
+                transition:'background 0.12s'}}>
+              <div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,
+                background:t===cur?T.rose:'transparent',
+                border:`1.5px solid ${t===cur?T.rose:'rgba(0,0,0,0.2)'}`}}/>
+              {TPL_LABELS[t]}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── ReactionArea ─────────────────────────────────────────────────
+// Only opponent's posts show the emoji picker.
+// Own posts show opponent's reaction read-only.
+function ReactionArea({ post, onReact }) {
+  const isMe = post.author===ME;
+  const myReaction = post.reactions[ME.name];
+  const theirReaction = post.reactions[LOVER.name];
+
+  if (isMe) {
+    if (!theirReaction) return null;
+    return (
+      <span style={{fontSize:12,color:T.textSec,fontStyle:'italic'}}>来自TA的{theirReaction}</span>
+    );
+  }
+  // Opponent's post — I can react
+  if (myReaction) return (
+    <div style={{display:'flex',gap:4,alignItems:'center'}}>
+      <span style={{fontSize:12,color:T.rose,fontWeight:500}}>来自你的{myReaction}</span>
+      <span onClick={()=>onReact(post.id,null)}
+        style={{fontSize:11,color:T.textTer,cursor:'pointer',lineHeight:1,
+          opacity:0.55,transition:'opacity 0.15s'}}
+        onMouseEnter={e=>e.currentTarget.style.opacity='1'}
+        onMouseLeave={e=>e.currentTarget.style.opacity='0.55'}>✎</span>
+    </div>
+  );
+  return (
+    <div style={{display:'flex',gap:2}}>
+      {REACT_EMOJIS.map(e=>(
+        <span key={e} onClick={()=>onReact(post.id,e)}
+          style={{fontSize:17,opacity:0.32,cursor:'pointer',padding:'0 2px',
+            display:'inline-block',transition:'opacity 0.12s,transform 0.1s'}}
+          onMouseEnter={ev=>{ev.currentTarget.style.opacity='0.92';ev.currentTarget.style.transform='scale(1.22)';}}
+          onMouseLeave={ev=>{ev.currentTarget.style.opacity='0.32';ev.currentTarget.style.transform='scale(1)';}}>{e}</span>
+      ))}
+    </div>
+  );
+}
+
+// ── CommentsList — template-aware ────────────────────────────────
+function CommentsList({ comments, template='card' }) {
+  if (!comments.length) return null;
+  const renderText = c => c.kind==='photo'
+    ? <span style={{display:'inline-flex',alignItems:'center',gap:3,background:'rgba(74,122,175,0.07)',borderRadius:6,padding:'1px 7px',fontSize:11.5,color:T.textSec}}>📷</span>
+    : <span>{c.text}</span>;
+
+  if (template==='sticky') {
+    return (
+      <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid rgba(0,0,0,0.07)'}}>
+        {comments.map((c,i)=>(
+          <div key={i} style={{fontSize:12.5,lineHeight:'20px',marginBottom:i<comments.length-1?3:0}}>
+            <span style={{fontWeight:600,color:c.author===ME?T.rose:'#4A7AAF',marginRight:4}}>{c.author.name}</span>
+            <span style={{color:'rgba(0,0,0,0.52)'}}>{renderText(c)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (template==='polaroid') {
+    return (
+      <div style={{marginTop:6,paddingTop:6,borderTop:'1px dashed rgba(0,0,0,0.1)'}}>
+        {comments.map((c,i)=>(
+          <div key={i} style={{fontFamily:'"KaiTi","STKaiti","楷体",serif',fontSize:12.5,
+            lineHeight:'20px',color:T.textSec,marginBottom:i<comments.length-1?3:0}}>
+            <span style={{fontWeight:600,color:c.author===ME?T.rose:'#4A7AAF',marginRight:4}}>{c.author.name}</span>
+            {renderText(c)}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  // 卡片：气泡线程
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:4,marginTop:6}}>
+      {comments.map((c,i)=>(
+        <div key={i} style={{animation:'fadeIn 0.18s ease'}}>
+          <div style={{background:T.bg,borderRadius:10,padding:'6px 10px',display:'inline-flex',maxWidth:'92%'}}>
+            <span style={{fontSize:12,fontWeight:600,color:c.author===ME?T.rose:'#4A7AAF',marginRight:5,flexShrink:0}}>{c.author.name}</span>
+            <span style={{fontSize:13,color:T.textSec,lineHeight:'18px'}}>{renderText(c)}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── ReplyBox ──────────────────────────────────────────────────────
+function ReplyBox({ postId, replyText, kbOpen, onOpenKb, onSubmit, onClose }) {
+  return (
+    <div style={{marginTop:8,animation:'fadeIn 0.18s ease'}}>
+      <div style={{display:'flex',gap:8,alignItems:'flex-end'}}>
+        <Ava person={ME} size={26}/>
+        <div onClick={onOpenKb} style={{flex:1,background:kbOpen?T.white:T.bg,borderRadius:16,
+          border:`1.5px solid ${kbOpen?T.rose:'transparent'}`,padding:'6px 12px',
+          display:'flex',alignItems:'center',cursor:'text',minHeight:34,transition:'border 0.15s,background 0.15s'}}>
+          <span style={{flex:1,fontSize:13.5,color:replyText?T.textPri:T.textTer,
+            fontFamily:T.font,wordBreak:'break-all',whiteSpace:'pre-wrap',minHeight:18}}>
+            {replyText||'写下你的回复…'}
+          </span>
+          {kbOpen&&<span style={{display:'inline-block',width:2,height:16,background:T.rose,
+            borderRadius:1,marginLeft:1,animation:'blink 1s step-end infinite'}}/>}
+        </div>
+        <button onClick={()=>{if(replyText.trim())onSubmit(postId,replyText.trim());}}
+          style={{height:34,padding:'0 12px',borderRadius:17,
+            background:replyText.trim()?T.rose:'#E0DDE6',
+            color:replyText.trim()?'#fff':T.textTer,
+            border:'none',fontSize:13,fontWeight:600,cursor:'pointer',
+            transition:'background 0.2s',fontFamily:T.font,flexShrink:0}}>回复</button>
+      </div>
+      <div onClick={onClose} style={{textAlign:'right',fontSize:12,color:T.textTer,
+        marginTop:4,cursor:'pointer',paddingRight:4}}>取消</div>
+    </div>
+  );
+}
+
+// ── Post ──────────────────────────────────────────────────────────
+function InteractCard({ post, onDelete, isLast }) {
+  const isMe = post.author===ME;
+  const opt = INTERACT_OPTIONS.find(o=>o.emoji===post.interactEmoji)||{color:T.rose,emoji:post.interactEmoji,label:'互动'};
+  const copy = INTERACT_COPY[post.interactEmoji]||{title:'送出了'+opt.label,titleR:'收到了'+opt.label,sub:'传过去了'};
+  return (
+    <div style={{padding:'0 16px',paddingBottom:isLast?8:12,animation:'fadeIn 0.22s ease'}}>
+      <div style={{position:'relative',filter:'drop-shadow(0 4px 14px rgba(80,50,10,0.12))'}}>
+        {/* 胶带 */}
+        <div style={{position:'absolute',top:-7,left:'50%',transform:'translateX(-50%)',
+          width:40,height:13,borderRadius:2,zIndex:2,
+          background:'rgba(255,230,130,0.72)',
+          border:'1px solid rgba(200,170,80,0.30)'}}/>
+
+        <div style={{display:'flex',transform:'rotate(0.4deg)',width:'100%'}}>
+          {/* 左：emoji区 */}
+          <div style={{
+            flexShrink:0,width:68,
+            background:`linear-gradient(160deg,${opt.color}32,${opt.color}18)`,
+            padding:'14px 0',
+            display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:5,
+            borderRadius:'10px 0 0 10px',
+            border:`1px solid ${opt.color}28`,borderRight:'none',
+            position:'relative'
+          }}>
+            {/* 打孔 */}
+            <div style={{position:'absolute',right:-5,top:'50%',transform:'translateY(-50%)',
+              display:'flex',flexDirection:'column',gap:4}}>
+              {[0,1,2].map(i=>(
+                <div key={i} style={{width:10,height:10,borderRadius:5,background:'#F2F2F5'}}/>
+              ))}
+            </div>
+            {/* 虚线分割 */}
+            <div style={{position:'absolute',right:-1,top:0,bottom:0,width:1,
+              backgroundImage:'repeating-linear-gradient(to bottom,rgba(0,0,0,0.10) 0px,rgba(0,0,0,0.10) 5px,transparent 5px,transparent 10px)'}}/>
+            <div style={{fontSize:32,lineHeight:1}}>{post.interactEmoji}</div>
+            <div style={{fontSize:9.5,fontWeight:600,color:`${opt.color}CC`,letterSpacing:'0.04em'}}>{opt.label}</div>
+          </div>
+          {/* 右：文字区 */}
+          <div style={{
+            flex:1,
+            background:'linear-gradient(155deg,#FFFDF8,#FFF8EE)',
+            padding:'12px 13px 11px',
+            borderRadius:'0 10px 10px 0',
+            border:'1px solid rgba(180,140,60,0.18)',borderLeft:'none',
+            display:'flex',flexDirection:'column',justifyContent:'center',gap:3
+          }}>
+            <div style={{
+              display:'inline-flex',alignItems:'center',gap:3,
+              background:'rgba(255,77,136,0.08)',border:'1px solid rgba(255,77,136,0.14)',
+              borderRadius:4,padding:'2px 6px',fontSize:9.5,fontWeight:600,
+              color:T.rose,width:'fit-content',letterSpacing:'0.04em',marginBottom:2,fontFamily:T.font
+            }}>{isMe?'已送出':'收到了'}</div>
+            <div style={{fontSize:13.5,fontWeight:600,color:'#5C3510',lineHeight:1.35,fontFamily:T.font}}>
+              {isMe?copy.title:copy.titleR}
+            </div>
+            <div style={{fontSize:11,color:'#B08040',lineHeight:1.4,fontFamily:T.font}}>
+              {copy.sub}
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:4,marginTop:5,
+              paddingTop:5,borderTop:'1px solid rgba(180,130,60,0.10)',
+              fontSize:10,color:'rgba(140,90,30,0.45)',fontFamily:T.font}}>
+              <Ava person={post.author} size={14}/>
+              {post.author.name} · {formatTime(post.date,post.time)}
+              {isMe&&(
+                <button onClick={e=>{e.stopPropagation();onDelete(post.id);}}
+                  style={{background:'none',border:'none',cursor:'pointer',padding:0,
+                    opacity:0.22,lineHeight:1,marginLeft:'auto',transition:'opacity 0.15s'}}
+                  onMouseEnter={e=>e.currentTarget.style.opacity='0.65'}
+                  onMouseLeave={e=>e.currentTarget.style.opacity='0.22'}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <polyline points="3 6 5 6 21 6" stroke={T.textSec} strokeWidth="1.8" strokeLinecap="round"/>
+                    <path d="M19 6l-1 14H6L5 6" stroke={T.textSec} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Post({ post, onReply, onDelete, onReact, onShake, onChangeTemplate,
+  replyingId, replyText, replyKbOpen, onOpenReply, onCloseReply, onOpenReplyKb,
+  playingId, onPlay, isLast, forceTemplate=null }) {
+  if (post.kind==='interact') return <InteractCard post={post} onDelete={onDelete} isLast={isLast}/>;
+  const isMe = post.author===ME;
+  const isReplying = replyingId===post.id;
+  const isPlaying = playingId===post.id;
+  const tpl = forceTemplate || post.template||'card';
+
+  // dayLabel removed — integrated into card headers
+
+  const contentArea = post.kind==='voice'
+    ? <VoiceBubble sec={post.voiceSec} playing={isPlaying} onPlay={()=>onPlay(post.id)}/>
+    : (
+      <>
+        {post.text&&<div style={{fontSize:14,color:T.textPri,lineHeight:'22px',wordBreak:'break-all'}}>{post.text}</div>}
+        <PhotoGrid count={post.photos} photoUrls={post.photoUrls||[]}/>
+        {post.hasVideo&&<VideoPlaceholder/>}
+      </>
+    );
+
+  // ── Reaction display — 方案A: 头像叠角气泡 ──
+  const reactionDisplay = (() => {
+    const isMe = post.author===ME;
+    const myReaction = post.reactions[ME.name];
+    const theirReaction = post.reactions[LOVER.name];
+
+    // Option A bubble: emoji pill with reactor's avatar overlapping left edge
+    const BubbleA = ({reactor, emoji, clearable}) => (
+      <div style={{paddingBottom:6,display:'inline-flex',alignItems:'center',gap:6}}>
+        <div style={{position:'relative',display:'inline-flex'}}>
+          {/* Pill */}
+          <div style={{
+            background: reactor===ME ? T.roseSoft : 'rgba(168,197,224,0.15)',
+            border:`1.5px solid ${reactor===ME ? 'rgba(255,77,136,0.25)' : 'rgba(168,197,224,0.4)'}`,
+            borderRadius:20,
+            padding:'4px 10px 4px 22px',
+            fontSize:18,lineHeight:1,
+            display:'inline-flex',alignItems:'center',
+          }}>{emoji}</div>
+          {/* Avatar overlapping left */}
+          <div style={{
+            position:'absolute',left:-2,top:'50%',transform:'translateY(-50%)',
+            width:20,height:20,borderRadius:'50%',
+            border:'2px solid #fff',
+            overflow:'hidden',
+            boxShadow:'0 1px 4px rgba(0,0,0,0.15)',
+            flexShrink:0,
+          }}>
+            <Ava person={reactor} size={20}/>
+          </div>
+        </div>
+        {clearable&&(
+          <span onClick={()=>onReact(post.id,null)}
+            style={{fontSize:11,color:T.textTer,cursor:'pointer',opacity:0.45,lineHeight:1,transition:'opacity 0.15s'}}
+            onMouseEnter={e=>e.currentTarget.style.opacity='1'}
+            onMouseLeave={e=>e.currentTarget.style.opacity='0.45'}>✎</span>
+        )}
+      </div>
+    );
+
+    if (isMe) {
+      if (!theirReaction) return null;
+      return (
+        <div style={{display:'inline-flex',alignItems:'center',gap:5}}>
+          <BubbleA reactor={LOVER} emoji={theirReaction} clearable={false}/>
+          <span
+            title="摇一摇"
+            onClick={()=>onShake&&onShake(post.id,theirReaction)}
+            onMouseEnter={e=>{e.currentTarget.style.opacity='1';e.currentTarget.style.animation='none';void e.currentTarget.offsetWidth;e.currentTarget.style.animation='shake 0.5s ease';}}
+            onMouseLeave={e=>{e.currentTarget.style.opacity='0.38';e.currentTarget.style.animation='none';}}
+            style={{display:'inline-flex',alignItems:'center',justifyContent:'center',
+              cursor:'pointer',opacity:0.38,color:T.textTer,
+              lineHeight:1,transition:'opacity 0.15s',userSelect:'none'}}
+          >
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2.5 2.5 L3 4 L4.5 4.5 L3 5 L2.5 6.5 L2 5 L0.5 4.5 L2 4 Z" fill="currentColor" opacity="0.9"/>
+              <path d="M10 0.5 L10.4 1.6 L11.5 2 L10.4 2.4 L10 3.5 L9.6 2.4 L8.5 2 L9.6 1.6 Z" fill="currentColor" opacity="0.7"/>
+              <path d="M7.5 7 L8.2 9 L10.2 9.7 L8.2 10.4 L7.5 12.5 L6.8 10.4 L4.8 9.7 L6.8 9 Z" fill="currentColor" opacity="0.85" strokeWidth="1.2"/>
+            </svg>
+          </span>
+        </div>
+      );
+    }
+    if (myReaction) return <BubbleA reactor={ME} emoji={myReaction} clearable={true}/>;
+    return (
+      <div style={{paddingBottom:6,display:'flex',gap:1}}>
+        {REACT_EMOJIS.map(e=>(
+          <span key={e} onClick={()=>onReact(post.id,e)}
+            style={{fontSize:17,opacity:0.28,cursor:'pointer',padding:'0 3px',
+              display:'inline-block',transition:'opacity 0.12s,transform 0.1s'}}
+            onMouseEnter={ev=>{ev.currentTarget.style.opacity='0.88';ev.currentTarget.style.transform='scale(1.22)';}}
+            onMouseLeave={ev=>{ev.currentTarget.style.opacity='0.28';ev.currentTarget.style.transform='scale(1)';}}
+          >{e}</span>
+        ))}
+      </div>
+    );
+  })();
+
+  // ── 操作按钒组（删除 + 回复）──
+  const reactionActions = (
+    <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
+      {isMe&&(
+        <button onClick={e=>{e.stopPropagation();onDelete(post.id);}}
+          style={{background:'none',border:'none',cursor:'pointer',padding:2,opacity:0.28,lineHeight:1,transition:'opacity 0.15s'}}
+          onMouseEnter={e=>e.currentTarget.style.opacity='0.65'}
+          onMouseLeave={e=>e.currentTarget.style.opacity='0.28'}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <polyline points="3 6 5 6 21 6" stroke={T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+            <path d="M19 6l-1 14H6L5 6" stroke={T.textSec} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10 11v6M14 11v6" stroke={T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+            <path d="M9 6V4h6v2" stroke={T.textSec} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
+      <button onClick={e=>{e.stopPropagation();onOpenReply(post.id);}}
+        style={{display:'flex',alignItems:'center',gap:3,background:'none',border:'none',
+          cursor:'pointer',padding:'2px 0',fontFamily:T.font,fontSize:12,
+          color:isReplying?T.rose:T.textSec}}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+            stroke={isReplying?T.rose:T.textSec} strokeWidth="1.8" strokeLinejoin="round"/>
+        </svg>
+        回复
+      </button>
+    </div>
+  );
+  const actionRow = (
+    <div style={{display:'flex',alignItems:'center',gap:6,marginTop:10}}>
+      {reactionDisplay}
+      <div style={{flex:1}}/>
+      {reactionActions}
+    </div>
+  );
+
+  // ── Render card by template ──────────────────────────────────
+  let cardEl;
+  if (tpl==='sticky') {
+    cardEl = (
+      <div style={{position:'relative',marginTop:8,paddingTop:2}}>
+        {/* 胶带 */}
+        <div style={{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',
+          width:42,height:14,borderRadius:2,zIndex:2,
+          background:'rgba(255,255,255,0.52)',
+          boxShadow:'0 1px 3px rgba(0,0,0,0.10)',
+          border:'1px solid rgba(255,255,255,0.72)'}}/>
+        <div style={{
+          background:STICKY_BG[post.id%4],
+          borderRadius:2,
+          padding:'16px 14px 12px',
+          position:'relative',zIndex:1,
+          boxShadow:'0 1px 1px rgba(0,0,0,0.10),0 3px 8px rgba(0,0,0,0.10),0 10px 28px rgba(0,0,0,0.08),2px 14px 30px rgba(0,0,0,0.05)',
+          border:'1px solid rgba(0,0,0,0.04)',
+        }}>
+        <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:8}}>
+          <Ava person={post.author} size={28}/>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:13,fontWeight:600,color:isMe?T.rose:'#4A7AAF'}}>{post.author.name}</div>
+            <div style={{fontSize:10.5,color:'rgba(0,0,0,0.32)',marginTop:1}}>第{daysSince(post.date)}天 · {formatTime(post.date,post.time)}</div>
+          </div>
+          <TemplateTag post={post} onChangeTemplate={onChangeTemplate}/>
+        </div>
+        {contentArea}
+        {actionRow}
+        <CommentsList comments={post.comments} template='sticky'/>
+        </div>
+      </div>
+    );
+  } else if (tpl==='polaroid') {
+    const gradBg = isMe
+      ? 'linear-gradient(135deg,#FFD3E2,#EECDE0)'
+      : 'linear-gradient(135deg,#C8D8F0,#B8CDE8)';
+    cardEl = (
+      <div style={{background:'#FAFAF8',borderRadius:4,padding:'10px 10px 16px',
+        boxShadow:'0 1px 1px rgba(0,0,0,0.10),0 3px 8px rgba(0,0,0,0.10),0 10px 28px rgba(0,0,0,0.08),2px 14px 30px rgba(0,0,0,0.05)',
+        border:'1px solid rgba(0,0,0,0.04)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:8}}>
+          <Ava person={post.author} size={28}/>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:13,fontWeight:600,color:isMe?T.rose:'#4A7AAF'}}>{post.author.name}</div>
+            <div style={{fontSize:10.5,color:T.textTer,marginTop:1}}>第{daysSince(post.date)}天 · {formatTime(post.date,post.time)}</div>
+          </div>
+          <TemplateTag post={post} onChangeTemplate={onChangeTemplate}/>
+        </div>
+        {/* 4:3 image area */}
+        <div style={{width:'100%',aspectRatio:'4/3',borderRadius:2,overflow:'hidden',marginBottom:10,
+          background:post.hasMedia?'linear-gradient(135deg,#E8E0D8,#D8D0C8)':gradBg,
+          display:'flex',alignItems:'center',justifyContent:'center'}}>
+          {(post.photoUrls||[])[0]
+            ?<img src={post.photoUrls[0]} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>
+            :<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.5" strokeLinecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5" fill="rgba(255,255,255,0.45)" stroke="none"/>
+              <path d="M21 15l-5-5L5 21"/>
+            </svg>}
+        </div>
+        {post.text&&(
+          <p style={{fontFamily:'"KaiTi","STKaiti","楷体",serif',fontSize:13,
+            color:T.textSec,padding:'0 4px',lineHeight:1.7,margin:'0 0 6px'}}>{post.text}</p>
+        )}
+        {actionRow}
+        <CommentsList comments={post.comments} template='polaroid'/>
+      </div>
+    );
+  } else if (tpl==='envelope') {
+    cardEl = (
+      <div style={{background:'#F5EDD8',borderRadius:4,
+        boxShadow:'0 3px 14px rgba(0,0,0,0.13)',
+        border:'1px solid rgba(180,140,80,0.2)',
+        position:'relative',overflow:'visible',paddingBottom:4}}>
+        {/* V-flap — no overflow clip so seal shows fully */}
+        <div style={{position:'relative',height:48,
+          background:'#EDD9A8',borderBottom:'1px solid rgba(180,140,80,0.25)',
+          borderRadius:'4px 4px 0 0',overflow:'hidden'}}>
+          <svg width="100%" height="48" viewBox="0 0 320 48" preserveAspectRatio="none">
+            <path d="M0 0 L160 44 L320 0 Z" fill="#F0C882" opacity="0.5"/>
+            <path d="M0 0 L160 44 L320 0" fill="none" stroke="rgba(180,140,80,0.3)" strokeWidth="1"/>
+          </svg>
+        </div>
+        {/* Wax seal — on wrapper so fully visible, centred on flap/letter seam */}
+        <div style={{position:'absolute',top:33,left:'50%',
+          transform:'translateX(-50%)',
+          width:32,height:32,borderRadius:'50%',zIndex:10,
+          background:'radial-gradient(circle at 38% 38%,#D4543A,#A83020)',
+          boxShadow:'0 3px 8px rgba(0,0,0,0.30)',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          border:'2.5px solid rgba(255,255,255,0.45)'}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402C1 3.335 4.398 1 7.5 1c1.89 0 3.752.85 4.5 2.025C12.75 1.85 14.61 1 16.5 1 19.6 1 23 3.335 23 7.19c0 4.106-5.374 8.863-11 14.402z" fill="rgba(255,255,255,0.85)"/>
+          </svg>
+        </div>
+        <div style={{margin:'24px 10px 10px',background:'#FEFCF7',borderRadius:2,
+          padding:'12px 12px 8px',border:'1px solid rgba(180,140,80,0.15)',
+          backgroundImage:`repeating-linear-gradient(transparent,transparent 23px,rgba(140,100,60,0.1) 23px,rgba(140,100,60,0.1) 24px)`,
+          backgroundPositionY:'30px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+            <Ava person={post.author} size={26}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:12.5,fontWeight:600,color:isMe?T.rose:'#4A7AAF'}}>{post.author.name}</div>
+              <div style={{fontSize:10,color:T.textTer,marginTop:1}}>第{daysSince(post.date)}天 · {formatTime(post.date,post.time)}</div>
+            </div>
+            <TemplateTag post={post} onChangeTemplate={onChangeTemplate}/>
+          </div>
+          {contentArea}
+          {actionRow}
+          <CommentsList comments={post.comments} template='card'/>
+        </div>
+      </div>
+    );
+  } else {
+    // Default: card
+    cardEl = (
+      <div style={{background:T.white,borderRadius:14,
+        boxShadow:'0 1px 1px rgba(0,0,0,0.10),0 3px 8px rgba(0,0,0,0.10),0 10px 28px rgba(0,0,0,0.08),2px 14px 30px rgba(0,0,0,0.05)',
+        border:'1px solid rgba(0,0,0,0.04)',padding:'11px 13px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:8}}>
+          <Ava person={post.author} size={28}/>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:13,fontWeight:600,color:isMe?T.rose:'#4A7AAF'}}>{post.author.name}</div>
+            <div style={{fontSize:10.5,color:T.textTer,marginTop:1}}>第{daysSince(post.date)}天 · {formatTime(post.date,post.time)}</div>
+          </div>
+          <TemplateTag post={post} onChangeTemplate={onChangeTemplate}/>
+        </div>
+        {contentArea}
+        {actionRow}
+        <CommentsList comments={post.comments} template='card'/>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{animation:'fadeIn 0.22s ease',padding:'0 16px',paddingBottom:isLast?8:14}}>
+      <div style={{minWidth:0}}>
+        {cardEl}
+        {isReplying&&(
+          <ReplyBox postId={post.id} replyText={replyText} kbOpen={replyKbOpen}
+            onOpenKb={onOpenReplyKb}
+            onSubmit={(id,val)=>onReply(id,val)}
+            onClose={onCloseReply}/>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── MockKeyboard ──────────────────────────────────────────────────
+const ROWS=[['q','w','e','r','t','y','u','i','o','p'],['a','s','d','f','g','h','j','k','l'],['⇧','z','x','c','v','b','n','m','⌫']];
+const KB_EMOJIS=['😂','❤️','🥰','😭','🌹','🍵','☕','🥾','✨','💕','🤣','😍','🎉','💪','🙏'];
+const SUGGESTIONS=['❤️','🥰','😘','今天','在一起','好开心','爱你','想你','记录','一起'];
+
+function MockKeyboard({ text, placeholder, attachments=[], onChar, onDelete, onEnter,
+  onClose, onVoice, onPhoto, onVideo, onRemoveAttachment, sendLabel='发送' }) {
+  const [shifted,setShifted]=useState(false);
+  const [panel,setPanel]=useState('keys');
+  const bg='#D1D5DB',keyBg='#FFFFFF',specBg='#ADB5BD';
+  const press=k=>{
+    if(k==='⌫'){onDelete();return;}
+    if(k==='⇧'){setShifted(s=>!s);return;}
+    onChar(shifted?k.toUpperCase():k);
+    if(shifted)setShifted(false);
+  };
+  const canSend = text.trim()||attachments.length>0;
+  const Ico=({children,onClick,active})=>(
+    <div onClick={onClick} style={{width:38,height:38,borderRadius:'50%',
+      background:active?'rgba(255,77,136,0.12)':'transparent',
+      display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>
+      {children}
+    </div>
+  );
+  return (
+    <div style={{position:'absolute',bottom:0,left:0,right:0,background:'#F7F7F7',zIndex:20,
+      animation:'slideUp 0.22s cubic-bezier(0.32,0.72,0,1)',boxShadow:'0 -1px 0 rgba(0,0,0,0.08)'}}>
+      {/* Input row */}
+      <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px 6px',
+        background:T.white,borderBottom:`1px solid ${T.line}`}}>
+        <div style={{flex:1,background:'#F2F2F5',borderRadius:20,padding:'7px 14px',
+          display:'flex',alignItems:'center',border:`1.5px solid ${T.rose}`,minHeight:36}}>
+          <span style={{flex:1,fontSize:14,lineHeight:'20px',color:text?T.textPri:T.textTer,
+            fontFamily:T.font,wordBreak:'break-all',whiteSpace:'pre-wrap',minHeight:20}}>
+            {text||placeholder||'写点什么...'}
+          </span>
+          <span style={{display:'inline-block',width:2,height:18,background:T.rose,borderRadius:1,
+            marginLeft:1,animation:'blink 1s step-end infinite'}}/>
+        </div>
+        <button onMouseDown={e=>{e.preventDefault();onEnter();}} style={{
+          height:34,padding:'0 16px',borderRadius:17,
+          background:canSend?T.rose:'#E0DDE6',
+          color:canSend?'#fff':T.textTer,
+          border:'none',fontSize:13.5,fontWeight:600,cursor:'pointer',
+          transition:'background 0.18s',fontFamily:T.font,flexShrink:0,whiteSpace:'nowrap'}}>
+          {sendLabel}
+        </button>
+      </div>
+      {/* Attachment preview */}
+      {attachments.length>0&&(
+        <div style={{display:'flex',gap:8,padding:'8px 12px 4px',background:T.white,
+          borderBottom:`1px solid ${T.line}`,overflowX:'auto'}}>
+          {attachments.map((att,i)=>(
+            <div key={att.id||i} style={{position:'relative',flexShrink:0}}>
+              <div style={{width:60,height:60,borderRadius:8,overflow:'hidden',
+                background:att.type==='video'?'#1a1a2e':'#E8E0D8',
+                display:'flex',alignItems:'center',justifyContent:'center'}}>
+                {att.type==='photo'&&att.url
+                  ?<img src={att.url} style={{width:'100%',height:'100%',objectFit:'cover'}} alt=""/>
+                  :att.type==='photo'
+                  ?<span style={{fontSize:22}}>🖼</span>
+                  :<svg width="16" height="18" viewBox="0 0 12 14"><path d="M1 1l10 6-10 6V1z" fill="rgba(255,255,255,0.7)"/></svg>}
+              </div>
+              <div onMouseDown={e=>{e.preventDefault();onRemoveAttachment(att.id||i);}} style={{
+                position:'absolute',top:-4,right:-4,width:18,height:18,borderRadius:9,
+                background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'center',
+                justifyContent:'center',cursor:'pointer'}}>
+                <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.4" strokeLinecap="round"/></svg>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {/* Toolbar */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',
+        padding:'4px 8px',background:T.white,borderBottom:`1px solid ${T.line}`}}>
+
+        <Ico onClick={onPhoto}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="5" width="20" height="15" rx="2.5" stroke={T.textSec} strokeWidth="1.6"/>
+            <circle cx="12" cy="12.5" r="3.5" stroke={T.textSec} strokeWidth="1.6"/>
+            <path d="M7 5l1.5-2h7L17 5" stroke={T.textSec} strokeWidth="1.6" strokeLinejoin="round"/>
+          </svg>
+        </Ico>
+        <Ico onClick={onVideo}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="5" width="15" height="14" rx="2" stroke={T.textSec} strokeWidth="1.6"/>
+            <path d="M17 9l5-3v12l-5-3V9z" stroke={T.textSec} strokeWidth="1.6" strokeLinejoin="round"/>
+          </svg>
+        </Ico>
+        <Ico onClick={()=>setPanel(p=>p==='emoji'?'keys':'emoji')} active={panel==='emoji'}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke={panel==='emoji'?T.rose:T.textSec} strokeWidth="1.6"/>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke={panel==='emoji'?T.rose:T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+            <circle cx="9" cy="10" r="1.2" fill={panel==='emoji'?T.rose:T.textSec}/>
+            <circle cx="15" cy="10" r="1.2" fill={panel==='emoji'?T.rose:T.textSec}/>
+          </svg>
+        </Ico>
+        <Ico onClick={onClose}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M6 15l6-6 6 6" stroke={T.textSec} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </Ico>
+      </div>
+      {/* Suggestion strip */}
+      <div style={{display:'flex',alignItems:'center',gap:0,overflowX:'auto',
+        padding:'5px 10px',background:'#EFEFEF',borderBottom:`1px solid ${T.line}`}}>
+        {SUGGESTIONS.map((s,i)=>(
+          <button key={i} onMouseDown={e=>{e.preventDefault();s.split('').forEach(c=>onChar(c));}}
+            style={{flexShrink:0,background:'none',border:'none',padding:'3px 10px',fontSize:13.5,
+              color:T.textPri,cursor:'pointer',fontFamily:T.font,
+              borderRight:i<SUGGESTIONS.length-1?`1px solid #DDD`:'none'}}>{s}</button>
+        ))}
+      </div>
+      {/* Keys / Emoji */}
+      {panel==='emoji' ? (
+        <div style={{padding:'10px 8px 6px',background:bg}}>
+          <div style={{display:'flex',flexWrap:'wrap',gap:4,justifyContent:'center'}}>
+            {KB_EMOJIS.map(e=>(
+              <button key={e} onMouseDown={e2=>{e2.preventDefault();onChar(e);}}
+                style={{width:42,height:42,background:keyBg,border:'none',borderRadius:8,
+                  fontSize:22,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96'}}>{e}</button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div style={{background:bg,paddingBottom:4}}>
+          {ROWS.map((row,ri)=>(
+            <div key={ri} style={{display:'flex',justifyContent:'center',gap:5,margin:'4px 0',padding:'0 4px'}}>
+              {row.map(k=>{
+                const sp=k==='⇧'||k==='⌫';
+                return (
+                  <button key={k}
+                    onMouseDown={e=>{e.preventDefault();press(k);}}
+                    onTouchStart={e=>{e.preventDefault();press(k);}}
+                    style={{flex:sp?1.5:1,maxWidth:sp?44:34,height:42,
+                      background:sp?specBg:keyBg,color:'#000',border:'none',borderRadius:5,
+                      fontSize:15,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96',fontFamily:T.font,
+                      display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    {k==='⇧'
+                      ?<svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 4L4 14h5v6h6v-6h5L12 4z" fill={shifted?T.rose:'#333'}/></svg>
+                      :k==='⌫'
+                      ?<svg width="18" height="14" viewBox="0 0 24 18"><path d="M9 1H22V17H9L1 9L9 1Z" stroke="#333" strokeWidth="1.5" fill="none"/><path d="M12 6L18 12M18 6L12 12" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                      :shifted?k.toUpperCase():k}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+          <div style={{display:'flex',gap:5,padding:'4px 6px 4px',justifyContent:'center'}}>
+            <button onMouseDown={e=>{e.preventDefault();onChar(' ');}} style={{flex:1,height:42,background:'#B0B8C4',border:'none',borderRadius:5,fontSize:13,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96',fontFamily:T.font,color:'#333'}}>123</button>
+            <button onMouseDown={e=>{e.preventDefault();onChar(' ');}} style={{flex:3,height:42,background:keyBg,border:'none',borderRadius:5,fontSize:13,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96',fontFamily:T.font}}>空格</button>
+            <button onMouseDown={e=>{e.preventDefault();onChar('\n');}} style={{flex:1,height:42,background:'#B0B8C4',border:'none',borderRadius:5,fontSize:13,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96',fontFamily:T.font,color:'#333'}}>换行</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── VoiceRecorder ─────────────────────────────────────────────────
+function VoiceRecorder({ onFinish, onTranscribe, onCancel }) {
+  const [sec,setSec]=useState(0);
+  const [phase,setPhase]=useState('recording');
+  const [transcript,setTranscript]=useState('');
+  const intervalRef=useRef(null);
+  useEffect(()=>{
+    intervalRef.current=setInterval(()=>setSec(s=>s+1),1000);
+    return()=>clearInterval(intervalRef.current);
+  },[]);
+  const stopRecording=()=>{clearInterval(intervalRef.current);setPhase('preview');};
+  const reRecord=()=>{setSec(0);setTranscript('');setPhase('recording');intervalRef.current=setInterval(()=>setSec(s=>s+1),1000);};
+  const handleTranscribe=async()=>{
+    setPhase('transcribing');
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+          messages:[{role:'user',content:`请模拟一段恋人之间真实自然的语音转文字结果，内容温柔甜蜜，长度约${Math.max(10,sec*3)}字以内，只返回转写文字本身。`}]})});
+      const data=await res.json();
+      setTranscript(data.content?.[0]?.text?.trim()||'');
+    }catch{setTranscript('（转写失败，请重试）');}
+  };
+  const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  const BARS=28;
+  return (
+    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.55)',
+      display:'flex',alignItems:'flex-end',zIndex:30,animation:'fadeIn 0.18s ease'}}>
+      <div style={{width:'100%',background:T.white,borderRadius:'20px 20px 0 0',padding:'24px 20px 32px'}}>
+        <div style={{textAlign:'center',marginBottom:16}}>
+          <div style={{fontSize:15,fontWeight:600,color:T.textPri}}>
+            {phase==='recording'?'正在录音…':phase==='transcribing'?'正在转文字…':transcript?'转写结果':'预览语音'}
+          </div>
+          {phase!=='transcribing'&&!transcript&&(
+            <div style={{fontSize:26,fontWeight:700,color:T.rose,marginTop:6,fontVariantNumeric:'tabular-nums',letterSpacing:2}}>{fmt(sec)}</div>
+          )}
+        </div>
+        {phase==='transcribing' ? (
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:60,gap:8,marginBottom:24}}>
+            <div style={{width:28,height:28,border:`3px solid ${T.roseSoft}`,borderTop:`3px solid ${T.rose}`,borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+            <span style={{fontSize:13,color:T.textTer}}>AI 语音转文字中…</span>
+          </div>
+        ) : transcript ? (
+          <div style={{background:T.bg,borderRadius:12,padding:'12px 14px',marginBottom:20,minHeight:56}}>
+            <p style={{fontSize:15,color:T.textPri,lineHeight:'24px',margin:0}}>{transcript}</p>
+          </div>
+        ) : (
+          <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:3,height:40,marginBottom:24}}>
+            {Array.from({length:BARS}).map((_,i)=>{
+              const h=4+Math.round(Math.sin(i/BARS*Math.PI*4)*8+Math.sin(i/BARS*Math.PI*9)*5+6);
+              return (<div key={i} style={{width:3,height:h,borderRadius:2,
+                background:phase==='recording'?T.rose:'#C0B8C8',
+                animation:phase==='recording'?`waveBar ${0.45+i*0.035}s ease-in-out infinite alternate`:'none',
+                animationDelay:`${i*0.035}s`}}/>);
+            })}
+          </div>
+        )}
+        {phase==='recording' ? (
+          <div style={{display:'flex',justifyContent:'center',gap:24}}>
+            <button onClick={onCancel} style={{width:56,height:56,borderRadius:'50%',background:'#F2F2F5',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:4}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke={T.textSec} strokeWidth="2.2" strokeLinecap="round"/></svg>
+              <span style={{fontSize:10,color:T.textSec}}>取消</span>
+            </button>
+            <button onClick={stopRecording} style={{width:72,height:72,borderRadius:'50%',background:T.rose,border:'none',cursor:'pointer',position:'relative',boxShadow:`0 0 0 8px ${T.roseSoft}`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div style={{width:22,height:22,borderRadius:4,background:'#fff'}}/>
+              <div style={{position:'absolute',inset:-4,borderRadius:'50%',border:`2px solid ${T.rose}`,opacity:0.4,animation:'ripple 1.4s ease-out infinite'}}/>
+            </button>
+          </div>
+        ) : transcript ? (
+          <div style={{display:'flex',gap:10}}>
+            <button onClick={reRecord} style={{flex:1,height:46,borderRadius:23,background:'#F2F2F5',border:'none',cursor:'pointer',fontSize:14,color:T.textSec,fontFamily:T.font}}>重录</button>
+            <button onClick={()=>onTranscribe(transcript)} style={{flex:2,height:46,borderRadius:23,background:T.rose,border:'none',cursor:'pointer',fontSize:14,fontWeight:600,color:'#fff',fontFamily:T.font}}>使用文字</button>
+          </div>
+        ) : (
+          <div style={{display:'flex',gap:10}}>
+            <button onClick={reRecord} style={{height:46,width:46,borderRadius:23,background:'#F2F2F5',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 4v6h6" stroke={T.textSec} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M3.51 15a9 9 0 1 0 .49-4.95L1 10" stroke={T.textSec} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <button onClick={handleTranscribe} style={{flex:1,height:46,borderRadius:23,background:'#F2F2F5',border:'none',cursor:'pointer',fontSize:13.5,color:T.textSec,fontFamily:T.font}}>转文字</button>
+            <button onClick={()=>onFinish(sec)} style={{flex:1,height:46,borderRadius:23,background:T.rose,border:'none',cursor:'pointer',fontSize:13.5,fontWeight:600,color:'#fff',fontFamily:T.font}}>发送语音</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── PublishScreen ────────────────────────────────────────────────
+const TPL_OPTIONS = [
+  { id:'card',     label:'卡片',     desc:'把这一刻好好装起来 🎀' },
+  { id:'sticky',   label:'便利贴',   desc:'像偷偷塞进书里的小纸条 💌' },
+  { id:'polaroid', label:'拍立得',   desc:'摇一摇，等它慢慢显影 🌸' },
+  { id:'envelope', label:'情书', desc:'用信封封上一个秘密 💌' },
+];
+
+function PublishScreen({ onCancel, onSave }) {
+  const [text, setText]         = useState('');
+  const [selectedPhotos, setSelectedPhotos] = useState([]); // indices from album
+  const [template, setTemplate] = useState('card');
+  const [showEmoji, setShowEmoji] = useState(false);
+  const photoRef = useRef(null);
+  const attId = useRef(0);
+  const [uploadedPhotos, setUploadedPhotos] = useState([]);
+
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`;
+
+  // Mock album photos (hue-shifted color blocks)
+  const ALBUM = Array.from({length:16}, (_,i) => ({
+    id: i,
+    bg: `hsl(0,0%,${72-i%5*5}%)`,
+  }));
+
+  const EMOJIS = ['❤️','🥰','😊','🫂','😂','🌹','✨','💕','🎉','💌','🌸','🫶'];
+
+  const toggleAlbum = (id) => {
+    setSelectedPhotos(ps =>
+      ps.includes(id) ? ps.filter(x=>x!==id) : ps.length < 9 ? [...ps, id] : ps
+    );
+  };
+
+  const handleSave = () => {
+    onSave({
+      text, template, dateStr,
+      photos: selectedPhotos.length,
+      photoUrls: uploadedPhotos.map(p=>p.url),
+      hasMedia: selectedPhotos.length > 0 || uploadedPhotos.length > 0,
+    });
+  };
+
+  const TPL_CHIPS = [
+    {id:'card',     label:'卡片',     emoji:'🎀'},
+    {id:'sticky',   label:'便利贴',   emoji:'💌'},
+    {id:'polaroid', label:'拍立得',   emoji:'🌸'},
+    {id:'envelope', label:'情书', emoji:'✉️'},
+  ];
+
+  return (
+    <div style={{
+      position:'absolute', inset:0, background:'#fff', zIndex:50,
+      display:'flex', flexDirection:'column',
+      animation:'slideInRight 0.28s cubic-bezier(0.32,0.72,0,1)',
+    }}>
+      {/* File input */}
+      <input ref={photoRef} type="file" accept="image/*" multiple style={{display:'none'}}
+        onChange={e=>{
+          Array.from(e.target.files).forEach(f=>{
+            setUploadedPhotos(ps=>[...ps,{id:++attId.current,url:URL.createObjectURL(f)}]);
+          });
+          e.target.value='';
+        }}/>
+
+      {/* Status bar */}
+      <div style={{height:44,background:'#fff',display:'flex',alignItems:'flex-end',
+        justifyContent:'space-between',padding:'0 20px 8px',flexShrink:0}}>
+        <span style={{fontSize:12,fontWeight:600,color:T.textPri}}>9:41</span>
+        <div style={{display:'flex',gap:5,alignItems:'center'}}>
+          <svg width="16" height="12" viewBox="0 0 16 12">
+            <rect x="0" y="4" width="3" height="8" rx="1" fill={T.textPri}/>
+            <rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill={T.textPri}/>
+            <rect x="9" y=".5" width="3" height="11.5" rx="1" fill={T.textPri}/>
+            <rect x="13.5" y="0" width="2" height="12" rx="1" fill={T.textPri} opacity=".3"/>
+          </svg>
+          <div style={{width:25,height:12,border:`1.5px solid ${T.textPri}`,borderRadius:3,position:'relative'}}>
+            <div style={{position:'absolute',left:1,top:1,bottom:1,right:4,background:T.textPri,borderRadius:1.5}}/>
+            <div style={{position:'absolute',right:-4,top:3,width:2.5,height:6,background:T.textPri,borderRadius:1}}/>
+          </div>
+        </div>
+      </div>
+
+      {/* Top nav: 取消 | 记录 | 草稿 */}
+      <div style={{
+        display:'flex',alignItems:'center',justifyContent:'space-between',
+        padding:'0 16px 10px',background:'#fff',flexShrink:0,
+        borderBottom:`1px solid ${T.line}`,
+      }}>
+        <button onClick={onCancel} style={{
+          background:'none',border:'none',fontSize:16,
+          color:T.textSec,cursor:'pointer',padding:'4px 0',fontFamily:T.font,
+        }}>取消</button>
+        <span style={{fontSize:16,fontWeight:600,color:'transparent'}}>记录</span>
+        <button onClick={handleSave} style={{
+          background:'none',border:'none',fontSize:16,
+          color:T.textSec,cursor:'pointer',padding:'4px 0',fontFamily:T.font,
+        }}>草稿</button>
+      </div>
+
+      {/* Scrollable content */}
+      <div style={{flex:1,overflowY:'auto',display:'flex',flexDirection:'column'}}>
+
+        {/* Text area */}
+        <div style={{padding:'14px 16px 10px',flex:'0 0 auto',minHeight:120}}>
+          <textarea
+            value={text}
+            onChange={e=>setText(e.target.value)}
+            placeholder={'写点什么...'}
+            style={{
+              width:'100%',border:'none',outline:'none',resize:'none',
+              fontSize:16,lineHeight:'26px',color:T.textPri,
+              background:'transparent',fontFamily:T.font,
+              minHeight:120,
+            }}
+          />
+        </div>
+
+        {/* Selected photo strip — below textarea */}
+        {(selectedPhotos.length > 0 || uploadedPhotos.length > 0) && (
+          <div style={{padding:'0 16px 14px',borderTop:`1px solid ${T.line}`}}>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',paddingTop:12}}>
+              {selectedPhotos.map((id,idx)=>(
+                <div key={id} style={{
+                  width:82,height:82,borderRadius:8,overflow:'visible',
+                  position:'relative',flexShrink:0,
+                }}>
+                  <div style={{width:82,height:82,borderRadius:8,overflow:'hidden',
+                    background:ALBUM[id].bg}}/>
+                  <div onClick={()=>toggleAlbum(id)} style={{
+                    position:'absolute',top:-7,right:-7,width:20,height:20,
+                    borderRadius:10,background:'#8A8A8A',border:'2px solid #fff',
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    cursor:'pointer',zIndex:2,
+                  }}>
+                    <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 1l6 6M7 1L1 7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                  </div>
+                  <div style={{
+                    position:'absolute',bottom:4,left:4,
+                    width:16,height:16,borderRadius:8,background:T.rose,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontSize:10,fontWeight:700,color:'#fff',zIndex:2,
+                  }}>{idx+1}</div>
+                </div>
+              ))}
+              {uploadedPhotos.map(p=>(
+                <div key={p.id} style={{
+                  width:82,height:82,borderRadius:8,overflow:'visible',
+                  position:'relative',flexShrink:0,
+                }}>
+                  <div style={{width:82,height:82,borderRadius:8,overflow:'hidden'}}>
+                    <img src={p.url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                  </div>
+                  <div onClick={()=>setUploadedPhotos(ps=>ps.filter(x=>x.id!==p.id))} style={{
+                    position:'absolute',top:-7,right:-7,width:20,height:20,
+                    borderRadius:10,background:'#8A8A8A',border:'2px solid #fff',
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    cursor:'pointer',zIndex:2,
+                  }}>
+                    <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 1l6 6M7 1L1 7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                  </div>
+                </div>
+              ))}
+              {(selectedPhotos.length+uploadedPhotos.length)<9&&(
+                <div onClick={()=>photoRef.current?.click()} style={{
+                  width:82,height:82,borderRadius:8,flexShrink:0,
+                  background:'#F0EEEB',border:'1.5px dashed #C8C4BE',
+                  display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+                }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="#AEAAA4" strokeWidth="2.2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Template chip row — with mini previews */}
+        <div style={{
+          padding:'10px 16px 12px',borderTop:`1px solid ${T.line}`,
+          flexShrink:0,
+        }}>
+          <div style={{fontSize:12,color:T.textTer,fontWeight:500,
+            letterSpacing:'0.04em',marginBottom:10}}>选择信纸</div>
+          <div style={{display:'flex',gap:10,overflowX:'auto'}}>
+          {TPL_CHIPS.map(t=>{
+            const sel = template===t.id;
+            const Thumb = () => {
+              if(t.id==='sticky') return (
+                <div style={{position:'relative',width:44,height:54,flexShrink:0,paddingTop:4}}>
+                  <div style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',
+                    width:16,height:7,borderRadius:1,background:'rgba(255,255,255,0.65)',
+                    border:'1px solid rgba(255,255,255,0.85)',zIndex:2}}/>
+                  <div style={{height:'100%',borderRadius:2,background:'#FFF4ED',
+                    border:`1.5px solid ${sel?T.rose:'rgba(0,0,0,0.06)'}`,
+                    boxShadow:sel?'0 3px 10px rgba(255,77,136,0.18)':'0 1px 4px rgba(0,0,0,0.08)',
+                    padding:'8px 5px 5px'}}>
+                    <div style={{height:3,borderRadius:2,background:'rgba(0,0,0,0.12)',marginBottom:3}}/>
+                    <div style={{height:3,borderRadius:2,background:'rgba(0,0,0,0.09)',marginBottom:3,width:'75%'}}/>
+                    <div style={{height:3,borderRadius:2,background:'rgba(0,0,0,0.07)',width:'55%'}}/>
+                  </div>
+                </div>
+              );
+              if(t.id==='polaroid') return (
+                <div style={{width:44,height:54,borderRadius:2,background:'#FAFAF8',flexShrink:0,
+                  border:`1.5px solid ${sel?T.rose:'rgba(0,0,0,0.08)'}`,
+                  boxShadow:sel?'0 3px 10px rgba(255,77,136,0.18)':'0 1px 4px rgba(0,0,0,0.08)',
+                  padding:'4px 4px 6px'}}>
+                  <div style={{width:'100%',height:22,borderRadius:2,
+                    background:'linear-gradient(135deg,#E8E0D8,#D0C8C0)',
+                    marginBottom:4,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="3" width="18" height="18" rx="2" stroke="rgba(255,255,255,0.55)" strokeWidth="2"/>
+                      <path d="M21 15l-5-5L5 21" stroke="rgba(255,255,255,0.55)" strokeWidth="2"/>
+                    </svg>
+                  </div>
+                  <div style={{height:3,borderRadius:2,background:'rgba(0,0,0,0.10)',width:'80%',margin:'0 auto'}}/>
+                </div>
+              );
+              if(t.id==='envelope') return (
+                <div style={{width:44,height:54,borderRadius:3,background:'#F5EDD8',flexShrink:0,
+                  border:`1.5px solid ${sel?T.rose:'rgba(180,140,80,0.25)'}`,
+                  boxShadow:sel?'0 3px 10px rgba(255,77,136,0.18)':'0 1px 4px rgba(0,0,0,0.08)',
+                  overflow:'visible',position:'relative'}}>
+                  <div style={{height:16,background:'#EDD9A8',position:'relative',overflow:'hidden',
+                    borderRadius:'3px 3px 0 0',
+                    borderBottom:'1px solid rgba(180,140,80,0.2)'}}>
+                    <svg width="44" height="16" viewBox="0 0 44 16" preserveAspectRatio="none">
+                      <path d="M0 0 L22 14 L44 0 Z" fill="#F0C882" opacity="0.6"/>
+                    </svg>
+                  </div>
+                  {/* wax seal on wrapper */}
+                  <div style={{position:'absolute',top:9,left:'50%',transform:'translateX(-50%)',
+                    width:12,height:12,borderRadius:'50%',zIndex:5,
+                    background:'radial-gradient(circle at 38% 38%,#D4543A,#A83020)',
+                    border:'1.5px solid rgba(255,255,255,0.5)',
+                    boxShadow:'0 1px 3px rgba(0,0,0,0.3)'}}/>
+                  <div style={{padding:'10px 5px 5px',marginTop:2}}>
+                    <div style={{height:3,borderRadius:2,background:'rgba(140,100,60,0.2)',marginBottom:3}}/>
+                    <div style={{height:3,borderRadius:2,background:'rgba(140,100,60,0.15)',marginBottom:3,width:'75%'}}/>
+                    <div style={{height:3,borderRadius:2,background:'rgba(140,100,60,0.12)',width:'55%'}}/>
+                  </div>
+                </div>
+              );
+              return (
+                <div style={{width:44,height:54,borderRadius:8,background:'#fff',flexShrink:0,
+                  border:`1.5px solid ${sel?T.rose:'rgba(0,0,0,0.09)'}`,
+                  boxShadow:sel?'0 3px 10px rgba(255,77,136,0.18)':'0 1px 4px rgba(0,0,0,0.08)',
+                  padding:'6px 5px 5px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:3,marginBottom:4}}>
+                    <div style={{width:8,height:8,borderRadius:'50%',background:'#FFB5C8',flexShrink:0}}/>
+                    <div style={{flex:1,height:3,borderRadius:2,background:'rgba(255,77,136,0.22)'}}/>
+                  </div>
+                  <div style={{height:3,borderRadius:2,background:'#E8E5E0',marginBottom:2.5}}/>
+                  <div style={{height:3,borderRadius:2,background:'#E8E5E0',marginBottom:2.5,width:'75%'}}/>
+                  <div style={{height:3,borderRadius:2,background:'#E8E5E0',width:'55%'}}/>
+                </div>
+              );
+            };
+            return (
+              <button key={t.id} onClick={()=>setTemplate(t.id)} style={{
+                flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',gap:6,
+                padding:'8px 12px',borderRadius:12,fontSize:12,fontWeight:sel?600:400,
+                border:`1.5px solid ${sel?T.rose:'rgba(0,0,0,0.10)'}`,
+                background:sel?T.roseSoft:'rgba(0,0,0,0.02)',
+                color:sel?T.rose:T.textSec,
+                cursor:'pointer',transition:'all 0.16s',
+                boxShadow:sel?'0 4px 12px rgba(255,77,136,0.16)':'none',
+              }}>
+                <Thumb/>{t.label}
+              </button>
+            );
+          })}
+          </div>
+        </div>
+
+                {/* Icon toolbar */}
+        <div style={{
+          display:'flex',alignItems:'center',gap:0,
+          padding:'6px 12px',borderTop:`1px solid ${T.line}`,
+          borderBottom:`1px solid ${T.line}`,flexShrink:0,
+          background:'#fff',
+        }}>
+          {/* Image */}
+          <button onClick={()=>photoRef.current?.click()} style={{
+            width:42,height:42,background:'none',border:'none',cursor:'pointer',
+            display:'flex',alignItems:'center',justifyContent:'center',
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="5" width="20" height="15" rx="2.5" stroke={T.textSec} strokeWidth="1.6"/>
+              <circle cx="12" cy="12.5" r="3.5" stroke={T.textSec} strokeWidth="1.6"/>
+              <path d="M7 5l1.5-2h7L17 5" stroke={T.textSec} strokeWidth="1.6" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          {/* Emoji */}
+          <button onClick={()=>setShowEmoji(s=>!s)} style={{
+            width:42,height:42,background:'none',border:'none',cursor:'pointer',
+            display:'flex',alignItems:'center',justifyContent:'center',
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke={showEmoji?T.rose:T.textSec} strokeWidth="1.6"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke={showEmoji?T.rose:T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+              <circle cx="9" cy="10" r="1.2" fill={showEmoji?T.rose:T.textSec}/>
+              <circle cx="15" cy="10" r="1.2" fill={showEmoji?T.rose:T.textSec}/>
+            </svg>
+          </button>
+          {/* Save button on right */}
+          <button onClick={handleSave} style={{
+            marginLeft:'auto',
+            background:T.rose,color:'#fff',border:'none',
+            borderRadius:20,padding:'7px 22px',
+            fontSize:14,fontWeight:600,cursor:'pointer',
+            boxShadow:'0 4px 12px rgba(255,77,136,0.30)',fontFamily:T.font,
+          }}>保存</button>
+        </div>
+
+        {/* Emoji picker strip */}
+        {showEmoji && (
+          <div style={{
+            display:'flex',flexWrap:'wrap',gap:4,
+            padding:'10px 14px',background:'#F7F5F3',
+            borderBottom:`1px solid ${T.line}`,flexShrink:0,
+          }}>
+            {EMOJIS.map(e=>(
+              <span key={e} onClick={()=>{setText(t=>t+e);}}
+                style={{fontSize:22,cursor:'pointer',padding:'4px 5px',
+                  borderRadius:8,transition:'background 0.1s',display:'inline-block'}}
+                onMouseEnter={ev=>ev.currentTarget.style.background='rgba(0,0,0,0.06)'}
+                onMouseLeave={ev=>ev.currentTarget.style.background='transparent'}
+              >{e}</span>
+            ))}
+          </div>
+        )}
+
+        {/* Album grid */}
+        <div style={{flex:1,background:'#000',flexShrink:0}}>
+          {/* Photo grid — camera as first cell */}
+          <div style={{
+            display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:1.5,
+          }}>
+            {/* Camera cell */}
+            <div onClick={()=>photoRef.current?.click()} style={{
+              aspectRatio:'1',background:'#2A2A2A',
+              display:'flex',flexDirection:'column',alignItems:'center',
+              justifyContent:'center',gap:6,cursor:'pointer',
+            }}>
+              <svg width="26" height="24" viewBox="0 0 24 22" fill="none">
+                <rect x="1" y="5" width="22" height="16" rx="2.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.6"/>
+                <circle cx="12" cy="13" r="4" stroke="rgba(255,255,255,0.6)" strokeWidth="1.6"/>
+                <path d="M7 5l2-3h6l2 3" stroke="rgba(255,255,255,0.6)" strokeWidth="1.6" strokeLinejoin="round"/>
+              </svg>
+              <span style={{fontSize:11,color:'rgba(255,255,255,0.55)',fontWeight:500}}>点击拍照</span>
+            </div>
+            {ALBUM.map(p=>{
+              const sel = selectedPhotos.includes(p.id);
+              return (
+                <div key={p.id} onClick={()=>toggleAlbum(p.id)}
+                  style={{
+                    aspectRatio:'1',background:p.bg,
+                    position:'relative',cursor:'pointer',
+                    opacity: sel ? 0.75 : 1,
+                    transition:'opacity 0.15s',
+                  }}>
+                  {/* numbered circle top-left */}
+                  {sel ? (
+                    <div style={{
+                      position:'absolute',top:5,left:5,
+                      width:22,height:22,borderRadius:11,
+                      background:T.rose,border:'2px solid #fff',
+                      display:'flex',alignItems:'center',justifyContent:'center',
+                      fontSize:11,fontWeight:700,color:'#fff',
+                      boxShadow:'0 1px 4px rgba(0,0,0,0.25)',
+                    }}>{selectedPhotos.indexOf(p.id)+1}</div>
+                  ) : (
+                    <div style={{
+                      position:'absolute',top:5,left:5,
+                      width:22,height:22,borderRadius:11,
+                      background:'rgba(0,0,0,0.18)',border:'1.5px solid rgba(255,255,255,0.6)',
+                    }}/>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Home indicator */}
+      <div style={{
+        height:22,background:'#000',flexShrink:0,
+        display:'flex',alignItems:'center',justifyContent:'center',
+      }}>
+        <div style={{width:120,height:4,borderRadius:2,background:'rgba(255,255,255,0.25)'}}/>
+      </div>
+    </div>
+  );
+}
+
+// ── DiaryScreen ───────────────────────────────────────────────────
+function DiaryScreen({ envelopeMode=null, fabScheme=1 }) {
+  const [view,setView]=useState('diary'); // 'diary' | 'publish'
+  const [posts,setPosts]=useState(INITIAL_POSTS.map(p=>({...p})));
+  const [text,setText]=useState('');
+  const [attachments,setAttachments]=useState([]);
+  const [kbOpen,setKbOpen]=useState(false);
+  const [replyingId,setReply]=useState(null);
+  const [replyText,setReplyText]=useState('');
+  const [replyKbOpen,setReplyKb]=useState(false);
+  const [replyVoice,setReplyVoice]=useState(false);
+  const [playingId,setPlaying]=useState(null);
+  const [showVoice,setVoice]=useState(false);
+  const [fabOpen,setFabOpen]=useState(false);
+  const [interactOpen,setInteractOpen]=useState(false);
+  const [emojiRain,setEmojiRain]=useState(null);
+  const [toast,setToast]=useState('');
+  const [coverImg,setCoverImg]=useState(null);
+  const [showMore,setShowMore]=useState(false);
+  const [navScrolled,setNavScrolled]=useState(false);
+  // 方案4 专用状态
+  const [s4VoiceMode,setS4VoiceMode]=useState(false);
+  const [s4KbOpen,setS4KbOpen]=useState(false);
+  const [s4Text,setS4Text]=useState('');
+  const [s4Shifted,setS4Shifted]=useState(false);
+  const [s4Tpl,setS4Tpl]=useState('card');
+  const [s4Panel,setS4Panel]=useState('keys');
+  const [s4Recording,setS4Recording]=useState(false);
+  const [s4RecordSec,setS4RecordSec]=useState(0);
+  const [s4HasVoice,setS4HasVoice]=useState(false);
+  const coverRef=useRef(null);
+  const photoRef=useRef(null);
+  const feedRef=useRef(null);
+  const hiddenRef=useRef(null);
+  const attId=useRef(0);
+  const KB_H=260;
+  const S4_KB_H=430;
+
+  useEffect(()=>{
+    const el=feedRef.current;
+    if(!el)return;
+    const fn=()=>setNavScrolled(el.scrollTop>160);
+    el.addEventListener('scroll',fn);
+    return()=>el.removeEventListener('scroll',fn);
+  },[]);
+
+  useEffect(()=>{
+    if(!s4Recording)return;
+    const t=setInterval(()=>setS4RecordSec(s=>s+1),1000);
+    return()=>clearInterval(t);
+  },[s4Recording]);
+
+
+  useEffect(()=>{
+    if(playingId===null)return;
+    const p=posts.find(p=>p.id===playingId);
+    if(!p)return;
+    const t=setTimeout(()=>setPlaying(null),(p.voiceSec||5)*1000);
+    return()=>clearTimeout(t);
+  },[playingId]);
+
+  const showToast=(msg)=>{setToast(msg);setTimeout(()=>setToast(''),2000);};
+
+  const handleDelete=id=>setPosts(ps=>ps.filter(p=>p.id!==id));
+
+  const handleReply=(id,val)=>{
+    setPosts(ps=>ps.map(p=>p.id===id?{...p,comments:[...p.comments,{author:ME,text:val}]}:p));
+    setReply(null);setReplyText('');setReplyKb(false);
+  };
+
+  const handleReact=(postId,emoji)=>{
+    setPosts(ps=>ps.map(p=>{
+      if(p.id!==postId)return p;
+      const reactions={...p.reactions};
+      if(emoji===null) delete reactions[ME.name];
+      else reactions[ME.name]=emoji;
+      return{...p,reactions};
+    }));
+    if(emoji){
+      const extras=['✨','💫','⭐','🌟','💕','💗','💖','✦'];
+      const particles=Array.from({length:28},(_,i)=>({
+        id:i,
+        content: i<16 ? emoji : extras[i%extras.length],
+        x:3+Math.random()*94,
+        delay:Math.random()*1.1,
+        dur:1.6+Math.random()*1.6,
+        size: i<16 ? 18+Math.random()*18 : 11+Math.random()*10,
+        drift:(Math.random()-0.5)*90,
+        spin:(Math.random()-0.5)*140,
+        opacity: i<16 ? 1 : 0.55+Math.random()*0.35,
+      }));
+      setEmojiRain({emoji,particles});
+      setTimeout(()=>setEmojiRain(null),3800);
+    }
+  };
+
+  const handleShake=useCallback((postId,emoji)=>{
+    if(!emoji)return;
+    const extras=['✨','💫','⭐','🌟','💕','💗','💖','✦'];
+    const particles=Array.from({length:28},(_,i)=>({
+      id:i,content:i<16?emoji:extras[i%extras.length],
+      x:3+Math.random()*94,delay:Math.random()*1.1,
+      dur:1.6+Math.random()*1.6,
+      size:i<16?18+Math.random()*18:11+Math.random()*10,
+      drift:(Math.random()-0.5)*90,spin:(Math.random()-0.5)*140,
+      opacity:i<16?1:0.55+Math.random()*0.35,
+    }));
+    setEmojiRain({emoji,particles});
+    setTimeout(()=>setEmojiRain(null),3800);
+  },[]);
+
+  const handleChangeTemplate=(postId,template)=>{
+    setPosts(ps=>ps.map(p=>p.id===postId?{...p,template}:p));
+  };
+
+  const handleInteract=(opt)=>{
+    const now=new Date();
+    const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const np={id:Date.now(),author:ME,date:ds,time:ts,kind:'interact',
+      interactEmoji:opt.emoji,interactLabel:opt.label,
+      photos:0,photoUrls:[],hasVideo:false,hasMedia:false,reactions:{},comments:[]};
+    setPosts(ps=>[np,...ps]);
+    setInteractOpen(false);
+    setFabOpen(false);
+    const extras=['✨','💫','⭐','🌟','💕','💗','💖','✦'];
+    const particles=Array.from({length:28},(_,i)=>({
+      id:i,content:i<16?opt.emoji:extras[i%extras.length],
+      x:3+Math.random()*94,delay:Math.random()*1.1,
+      dur:1.6+Math.random()*1.6,size:i<16?18+Math.random()*18:11+Math.random()*10,
+      drift:(Math.random()-0.5)*90,spin:(Math.random()-0.5)*140,
+      opacity:i<16?1:0.55+Math.random()*0.35,
+    }));
+    setEmojiRain({emoji:opt.emoji,particles});
+    setTimeout(()=>setEmojiRain(null),3800);
+    setTimeout(()=>{if(feedRef.current)feedRef.current.scrollTop=0;},60);
+  };
+
+  const addAttachment=(type,url)=>{
+    const id=++attId.current;
+    setAttachments(a=>[...a,{id,type,url}]);
+  };
+
+  const removeAttachment=id=>{
+    setAttachments(a=>a.filter(att=>att.id!==id));
+  };
+
+  const handleSend=useCallback(()=>{
+    if(!text.trim()&&attachments.length===0)return;
+    const now=new Date();
+    const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const photos=attachments.filter(a=>a.type==='photo');
+    const hasVideo=attachments.some(a=>a.type==='video');
+    const hasMedia=attachments.length>0;
+    const np={id:Date.now(),author:ME,date:ds,time:ts,kind:'text',template:'card',
+      text:text.trim(),photos:photos.length,photoUrls:photos.map(a=>a.url),
+      hasVideo,hasMedia,reactions:{},comments:[]};
+    setPosts(ps=>[np,...ps]);
+    setText('');setAttachments([]);setKbOpen(false);
+    if(feedRef.current)feedRef.current.scrollTop=0;
+  },[text,attachments]);
+
+  const handleVoiceFinish=sec=>{
+    setVoice(false);
+    const now=new Date();
+    const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    setPosts(ps=>[{id:Date.now(),author:ME,date:ds,time:ts,kind:'voice',template:'card',voiceSec:sec,
+      photos:0,photoUrls:[],hasVideo:false,hasMedia:false,reactions:{},comments:[]},...ps]);
+    if(feedRef.current)feedRef.current.scrollTop=0;
+  };
+
+  const handleSendS4=useCallback(()=>{
+    if(!s4Text.trim())return;
+    const now=new Date();
+    const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const np={id:Date.now(),author:ME,date:ds,time:ts,kind:'text',template:'card',
+      text:s4Text.trim(),photos:0,photoUrls:[],hasVideo:false,hasMedia:false,reactions:{},comments:[]};
+    setPosts(ps=>[np,...ps]);
+    setS4Text('');setS4KbOpen(false);
+    if(feedRef.current)feedRef.current.scrollTop=0;
+  },[s4Text]);
+
+  const handleReplyVoiceFinish=sec=>{
+    setReplyVoice(false);
+    if(replyingId===null)return;
+    setPosts(ps=>ps.map(p=>p.id===replyingId
+      ?{...p,comments:[...p.comments,{author:ME,kind:'voice',voiceSec:sec}]}:p));
+    setReply(null);setReplyText('');setReplyKb(false);
+  };
+
+  const handleReplyPhoto=()=>{
+    if(replyingId===null)return;
+    setPosts(ps=>ps.map(p=>p.id===replyingId
+      ?{...p,comments:[...p.comments,{author:ME,kind:'photo',photos:1}]}:p));
+    setReply(null);setReplyText('');setReplyKb(false);
+  };
+
+  const openKb=()=>{setKbOpen(true);setReplyKb(false);setReply(null);};
+  const closeKb=()=>setKbOpen(false);
+
+  const handlePublishSave=({text:t,photos,template,dateStr,hasMedia})=>{
+    if(!t.trim()&&photos.length===0){setView('diary');return;}
+    const now=new Date();
+    const ts=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const newPost={
+      id:Date.now(),author:ME,date:dateStr||now.toISOString().slice(0,10),
+      time:ts,kind:'text',template:template||'card',
+      text:t,photos:photos.length,photoUrls:photos.map(p=>p.url),
+      hasVideo:false,hasMedia:hasMedia||photos.length>0,
+      reactions:{},comments:[],
+    };
+    setPosts(ps=>[newPost,...ps]);
+    setView('diary');
+    setTimeout(()=>{if(feedRef.current)feedRef.current.scrollTop=0;},60);
+  };
+
+  return (
+    <div style={{width:375,height:780,borderRadius:44,overflow:'hidden',position:'relative',
+      boxShadow:'0 32px 80px rgba(0,0,0,0.28),0 0 0 1px rgba(0,0,0,0.07)',
+      background:T.white,display:'flex',flexDirection:'column'}}>
+
+      <textarea ref={hiddenRef} value={text} onChange={e=>setText(e.target.value)}
+        style={{position:'absolute',left:-9999,top:-9999,opacity:0,width:1,height:1,border:'none',outline:'none'}}/>
+
+      {/* Status bar */}
+      <div style={{height:44,background:T.white,display:'flex',alignItems:'flex-end',
+        justifyContent:'space-between',padding:'0 20px 8px',flexShrink:0}}>
+        <span style={{fontSize:12,fontWeight:600,color:T.textPri}}>9:41</span>
+        <div style={{display:'flex',gap:5,alignItems:'center'}}>
+          <svg width="16" height="12" viewBox="0 0 16 12">
+            <rect x="0" y="4" width="3" height="8" rx="1" fill={T.textPri}/>
+            <rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill={T.textPri}/>
+            <rect x="9" y=".5" width="3" height="11.5" rx="1" fill={T.textPri}/>
+            <rect x="13.5" y="0" width="2" height="12" rx="1" fill={T.textPri} opacity=".3"/>
+          </svg>
+          <svg width="15" height="12" viewBox="0 0 15 12">
+            <path d="M7.5 3C9.8 3 11.8 4 13.2 5.5L14.5 4.2C12.7 2.3 10.2 1 7.5 1S2.3 2.3.5 4.2L1.8 5.5C3.2 4 5.2 3 7.5 3Z" fill={T.textPri}/>
+            <path d="M7.5 6C8.9 6 10.1 6.6 11 7.5L12.3 6.2C11.1 5 9.4 4.2 7.5 4.2S3.9 5 2.7 6.2L4 7.5C4.9 6.6 6.1 6 7.5 6Z" fill={T.textPri}/>
+            <circle cx="7.5" cy="10" r="1.5" fill={T.textPri}/>
+          </svg>
+          <div style={{width:25,height:12,border:`1.5px solid ${T.textPri}`,borderRadius:3,position:'relative'}}>
+            <div style={{position:'absolute',left:1,top:1,bottom:1,right:4,background:T.textPri,borderRadius:1.5}}/>
+            <div style={{position:'absolute',right:-4,top:3,width:2.5,height:6,background:T.textPri,borderRadius:1}}/>
+          </div>
+        </div>
+      </div>
+
+      {/* File inputs */}
+      <input ref={coverRef} type="file" accept="image/*" style={{display:'none'}}
+        onChange={e=>{const f=e.target.files[0];if(f){setCoverImg(URL.createObjectURL(f));}e.target.value='';}}/>
+      <input ref={photoRef} type="file" accept="image/*" style={{display:'none'}}
+        onChange={e=>{const f=e.target.files[0];if(f){addAttachment('photo',URL.createObjectURL(f));}e.target.value='';}}/>
+
+      {/* Nav overlay */}
+      <div style={{position:'absolute',top:44,left:0,right:0,height:44,zIndex:20,
+        display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 16px',
+        pointerEvents:'none',transition:'background 0.25s',
+        background:navScrolled?T.white:'transparent',
+        borderBottom:navScrolled?`1px solid ${T.line}`:'none'}}>
+        <div style={{pointerEvents:'auto',width:36,height:36,borderRadius:'50%',
+          background:navScrolled?T.bg:'rgba(0,0,0,0.18)',display:'flex',alignItems:'center',
+          justifyContent:'center',cursor:'pointer',transition:'background 0.25s'}}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M15 5l-7 7 7 7" stroke={navScrolled?T.textPri:'#fff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        <div style={{pointerEvents:'auto',position:'relative'}}>
+          <div onClick={()=>setShowMore(s=>!s)}
+            style={{width:36,height:36,borderRadius:'50%',background:navScrolled?T.bg:'rgba(0,0,0,0.18)',
+              display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.25s'}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="5" r="1.5" fill={navScrolled?T.textSec:'#fff'}/>
+              <circle cx="12" cy="12" r="1.5" fill={navScrolled?T.textSec:'#fff'}/>
+              <circle cx="12" cy="19" r="1.5" fill={navScrolled?T.textSec:'#fff'}/>
+            </svg>
+          </div>
+          {showMore&&(
+            <div style={{position:'absolute',top:42,right:0,background:T.white,borderRadius:12,
+              overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,0.15)',minWidth:120,zIndex:30}}>
+              <div onClick={()=>{coverRef.current?.click();setShowMore(false);}}
+                style={{display:'flex',alignItems:'center',gap:8,padding:'11px 16px',
+                  fontSize:13.5,color:T.textPri,cursor:'pointer',borderBottom:`1px solid ${T.line}`}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="5" width="20" height="15" rx="2.5" stroke={T.textPri} strokeWidth="1.6"/>
+                  <circle cx="12" cy="12.5" r="3.2" stroke={T.textPri} strokeWidth="1.6"/>
+                  <path d="M7 5l1.5-2h7L17 5" stroke={T.textPri} strokeWidth="1.6" strokeLinejoin="round"/>
+                </svg>
+                换封面
+              </div>
+              <div onClick={()=>setShowMore(false)} style={{padding:'11px 16px',fontSize:13.5,color:T.textTer,cursor:'pointer'}}>取消</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Dismiss overlay — scheme 4 keyboard */}
+      {s4KbOpen&&(
+        <div onClick={()=>setS4KbOpen(false)}
+          style={{position:'absolute',top:0,left:0,right:0,bottom:S4_KB_H,zIndex:18}}/>
+      )}
+
+      {/* Dismiss overlay */}
+      {(kbOpen||replyKbOpen)&&(
+        <div onClick={()=>{setKbOpen(false);setReplyKb(false);setReply(null);setReplyText('');}}
+          style={{position:'absolute',top:0,left:0,right:0,bottom:KB_H+76+20,zIndex:14}}/>
+      )}
+
+      {/* Feed */}
+      <div ref={feedRef} style={{flex:1,overflowY:'auto',background:T.white,
+        transition:'margin-bottom 0.25s cubic-bezier(0.32,0.72,0,1)',
+        marginBottom:(kbOpen||replyKbOpen)?KB_H:s4KbOpen?S4_KB_H:0}}
+        onClick={()=>showMore&&setShowMore(false)}>
+
+        {/* Cover */}
+        <div style={{position:'relative',width:'100%',height:220,flexShrink:0,
+          background:coverImg?'transparent':'linear-gradient(135deg,#FFD3E2 0%,#FFAAC8 45%,#E8A0C0 100%)'}}>
+          {coverImg&&<img src={coverImg} alt="cover" style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>}
+          <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,0.06) 0%,rgba(0,0,0,0.38) 100%)'}}/>
+          <div style={{position:'absolute',bottom:16,left:16,right:16,display:'flex',alignItems:'flex-end',gap:12}}>
+            <div style={{position:'relative',width:68,height:44}}>
+              <div style={{position:'absolute',left:0,top:2,width:40,height:40,borderRadius:'50%',
+                overflow:'hidden',border:'2.5px solid rgba(255,255,255,0.9)',boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
+                <Ava person={ME} size={40}/>
+              </div>
+              <div style={{position:'absolute',right:0,bottom:2,width:40,height:40,borderRadius:'50%',
+                overflow:'hidden',border:'2.5px solid rgba(255,255,255,0.9)',boxShadow:'0 2px 8px rgba(0,0,0,0.2)'}}>
+                <Ava person={LOVER} size={40}/>
+              </div>
+            </div>
+            <div>
+              <div style={{fontSize:14,fontWeight:700,color:'#fff',textShadow:'0 1px 4px rgba(0,0,0,0.4)'}}>女友殿下 ❤︎ 男友先生</div>
+              <div style={{fontSize:11.5,color:'rgba(255,255,255,0.85)',marginTop:3,textShadow:'0 1px 3px rgba(0,0,0,0.3)'}}>
+                在一起 {posts.length>0?daysSince(posts[0].date):daysSince(new Date().toISOString().slice(0,10))} 天
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{height:24}}/>
+
+        {posts.map((post,i)=>{
+          return (
+            <Post key={post.id} post={post}
+              onReply={handleReply}
+              onDelete={handleDelete}
+              onReact={handleReact}
+              onShake={handleShake}
+              onChangeTemplate={handleChangeTemplate}
+              replyingId={replyingId}
+              replyText={replyText}
+              replyKbOpen={replyKbOpen&&replyingId===post.id}
+              onOpenReply={id=>{setReply(id);setReplyText('');setReplyKb(true);setKbOpen(false);}}
+              onCloseReply={()=>{setReply(null);setReplyText('');setReplyKb(false);}}
+              onOpenReplyKb={()=>{setReplyKb(true);setKbOpen(false);}}
+              playingId={playingId}
+              onPlay={id=>setPlaying(p=>p===id?null:id)}
+              isLast={i===posts.length-1}
+              forceTemplate={envelopeMode}
+            />
+          );
+        })}
+        <div style={{height:20}}/>
+      </div>
+
+      {/* 方案4: 底部输入条 — 微信交互 */}
+      {fabScheme===4&&(
+        <div style={{flexShrink:0,background:T.white,borderTop:`1px solid ${T.line}`,
+          padding:'10px 16px 28px',display:'flex',alignItems:'center',gap:8,zIndex:10}}>
+
+          {/* 左：语音/键盘切换 */}
+          <div onClick={()=>{setS4VoiceMode(m=>!m);setS4KbOpen(false);}} style={{
+            width:44,height:44,borderRadius:22,flexShrink:0,
+            display:'flex',alignItems:'center',justifyContent:'center',
+            cursor:'pointer',opacity:0.72,transition:'opacity 0.15s'}}
+            onMouseEnter={e=>e.currentTarget.style.opacity='1'}
+            onMouseLeave={e=>e.currentTarget.style.opacity='0.72'}>
+            {s4VoiceMode ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="5" width="20" height="14" rx="2" stroke={T.textSec} strokeWidth="1.7"/>
+                <path d="M6 9h.01M9.5 9h.01M13 9h.01M16.5 9h.01M6 12.5h.01M9.5 12.5h.01M13 12.5h.01M16.5 12.5h.01M19 12.5h.01M9 15.5h6" stroke={T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="9" y="2" width="6" height="12" rx="3" stroke={T.textSec} strokeWidth="1.7"/>
+                <path d="M5 11a7 7 0 0014 0" stroke={T.textSec} strokeWidth="1.7" strokeLinecap="round"/>
+                <line x1="12" y1="18" x2="12" y2="22" stroke={T.textSec} strokeWidth="1.7" strokeLinecap="round"/>
+                <line x1="9" y1="22" x2="15" y2="22" stroke={T.textSec} strokeWidth="1.7" strokeLinecap="round"/>
+              </svg>
+            )}
+          </div>
+
+          {/* 中：按住说话 或 输入框 */}
+          {s4VoiceMode ? (
+            <div style={{
+              flex:1,height:36,borderRadius:18,background:T.bg,
+              display:'flex',alignItems:'center',justifyContent:'center',
+              cursor:'pointer',border:`1.5px solid ${T.line}`,
+              fontSize:15,fontWeight:500,color:T.textSec,fontFamily:T.font,
+              userSelect:'none',transition:'background 0.12s,border-color 0.12s',}}
+              onMouseDown={e=>{e.currentTarget.style.background='rgba(0,0,0,0.09)';e.currentTarget.style.borderColor='rgba(0,0,0,0.18)';}}
+              onMouseUp={e=>{e.currentTarget.style.background=T.bg;e.currentTarget.style.borderColor=T.line;}}
+              onMouseLeave={e=>{e.currentTarget.style.background=T.bg;e.currentTarget.style.borderColor=T.line;}}>
+              按住说话
+            </div>
+          ) : (
+            <div onClick={()=>setS4KbOpen(true)} style={{
+              flex:1,height:36,borderRadius:18,background:T.bg,
+              display:'flex',alignItems:'center',padding:'0 14px',cursor:'text',
+              border:`1.5px solid ${s4KbOpen?T.rose:T.line}`,transition:'border-color 0.15s',}}
+              >
+              <span style={{flex:1,fontSize:14,color:s4Text?T.textPri:T.textTer,
+                fontFamily:T.font,overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>
+                {s4Text||'写点什么…'}
+              </span>
+              {s4KbOpen&&<span style={{display:'inline-block',width:2,height:16,background:T.rose,
+                borderRadius:1,animation:'blink 1s step-end infinite'}}/>}
+            </div>
+          )}
+
+          {/* 右：互动表情按钮 */}
+          <div onClick={()=>setInteractOpen(true)} style={{
+            width:44,height:44,borderRadius:22,flexShrink:0,
+            display:'flex',alignItems:'center',justifyContent:'center',
+            cursor:'pointer',transition:'opacity 0.15s',opacity:0.85}}
+            onMouseEnter={e=>e.currentTarget.style.opacity='1'}
+            onMouseLeave={e=>e.currentTarget.style.opacity='0.85'}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M20 2H4C2.9 2 2 2.9 2 4v13c0 1.1.9 2 2 2h3l3 3 3-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" stroke={T.rose} fill="rgba(255,77,136,0.08)" strokeWidth="1.6" strokeLinejoin="round"/>
+              <path d="M12 15C9.5 12.5 7.5 11 7.5 9.2A2.5 2.5 0 0112 7.7 2.5 2.5 0 0116.5 9.2C16.5 11 14.5 12.5 12 15z" fill={T.rose} stroke="none"/>
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {/* 方案4 键盘弹层 */}
+      {fabScheme===4&&s4KbOpen&&(
+        <div style={{position:'absolute',bottom:0,left:0,right:0,background:'#F7F7F7',zIndex:20,
+          animation:'slideUp 0.22s cubic-bezier(0.32,0.72,0,1)',boxShadow:'0 -1px 0 rgba(0,0,0,0.08)'}}>
+
+          {/* 高输入框行 (3× 高度) */}
+          <div style={{background:T.white,borderBottom:`1px solid ${T.line}`,padding:'8px 12px 8px'}}>
+            <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+              <div style={{flex:1,background:'#F2F2F5',borderRadius:12,padding:'10px 12px',
+                border:`1.5px solid ${T.rose}`,minHeight:132,boxSizing:'border-box'}}>
+                {!s4Text&&<span style={{fontSize:14,lineHeight:'22px',color:T.textTer,
+                  fontFamily:T.font}}>{'写点什么...'}</span>}
+                <span style={{fontSize:14,lineHeight:'22px',color:T.textPri,
+                  fontFamily:T.font,wordBreak:'break-all',whiteSpace:'pre-wrap'}}>{s4Text}</span><span style={{display:'inline-block',width:2,height:16,background:T.rose,
+                  borderRadius:1,verticalAlign:'text-bottom',marginLeft:1,
+                  animation:'blink 1s step-end infinite'}}/></div>
+              <button onMouseDown={e=>{e.preventDefault();handleSendS4();}}
+                style={{marginTop:2,height:40,padding:'0 16px',borderRadius:20,
+                  background:s4Text.trim()?T.rose:'rgba(0,0,0,0.12)',
+                  color:s4Text.trim()?'#fff':'rgba(0,0,0,0.30)',
+                  border:'none',fontSize:14,fontWeight:500,cursor:'pointer',
+                  transition:'background 0.18s,color 0.18s',fontFamily:T.font,flexShrink:0,whiteSpace:'nowrap'}}>
+                发送
+              </button>
+            </div>
+          </div>
+
+          {/* 工具栏 */}
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-around',
+            padding:'0 8px',background:T.white,borderBottom:`1px solid ${T.line}`}}>
+            {/* 语音 */}
+            <div onMouseDown={e=>{e.preventDefault();setS4Panel(p=>p==='voice'?'keys':'voice');}}
+              style={{width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+                background:s4Panel==='voice'?'rgba(255,77,136,0.10)':'transparent',transition:'background 0.15s'}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="9" y="2" width="6" height="12" rx="3" stroke={s4Panel==='voice'?T.rose:T.textSec} strokeWidth="1.6"/>
+                <path d="M5 11a7 7 0 0014 0" stroke={s4Panel==='voice'?T.rose:T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+                <line x1="12" y1="18" x2="12" y2="22" stroke={s4Panel==='voice'?T.rose:T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+                <line x1="9" y1="22" x2="15" y2="22" stroke={s4Panel==='voice'?T.rose:T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+            </div>
+            {/* 相机 */}
+            <div onMouseDown={e=>{e.preventDefault();setS4Panel(p=>p==='photo'?'keys':'photo');}}
+              style={{width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+                background:s4Panel==='photo'?'rgba(255,77,136,0.10)':'transparent',transition:'background 0.15s'}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="5" width="20" height="15" rx="2.5" stroke={s4Panel==='photo'?T.rose:T.textSec} strokeWidth="1.6"/>
+                <circle cx="12" cy="12.5" r="3.5" stroke={s4Panel==='photo'?T.rose:T.textSec} strokeWidth="1.6"/>
+                <path d="M7 5l1.5-2h7L17 5" stroke={s4Panel==='photo'?T.rose:T.textSec} strokeWidth="1.6" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            {/* 表情 */}
+            <div onMouseDown={e=>{e.preventDefault();setS4Panel(p=>p==='emoji'?'keys':'emoji');setS4ShowTpl(false);}}
+              style={{width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+                background:s4Panel==='emoji'?'rgba(255,77,136,0.10)':'transparent',transition:'background 0.15s'}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke={s4Panel==='emoji'?T.rose:T.textSec} strokeWidth="1.6"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke={s4Panel==='emoji'?T.rose:T.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+                <circle cx="9" cy="10" r="1.2" fill={s4Panel==='emoji'?T.rose:T.textSec}/>
+                <circle cx="15" cy="10" r="1.2" fill={s4Panel==='emoji'?T.rose:T.textSec}/>
+              </svg>
+            </div>
+            {/* 收起 */}
+            <div onMouseDown={e=>{e.preventDefault();setS4KbOpen(false);setS4Panel('keys');setS4Recording(false);setS4RecordSec(0);}} style={{width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M6 15l6-6 6 6" stroke={T.textSec} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          {s4Panel==='voice' ? (
+            /* ── 语音录制面板 ── */
+            <div style={{background:'#F7F7F7',padding:'24px 16px 28px',display:'flex',flexDirection:'column',alignItems:'center',gap:16}}>
+              {/* 波形 */}
+              <div style={{display:'flex',alignItems:'center',gap:4,height:44}}>
+                {[0.4,0.7,1,0.6,0.9,0.5,0.8,1,0.7,0.4,0.6,0.9,0.5,1,0.7].map((h,i)=>(
+                  <div key={i} style={{width:3,borderRadius:2,
+                    background:s4Recording?T.rose:'rgba(0,0,0,0.15)',
+                    height:s4Recording?`${h*36}px`:'4px',
+                    transition:'height 0.15s ease',
+                    animation:s4Recording?`wave ${0.6+i*0.07}s ease-in-out infinite alternate`:'none',
+                    }}/>
+                ))}
+              </div>
+              {/* 计时器 */}
+              <div style={{fontSize:20,fontWeight:600,color:s4Recording?T.rose:T.textTer,fontVariantNumeric:'tabular-nums',fontFamily:T.font}}>
+                {String(Math.floor(s4RecordSec/60)).padStart(2,'0')}:{String(s4RecordSec%60).padStart(2,'0')}
+              </div>
+              {/* 按钮 */}
+              <div style={{display:'flex',alignItems:'center',gap:32}}>
+                {s4HasVoice&&!s4Recording&&(
+                  <div onMouseDown={e=>{e.preventDefault();setS4HasVoice(false);setS4RecordSec(0);}}
+                    style={{width:44,height:44,borderRadius:22,background:'rgba(0,0,0,0.06)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke={T.textSec} strokeWidth="1.7" strokeLinecap="round"/></svg>
+                  </div>
+                )}
+                <div onMouseDown={e=>{e.preventDefault();
+                  if(s4Recording){setS4Recording(false);setS4HasVoice(true);}
+                  else{setS4RecordSec(0);setS4Recording(true);setS4HasVoice(false);}}}
+                  style={{width:64,height:64,borderRadius:32,
+                    background:s4Recording?T.rose:'rgba(255,77,136,0.12)',
+                    display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+                    boxShadow:s4Recording?'0 4px 18px rgba(255,77,136,0.45)':'none',
+                    transition:'all 0.2s'}}>
+                  {s4Recording
+                    ?<div style={{width:18,height:18,borderRadius:3,background:'#fff'}}/>
+                    :<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill={T.rose}/><path d="M5 11a7 7 0 0014 0" stroke={T.rose} strokeWidth="2" strokeLinecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke={T.rose} strokeWidth="2" strokeLinecap="round"/></svg>
+                  }
+                </div>
+                {s4HasVoice&&!s4Recording&&(
+                  <div onMouseDown={e=>{e.preventDefault();setS4HasVoice(false);setS4RecordSec(0);setS4Panel('keys');
+                    const np={id:Date.now(),author:ME,date:new Date().toISOString().slice(0,10),time:'now',kind:'voice',voiceSec:s4RecordSec||3,template:s4Tpl,reactions:{},comments:[]};
+                    setPosts(ps=>[np,...ps]);}}
+                    style={{width:44,height:44,borderRadius:22,background:T.rose,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',boxShadow:'0 3px 12px rgba(255,77,136,0.35)'}}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </div>
+                )}
+              </div>
+              {!s4Recording&&!s4HasVoice&&(
+                <div style={{fontSize:12,color:T.textTer,fontFamily:T.font}}>点击麦克风开始录音</div>
+              )}
+            </div>
+          ) : s4Panel==='photo' ? (
+            /* ── 照片选择面板 ── */
+            <div style={{background:'#F7F7F7',padding:'12px'}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:3}}>
+                {[
+                  {bg:'linear-gradient(135deg,#FFD3E2,#EECDE0)',icon:'🌸'},
+                  {bg:'linear-gradient(135deg,#C8D8F0,#B8CDE8)',icon:'🌊'},
+                  {bg:'linear-gradient(135deg,#D4F0C8,#C0E8B0)',icon:'🌿'},
+                  {bg:'linear-gradient(135deg,#FFF0C8,#FFE0A0)',icon:'✨'},
+                  {bg:'linear-gradient(135deg,#E8D8F8,#D4C0F0)',icon:'💜'},
+                  {bg:'linear-gradient(135deg,#F8D8C8,#F0C0A8)',icon:'🧡'},
+                  {bg:'linear-gradient(135deg,#C8EEF8,#A8DCF0)',icon:'💙'},
+                  {bg:'linear-gradient(135deg,#F8F8D8,#F0F0A0)',icon:'💛'},
+                ].map((ph,i)=>(
+                  <div key={i} onMouseDown={e=>{e.preventDefault();}}
+                    style={{aspectRatio:'1',background:ph.bg,borderRadius:4,
+                      display:'flex',alignItems:'center',justifyContent:'center',
+                      fontSize:28,cursor:'pointer',transition:'opacity 0.15s'}}
+                    onMouseEnter={e=>e.currentTarget.style.opacity='0.8'}
+                    onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                    {ph.icon}
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'flex',justifyContent:'center',marginTop:10}}>
+                <div style={{fontSize:12,color:T.textTer,fontFamily:T.font}}>点击选择照片（演示占位）</div>
+              </div>
+            </div>
+          ) : s4Panel==='emoji' ? (
+            /* ── 表情面板 ── */
+            <div style={{background:'#F7F7F7',padding:'8px 12px 12px'}}>
+              {[
+                ['❤️','🧡','💛','💚','💙','💜','🖤','🤍'],
+                ['😊','🥰','😍','😘','😚','🥲','😂','🤩'],
+                ['💕','💞','💓','💗','💖','💝','💘','💟'],
+                ['🤗','🫂','🫶','🤞','👋','💐','🌹','🎁'],
+              ].map((row,ri)=>(
+                <div key={ri} style={{display:'flex',gap:0,marginBottom:2}}>
+                  {row.map(em=>(
+                    <div key={em} onMouseDown={e=>{e.preventDefault();setS4Text(t=>t+em);}}
+                      style={{flex:1,height:42,display:'flex',alignItems:'center',justifyContent:'center',
+                        fontSize:24,cursor:'pointer',borderRadius:6,transition:'background 0.12s'}}
+                      onMouseEnter={e=>e.currentTarget.style.background='rgba(0,0,0,0.06)'}
+                      onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                      {em}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : (
+          <>
+          {/* 信纸选择条 — 展开键盘后始终可见 */}
+          <div style={{display:'flex',alignItems:'center',gap:10,padding:'6px 12px',background:'#EFEFEF',borderBottom:`1px solid ${T.line}`}}>
+            <span style={{fontSize:11,color:T.textTer,flexShrink:0,fontWeight:500}}>信纸</span>
+            {['card','sticky','polaroid','envelope'].map(id=>{
+              const sel=s4Tpl===id;
+              const labels={card:'卡片',sticky:'便利贴',polaroid:'拍立得',envelope:'情书'};
+              const colors={card:{bg:'#fff'},sticky:{bg:'#FFF4ED'},polaroid:{bg:'linear-gradient(135deg,#FFD3E2,#EECDE0)'},envelope:{bg:'#F5EDD8'}};
+              const c=colors[id];
+              return (
+                <div key={id} onMouseDown={e=>{e.preventDefault();setS4Tpl(id);}}
+                  style={{flexShrink:0,display:'flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:16,fontSize:12,fontWeight:sel?500:400,
+                    background:sel?'#FFF0F5':'#fff',border:`1.5px solid ${sel?T.rose:'#eee'}`,color:sel?T.rose:T.textSec,cursor:'pointer',transition:'all 0.15s'}}>
+                  <div style={{width:12,height:14,borderRadius:id==='polaroid'?1:2,background:c.bg,border:'0.5px solid rgba(0,0,0,0.06)',overflow:'hidden',flexShrink:0}}>
+                    {id==='envelope'?<div style={{height:4,background:'#EDD9A8'}}/>:id==='card'?<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{width:5,height:1.5,background:'rgba(0,0,0,0.12)',borderRadius:1}}/></div>:null}
+                  </div>
+                  {labels[id]}
+                </div>
+              );
+            })}
+          </div>
+          {/* 联想词条 */}
+          <div style={{display:'flex',alignItems:'center',overflowX:'auto',
+            padding:'5px 10px',background:'#EFEFEF',borderBottom:`1px solid ${T.line}`}}>
+            {SUGGESTIONS.map((s,i)=>(
+              <button key={i} onMouseDown={e=>{e.preventDefault();s.split('').forEach(c=>setS4Text(t=>t+c));}}
+                style={{flexShrink:0,background:'none',border:'none',padding:'3px 10px',fontSize:13.5,
+                  color:T.textPri,cursor:'pointer',fontFamily:T.font,
+                  borderRight:i<SUGGESTIONS.length-1?`1px solid #DDD`:'none'}}>{s}</button>
+            ))}
+          </div>
+
+          {/* 按键区 */}
+          <div style={{background:'#D1D5DB',paddingBottom:4}}>
+            {ROWS.map((row,ri)=>(
+              <div key={ri} style={{display:'flex',justifyContent:'center',gap:5,margin:'4px 0',padding:'0 4px'}}>
+                {row.map(k=>{
+                  const sp=k==='⇧'||k==='⌫';
+                  return (
+                    <button key={k}
+                      onMouseDown={e=>{
+                        e.preventDefault();
+                        if(k==='⌫'){setS4Text(t=>t.slice(0,-1));return;}
+                        if(k==='⇧'){setS4Shifted(s=>!s);return;}
+                        setS4Text(t=>t+(s4Shifted?k.toUpperCase():k));
+                        if(s4Shifted)setS4Shifted(false);
+                      }}
+                      style={{flex:sp?1.5:1,maxWidth:sp?44:34,height:42,
+                        background:sp?'#ADB5BD':'#FFFFFF',color:'#000',border:'none',borderRadius:5,
+                        fontSize:15,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96',fontFamily:T.font,
+                        display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      {k==='⇧'
+                        ?<svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 4L4 14h5v6h6v-6h5L12 4z" fill={s4Shifted?T.rose:'#333'}/></svg>
+                        :k==='⌫'
+                        ?<svg width="18" height="14" viewBox="0 0 24 18"><path d="M9 1H22V17H9L1 9L9 1Z" stroke="#333" strokeWidth="1.5" fill="none"/><path d="M12 6L18 12M18 6L12 12" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                        :s4Shifted?k.toUpperCase():k}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+            <div style={{display:'flex',gap:5,padding:'4px 6px',justifyContent:'center'}}>
+              <button onMouseDown={e=>e.preventDefault()} style={{flex:1,height:42,background:'#B0B8C4',border:'none',borderRadius:5,fontSize:13,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96',fontFamily:T.font,color:'#333'}}>123</button>
+              <button onMouseDown={e=>{e.preventDefault();setS4Text(t=>t+' ');}} style={{flex:3,height:42,background:'#FFFFFF',border:'none',borderRadius:5,fontSize:13,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96',fontFamily:T.font}}>空格</button>
+              <button onMouseDown={e=>{e.preventDefault();setS4KbOpen(false);setS4Panel('keys');setS4ShowTpl(false);setS4Recording(false);setS4RecordSec(0);}} style={{flex:1,height:42,background:'#B0B8C4',border:'none',borderRadius:5,fontSize:13,cursor:'pointer',boxShadow:'0 1px 0 #8A8E96',fontFamily:T.font,color:'#333'}}>收起</button>
+            </div>
+          </div>
+          </>
+          )}
+        </div>
+      )}
+
+      {/* FAB — 方案1: 直接进入发布页 */}
+      {fabScheme===1&&(
+        <div onClick={()=>setView('publish')} style={{
+          position:'absolute',right:18,bottom:28,zIndex:20,
+          width:52,height:52,borderRadius:'50%',
+          background:`linear-gradient(135deg,${T.rose},#FF8475)`,
+          boxShadow:'0 8px 20px rgba(255,77,136,0.45)',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          cursor:'pointer',transition:'transform 0.15s,box-shadow 0.15s',
+        }}
+          onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.09)';e.currentTarget.style.boxShadow='0 12px 28px rgba(255,77,136,0.55)';}}
+          onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='0 8px 20px rgba(255,77,136,0.45)';}}
+        >
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M11 4v14M4 11h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/>
+          </svg>
+        </div>
+      )}
+
+      {/* FAB — 方案2: 速拨展开 */}
+      {fabScheme===2&&fabOpen&&(
+        <div onClick={()=>setFabOpen(false)}
+          style={{position:'absolute',inset:0,zIndex:18,background:'rgba(0,0,0,0.28)',
+            backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)'}}/>
+      )}
+      {fabScheme===2&&(
+      <div style={{position:'absolute',right:18,bottom:28,zIndex:20,
+        display:'flex',flexDirection:'column',alignItems:'flex-end',gap:11}}>
+
+        {fabOpen&&(
+          <>
+            {/* 互动 */}
+            <div onClick={()=>setInteractOpen(true)}
+              style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer',
+                animation:'fadeIn 0.18s ease'}}>
+              <div style={{background:'rgba(255,255,255,0.96)',borderRadius:20,
+                padding:'5px 14px',fontSize:13,fontWeight:500,color:T.rose,
+                boxShadow:'0 2px 10px rgba(0,0,0,0.12)',whiteSpace:'nowrap'}}>互动</div>
+              <div style={{width:44,height:44,borderRadius:'50%',
+                background:`linear-gradient(135deg,${T.rose},#FF8475)`,
+                boxShadow:'0 5px 15px rgba(255,77,136,0.42)',
+                display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 21C6.5 15.5 2 11.5 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 4-4.5 8-10 13.5z" fill="#fff"/>
+                </svg>
+              </div>
+            </div>
+            {/* 日记 */}
+            <div onClick={()=>{setView('publish');setFabOpen(false);}}
+              style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer',
+                animation:'fadeIn 0.18s 0.04s ease both'}}>
+              <div style={{background:'rgba(255,255,255,0.96)',borderRadius:20,
+                padding:'5px 14px',fontSize:13,fontWeight:500,color:'#4A7AAF',
+                boxShadow:'0 2px 10px rgba(0,0,0,0.12)',whiteSpace:'nowrap'}}>日记</div>
+              <div style={{width:44,height:44,borderRadius:'50%',
+                background:'linear-gradient(135deg,#6B9FD4,#4A7AAF)',
+                boxShadow:'0 5px 15px rgba(74,122,175,0.42)',
+                display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 20h9" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            {/* 语音 */}
+            <div onClick={()=>{setVoice(true);setFabOpen(false);}}
+              style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer',
+                animation:'fadeIn 0.18s 0.08s ease both'}}>
+              <div style={{background:'rgba(255,255,255,0.96)',borderRadius:20,
+                padding:'5px 14px',fontSize:13,fontWeight:500,color:'#7C3AED',
+                boxShadow:'0 2px 10px rgba(0,0,0,0.12)',whiteSpace:'nowrap'}}>语音</div>
+              <div style={{width:44,height:44,borderRadius:'50%',
+                background:'linear-gradient(135deg,#A78BFA,#7C3AED)',
+                boxShadow:'0 5px 15px rgba(124,58,237,0.38)',
+                display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                  <rect x="9" y="2" width="6" height="12" rx="3" stroke="#fff" strokeWidth="2"/>
+                  <path d="M5 11a7 7 0 0014 0" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="12" y1="18" x2="12" y2="22" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="9" y1="22" x2="15" y2="22" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Main FAB */}
+        <div onClick={()=>setFabOpen(s=>!s)} style={{
+          width:52,height:52,borderRadius:'50%',
+          background:`linear-gradient(135deg,${T.rose},#FF8475)`,
+          boxShadow:'0 8px 20px rgba(255,77,136,0.45)',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          cursor:'pointer',
+          transition:'transform 0.28s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.15s',
+          transform:fabOpen?'rotate(45deg)':'rotate(0deg)',
+        }}
+          onMouseEnter={e=>{e.currentTarget.style.boxShadow='0 12px 28px rgba(255,77,136,0.55)';}}
+          onMouseLeave={e=>{e.currentTarget.style.boxShadow='0 8px 20px rgba(255,77,136,0.45)';}}
+        >
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M11 4v14M4 11h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/>
+          </svg>
+        </div>
+      </div>
+      )}
+
+      {/* FAB — 方案3: 扇形展开 */}
+      {fabScheme===3&&fabOpen&&(
+        <div onClick={()=>setFabOpen(false)}
+          style={{position:'absolute',inset:0,zIndex:18,background:'rgba(0,0,0,0.28)',
+            backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)'}}/>
+      )}
+      {fabScheme===3&&(
+        <div style={{position:'absolute',right:18,bottom:28,zIndex:20,width:52,height:52}}>
+          {fabOpen&&(
+            <>
+              {[
+                {label:'互动',bg:`linear-gradient(135deg,${T.rose},#FF8475)`,shadow:'rgba(255,77,136,0.42)',delay:'0s',
+                  left:4,top:-86,onClick:()=>setInteractOpen(true),
+                  icon:(<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21C6.5 15.5 2 11.5 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 4-4.5 8-10 13.5z" fill="#fff"/></svg>)},
+                {label:'日记',bg:'linear-gradient(135deg,#6B9FD4,#4A7AAF)',shadow:'rgba(74,122,175,0.42)',delay:'0.07s',
+                  left:-58,top:-58,onClick:()=>{setView('publish');setFabOpen(false);},
+                  icon:(<svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>)},
+                {label:'语音',bg:'linear-gradient(135deg,#A78BFA,#7C3AED)',shadow:'rgba(124,58,237,0.38)',delay:'0.14s',
+                  left:-86,top:4,onClick:()=>{setVoice(true);setFabOpen(false);},
+                  icon:(<svg width="19" height="19" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="#fff" strokeWidth="2"/><path d="M5 11a7 7 0 0014 0" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><line x1="9" y1="22" x2="15" y2="22" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>)},
+              ].map(b=>(
+                <div key={b.label} onClick={b.onClick}
+                  style={{position:'absolute',left:b.left,top:b.top,
+                    display:'flex',flexDirection:'column',alignItems:'center',gap:4,
+                    cursor:'pointer',
+                    animation:`fanPop 0.3s ${b.delay} cubic-bezier(0.34,1.56,0.64,1) both`}}>
+                  <div style={{width:44,height:44,borderRadius:22,
+                    background:b.bg,boxShadow:`0 5px 16px ${b.shadow}`,
+                    display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    {b.icon}
+                  </div>
+                  <span style={{fontSize:11,color:'#fff',fontWeight:600,
+                    textShadow:'0 1px 4px rgba(0,0,0,0.45)',whiteSpace:'nowrap'}}>{b.label}</span>
+                </div>
+              ))}
+            </>
+          )}
+          <div onClick={()=>setFabOpen(s=>!s)} style={{
+            position:'absolute',inset:0,borderRadius:'50%',
+            background:`linear-gradient(135deg,${T.rose},#FF8475)`,
+            boxShadow:'0 8px 20px rgba(255,77,136,0.45)',
+            display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+            transition:'transform 0.28s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.15s',
+            transform:fabOpen?'rotate(45deg)':'rotate(0deg)',
+          }}
+            onMouseEnter={e=>{e.currentTarget.style.boxShadow='0 12px 28px rgba(255,77,136,0.55)';}}
+            onMouseLeave={e=>{e.currentTarget.style.boxShadow='0 8px 20px rgba(255,77,136,0.45)';}}
+          >
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M11 4v14M4 11h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/>
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {/* Home indicator */}
+      <div style={{
+        position:'absolute',bottom:0,left:0,right:0,height:22,
+        display:'flex',alignItems:'flex-end',justifyContent:'center',paddingBottom:6,
+        pointerEvents:'none',zIndex:5,
+      }}>
+        <div style={{width:120,height:4,background:T.textPri,borderRadius:2,opacity:0.15}}/>
+      </div>
+
+      {/* Publish screen */}
+      {view==='publish'&&(
+        <PublishScreen
+          onCancel={()=>setView('diary')}
+          onSave={handlePublishSave}
+        />
+      )}
+
+      {/* Reply keyboard */}
+      {/* Voice recorder */}
+      {showVoice&&(
+        <VoiceRecorder
+          onFinish={handleVoiceFinish}
+          onTranscribe={t=>{setText(t);setVoice(false);setKbOpen(true);}}
+          onCancel={()=>setVoice(false)}
+        />
+      )}
+
+      {/* Interact emoji picker */}
+      {interactOpen&&(
+        <div onClick={()=>setInteractOpen(false)}
+          style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.46)',zIndex:30,
+            display:'flex',alignItems:'flex-end',animation:'fadeIn 0.18s ease'}}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            width:'100%',background:T.white,borderRadius:'20px 20px 0 0',
+            padding:'18px 24px 46px',
+            animation:'slideUp 0.22s cubic-bezier(0.32,0.72,0,1)'}}>
+            <div style={{width:36,height:4,borderRadius:2,background:'rgba(0,0,0,0.10)',
+              margin:'0 auto 18px'}}/>
+            <div style={{fontSize:15,fontWeight:600,color:T.textPri,textAlign:'center',marginBottom:22}}>
+              送给TA一个
+            </div>
+            <div style={{display:'flex',justifyContent:'space-around',alignItems:'flex-start'}}>
+              {INTERACT_OPTIONS.map((opt,i)=>(
+                <div key={opt.emoji} onClick={()=>handleInteract(opt)}
+                  style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,
+                    cursor:'pointer',animation:`fadeIn 0.2s ${i*0.05}s ease both`}}>
+                  <div style={{width:64,height:64,borderRadius:32,
+                    background:`linear-gradient(135deg,${opt.color}38,${opt.color}18)`,
+                    boxShadow:`0 4px 14px ${opt.color}28`,
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontSize:30,transition:'transform 0.15s',}}
+                    onMouseEnter={e=>e.currentTarget.style.transform='scale(1.12)'}
+                    onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>
+                    {opt.emoji}
+                  </div>
+                  <span style={{fontSize:12.5,color:T.textSec,fontWeight:500}}>{opt.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {replyKbOpen&&(
+        <MockKeyboard
+          text={replyText}
+          placeholder="说点什么…"
+          attachments={[]}
+          onChar={c=>setReplyText(t=>t+c)}
+          onDelete={()=>setReplyText(t=>t.slice(0,-1))}
+          onEnter={()=>{if(replyText.trim())handleReply(replyingId,replyText.trim());}}
+          onClose={()=>{setReplyKb(false);setReply(null);setReplyText('');}}
+          onVoice={()=>{}}
+          onPhoto={handleReplyPhoto}
+          onVideo={handleReplyPhoto}
+          onRemoveAttachment={()=>{}}
+          sendLabel="回复"
+        />
+      )}
+
+
+
+      {/* 表情雨 */}
+      {emojiRain&&(
+        <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:100,overflow:'hidden'}}>
+          {emojiRain.particles.map(p=>(
+            <div key={p.id} style={{
+              position:'absolute',top:0,left:`${p.x}%`,
+              fontSize:p.size,lineHeight:1,
+              animation:`emojiRainFall ${p.dur}s ${p.delay}s ease-in forwards`,
+              '--emoji-drift':`${p.drift}px`,
+              '--emoji-spin':`${p.spin}deg`,
+              opacity:p.opacity||1,
+            }}>{p.content}</div>
+          ))}
+        </div>
+      )}
+
+      {toast&&(
+        <div style={{position:'absolute',bottom:80,left:'50%',transform:'translateX(-50%)',
+          background:'rgba(0,0,0,0.65)',color:'#fff',fontSize:13,padding:'7px 18px',
+          borderRadius:20,zIndex:50,whiteSpace:'nowrap',animation:'fadeIn 0.2s ease'}}>
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const STYLE_CYCLES = [
+  { id:null,       label:'原始样式', icon:(
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/>
+      <rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/>
+    </svg>), color:'#888', bg:'rgba(255,255,255,0.88)', shadow:'0 2px 12px rgba(0,0,0,0.09)' },
+  { id:'card',     label:'全部卡片', icon:(
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <rect x="2" y="4" width="20" height="16" rx="2.5"/>
+      <line x1="2" y1="9" x2="22" y2="9"/>
+    </svg>), color:'#4A7AAF', bg:'rgba(74,122,175,0.12)', shadow:'0 4px 18px rgba(74,122,175,0.22)' },
+  { id:'sticky',   label:'全部便利贴', icon:(
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 2h12l4 4v16H4z"/><path d="M16 2v4h4"/>
+    </svg>), color:'#C9873A', bg:'rgba(255,200,100,0.18)', shadow:'0 4px 18px rgba(200,150,60,0.22)' },
+  { id:'polaroid', label:'全部拍立得', icon:(
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <rect x="2" y="2" width="20" height="20" rx="2"/>
+      <rect x="5" y="5" width="14" height="10" rx="1"/>
+      <line x1="7" y1="17.5" x2="17" y2="17.5"/>
+    </svg>), color:'#9B6BB5', bg:'rgba(155,107,181,0.12)', shadow:'0 4px 18px rgba(155,107,181,0.22)' },
+  { id:'envelope', label:'全部情书', icon:(
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <path d="M2 4l10 9 10-9"/>
+    </svg>), color:'#C9A87C', bg:'rgba(210,170,110,0.18)', shadow:'0 4px 18px rgba(180,130,70,0.22)' },
+];
+
+function App() {
+  const [cycleIdx, setCycleIdx] = React.useState(0);
+  const cur = STYLE_CYCLES[cycleIdx];
+  const next = STYLE_CYCLES[(cycleIdx+1)%STYLE_CYCLES.length];
+
+  return (
+    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'center',gap:32,minWidth:'max-content',minHeight:'100vh',padding:'32px 40px',boxSizing:'border-box'}}>
+      {/* 方案1 */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10,flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div style={{width:8,height:8,borderRadius:'50%',background:'#FF4D88'}}></div>
+          <span style={{fontSize:13,fontWeight:600,color:'rgba(0,0,0,0.55)',fontFamily:'"PingFang SC",sans-serif'}}>方案 1 · 直接发布</span>
+        </div>
+        <DiaryScreen envelopeMode={cur.id} fabScheme={1}/>
+      </div>
+
+      {/* 方案2 */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10,flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div style={{width:8,height:8,borderRadius:'50%',background:'#FF4D88'}}></div>
+          <span style={{fontSize:13,fontWeight:600,color:'rgba(0,0,0,0.55)',fontFamily:'"PingFang SC",sans-serif'}}>方案 2 · 速拨展开</span>
+        </div>
+        <DiaryScreen envelopeMode={cur.id} fabScheme={2}/>
+      </div>
+
+      {/* 方案3 */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10,flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div style={{width:8,height:8,borderRadius:'50%',background:'#FF4D88'}}></div>
+          <span style={{fontSize:13,fontWeight:600,color:'rgba(0,0,0,0.55)',fontFamily:'"PingFang SC",sans-serif'}}>方案 3 · 山形展开</span>
+        </div>
+        <DiaryScreen envelopeMode={cur.id} fabScheme={3}/>
+      </div>
+
+      {/* 方案4 */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10,flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div style={{width:8,height:8,borderRadius:'50%',background:'#FF4D88'}}></div>
+          <span style={{fontSize:13,fontWeight:600,color:'rgba(0,0,0,0.55)',fontFamily:'"PingFang SC",sans-serif'}}>方案 4 · 底部输入条</span>
+        </div>
+        <DiaryScreen envelopeMode={cur.id} fabScheme={4}/>
+      </div>
+
+      {/* 样式切换 */}
+      <div style={{display:'flex',flexDirection:'column',gap:10,alignItems:'flex-start',flexShrink:0,alignSelf:'center'}}>
+        <div style={{fontSize:11,color:'rgba(0,0,0,0.32)',letterSpacing:'.5px',
+          fontFamily:'"PingFang SC",sans-serif',fontWeight:500}}>样式预览</div>
+
+        {/* Current style indicator */}
+        <div style={{
+          display:'flex',alignItems:'center',gap:8,
+          padding:'10px 16px',borderRadius:14,
+          background: cur.id ? cur.bg : 'rgba(255,255,255,0.5)',
+          border:'1px solid rgba(0,0,0,0.06)',
+          fontFamily:'"PingFang SC",sans-serif',
+          fontSize:13,color:cur.color,fontWeight:500,
+          minWidth:130,
+        }}>
+          <span style={{color:cur.color}}>{cur.icon}</span>
+          {cur.label}
+        </div>
+
+        {/* Next button */}
+        <button onClick={()=>setCycleIdx(i=>(i+1)%STYLE_CYCLES.length)} style={{
+          display:'flex',alignItems:'center',gap:8,
+          padding:'10px 16px',borderRadius:14,
+          border:'none',cursor:'pointer',
+          fontFamily:'"PingFang SC","SF Pro Text",sans-serif',
+          fontSize:13,fontWeight:500,
+          color:'#fff',
+          background:'linear-gradient(135deg,#FF4D88,#FF85B0)',
+          boxShadow:'0 4px 16px rgba(255,77,136,0.32)',
+          transition:'transform 0.15s,box-shadow 0.15s',
+          minWidth:130,
+        }}
+          onMouseEnter={e=>{e.currentTarget.style.transform='scale(1.04)';e.currentTarget.style.boxShadow='0 6px 20px rgba(255,77,136,0.42)';}}
+          onMouseLeave={e=>{e.currentTarget.style.transform='scale(1)';e.currentTarget.style.boxShadow='0 4px 16px rgba(255,77,136,0.32)';}}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          切换：{next.label}
+        </button>
+
+        {/* All style dots */}
+        <div style={{display:'flex',gap:6,paddingLeft:2,marginTop:2}}>
+          {STYLE_CYCLES.map((s,i)=>(
+            <div key={i} onClick={()=>setCycleIdx(i)} style={{
+              width: i===cycleIdx?20:8,
+              height:8,borderRadius:4,cursor:'pointer',
+              background: i===cycleIdx ? s.color||'#FF4D88' : 'rgba(0,0,0,0.15)',
+              transition:'all 0.2s',
+            }}/>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>恋爱日记入口 · 效果图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+html,body{background:#DCDCDC;font-family:"PingFang SC",-apple-system,"Helvetica Neue",sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;gap:40px;padding:32px 24px;flex-wrap:wrap;}
+
+.frame-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
+.frame-label{font-size:12px;color:rgba(0,0,0,0.38);letter-spacing:.5px;font-weight:500;}
+
+.phone{width:390px;height:844px;background:#F2F2F5;border-radius:50px;overflow:hidden;
+  position:relative;box-shadow:0 24px 64px rgba(0,0,0,0.22),0 0 0 1px rgba(0,0,0,0.08),inset 0 0 0 1.5px rgba(255,255,255,0.12);
+  flex-shrink:0;}
+
+/* ── Weather BG ── */
+.weather-bg{position:absolute;top:0;left:0;right:0;height:340px;z-index:0;
+  background:linear-gradient(180deg,#7FA8DD 0%,#A8C3E8 30%,#C2D7EF 58%,#DCE6F2 80%,#F2F2F5 100%);}
+.weather-bg::after{content:'';position:absolute;left:0;right:0;bottom:0;height:80px;
+  background:linear-gradient(180deg,rgba(242,242,245,0) 0%,#F2F2F5 100%);}
+#rainCanvas{position:absolute;top:0;left:0;z-index:1;pointer-events:none;}
+.fg{position:relative;z-index:2;}
+
+/* ── Status bar ── */
+.status-bar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 20px 8px;flex-shrink:0;}
+.status-bar .time{font-size:15px;font-weight:600;color:#fff;}
+.status-bar .icons{display:flex;gap:5px;align-items:center;}
+
+/* ── Top nav ── */
+.top-nav{height:44px;display:flex;align-items:center;padding:0 16px;gap:10px;}
+.nav-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+.identity-tabs{flex:1;display:flex;align-items:center;justify-content:center;gap:28px;height:100%;}
+.id-tab{font-size:17px;color:rgba(255,255,255,0.55);position:relative;height:100%;display:flex;align-items:center;cursor:pointer;}
+.id-tab.active{color:#fff;font-weight:500;}
+.id-tab.active::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:18px;height:3px;background:#fff;border-radius:2px;}
+
+/* ── Weather strip ── */
+.weather-strip{display:flex;align-items:center;gap:10px;padding:4px 18px 10px;}
+.w-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.w-text{display:flex;flex-direction:column;line-height:1.25;}
+.w-cond{font-size:17px;font-weight:500;color:#fff;}
+.w-temp{font-size:17px;font-weight:500;color:#fff;}
+.w-line1{display:flex;align-items:baseline;gap:8px;}
+.w-line2{font-size:12px;color:rgba(255,255,255,0.65);margin-top:1px;}
+
+/* ── Period card ── */
+.period-card-wrap{margin:0 16px;position:relative;}
+.period-card{background:linear-gradient(135deg,#ff7cad 0%,#ff4d88 100%);border-radius:16px;
+  padding:18px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 6px 20px rgba(255,77,136,0.38);}
+.pc-title{font-size:22px;font-weight:500;line-height:1.1;margin-bottom:8px;}
+.pc-sub{display:flex;align-items:center;gap:3px;font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:12px;}
+.pc-detail{display:inline-flex;align-items:center;background:rgba(255,255,255,0.22);
+  border-radius:999px;padding:5px 14px;font-size:13px;}
+.pc-right{text-align:center;flex-shrink:0;}
+.pr-label{font-size:13px;color:rgba(255,255,255,0.88);margin-bottom:4px;}
+.pr-value{font-size:32px;font-weight:500;line-height:1;}
+.pr-unit{font-size:13px;color:rgba(255,255,255,0.75);}
+
+/* ── ★ 恋爱日记入口 pill ★ ── */
+.diary-pill{
+  position:absolute;
+  top:-13px;
+  right:14px;
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.95);
+  border-radius:999px;
+  padding:4px 10px 4px 5px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.14),0 0 0 1px rgba(255,255,255,0.6);
+  cursor:pointer;
+  z-index:10;
+  transition:transform 0.15s,box-shadow 0.15s;
+  text-decoration:none;
+}
+.diary-pill:hover{transform:scale(1.04);box-shadow:0 4px 16px rgba(255,77,136,0.22);}
+/* 两个头像叠放 */
+.pill-avatars{position:relative;width:36px;height:26px;flex-shrink:0;}
+.pill-ava{width:24px;height:24px;border-radius:50%;border:2px solid #fff;
+  position:absolute;top:1px;overflow:hidden;flex-shrink:0;
+  display:flex;align-items:flex-end;justify-content:center;}
+.pill-ava-her{left:0;background:#FFB5C8;z-index:2;}
+.pill-ava-him{left:13px;background:#A8C5E0;z-index:1;}
+.pill-ava svg{width:75%;height:82%;}
+/* 文字区 */
+.pill-text{display:flex;flex-direction:column;line-height:1.2;}
+.pill-main{font-size:13px;font-weight:600;color:#323232;white-space:nowrap;}
+.pill-sub{font-size:10px;color:#FF4D88;margin-top:1px;white-space:nowrap;}
+/* 红点 */
+.pill-dot{width:7px;height:7px;border-radius:50%;background:#FF4D88;
+  flex-shrink:0;margin-left:1px;box-shadow:0 0 0 2px rgba(255,77,136,0.2);}
+/* 箭头 */
+.pill-arrow{font-size:13px;color:rgba(0,0,0,0.3);flex-shrink:0;}
+
+/* ── Quick record card ── */
+.quick-card{margin:12px 16px 0;background:#fff;border-radius:12px;padding:14px 16px;
+  display:flex;align-items:center;gap:10px;box-shadow:0 1px 6px rgba(0,0,0,0.06);}
+.qc-title{flex:1;font-size:15px;color:#323232;}
+.seg-yesno{display:flex;background:rgba(0,0,0,0.05);border-radius:999px;padding:3px;}
+.seg-yesno span{padding:4px 16px;font-size:13px;border-radius:999px;color:#666;cursor:pointer;}
+.seg-yesno span.on{background:#FF4D88;color:#fff;}
+
+/* ── Content area ── */
+.content{position:absolute;top:0;left:0;right:0;bottom:83px;overflow-y:auto;z-index:2;}
+.content::-webkit-scrollbar{display:none;}
+
+/* ── Tab bar ── */
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:83px;background:#fff;
+  border-top:0.5px solid rgba(0,0,0,0.07);display:flex;padding-bottom:28px;z-index:4;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding-bottom:4px;gap:3px;font-size:10px;color:#999;}
+.tab-item.active{color:#FF4D88;font-weight:500;}
+.tab-item svg{width:24px;height:24px;}
+
+/* ── Placeholder blocks ── */
+.blank-card{margin:12px 16px 0;background:#fff;border-radius:12px;height:110px;
+  box-shadow:0 1px 6px rgba(0,0,0,0.05);}
+</style>
+</head>
+<body>
+
+<!-- ═══ 方案A：pill浮于经期卡片右上角 ═══ -->
+<div class="frame-wrap">
+  <div class="phone" id="phoneA">
+    <div class="weather-bg"><canvas id="rainCanvas"></canvas></div>
+    <!-- Status bar -->
+    <div class="content">
+      <div class="status-bar fg">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><rect x="0" y="7" width="3" height="4" rx=".5"/><rect x="4.5" y="4.5" width="3" height="6.5" rx=".5"/><rect x="9" y="2" width="3" height="9" rx=".5"/><rect x="13.5" y="0" width="3" height="11" rx=".5"/></svg>
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="#fff"><circle cx="8" cy="11" r="1.5"/><path d="M5.2 8.3a4 4 0 015.6 0l1-1a5.5 5.5 0 00-7.6 0z"/><path d="M2.8 5.9a7.5 7.5 0 0110.4 0l1-1a9 9 0 00-12.4 0z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="2.5" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="18" height="8" rx="1" fill="#fff"/><rect x="22.5" y="4" width="2" height="4" rx="1" fill="#fff"/></svg>
+        </div>
+      </div>
+      <!-- Top nav -->
+      <div class="top-nav fg">
+        <div class="nav-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="identity-tabs">
+          <div class="id-tab active">程程</div>
+          <div class="id-tab" style="font-size:15px;">小柚子</div>
+        </div>
+        <div class="nav-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+      </div>
+      <!-- Weather strip -->
+      <div class="weather-strip fg">
+        <div class="w-icon">
+          <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+            <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fill-opacity=".88"/>
+            <g stroke="#cfe3f5" stroke-width="2.2" stroke-linecap="round">
+              <line x1="15" y1="33" x2="12" y2="41"/><line x1="23" y1="33" x2="20" y2="41"/><line x1="31" y1="33" x2="28" y2="41"/>
+            </g>
+          </svg>
+        </div>
+        <div class="w-text">
+          <div class="w-line1"><span class="w-cond">大雨</span><span style="width:8px;"></span><span class="w-temp">20°</span></div>
+          <div class="w-line2">集美区 · 适合窝在家</div>
+        </div>
+      </div>
+
+      <!-- Period card + diary pill -->
+      <div class="period-card-wrap fg" style="margin-top:6px;">
+
+        <!-- ★ 恋爱日记 pill ★ -->
+        <div class="diary-pill">
+          <!-- Her avatar -->
+          <div class="pill-avatars">
+            <div class="pill-ava pill-ava-her">
+              <svg viewBox="0 0 36 41" fill="none">
+                <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+                <path d="M11 10 Q11 2 18 2 Q25 2 25 10" fill="rgba(255,255,255,0.92)"/>
+                <path d="M10 22 Q10 18 18 18 Q26 18 26 22 L29 41 H7 Z" fill="rgba(255,255,255,0.92)"/>
+              </svg>
+            </div>
+            <!-- Him avatar -->
+            <div class="pill-ava pill-ava-him">
+              <svg viewBox="0 0 36 41" fill="none">
+                <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+                <path d="M11 10 Q11 3 18 3 Q25 3 25 10 L25 8 Q18 5 11 8 Z" fill="rgba(255,255,255,0.92)"/>
+                <path d="M8 22 Q8 18 18 18 Q28 18 28 22 L27 41 H9 Z" fill="rgba(255,255,255,0.92)"/>
+              </svg>
+            </div>
+          </div>
+          <div class="pill-text">
+            <span class="pill-main">恋爱日记</span>
+            <span class="pill-sub">第 102 天</span>
+          </div>
+          <div class="pill-dot"></div>
+          <span class="pill-arrow">›</span>
+        </div>
+
+        <div class="period-card">
+          <div>
+            <div class="pc-title">预计 2 天后<br/>开始来月经</div>
+            <div class="pc-sub">了解经期月测 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="pc-detail">查看详情 ›</div>
+          </div>
+          <div class="pc-right">
+            <div class="pr-label">怀孕几率</div>
+            <div class="pr-value">28<span class="pr-unit">%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick card -->
+      <div class="quick-card fg">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#FF4D88"><path d="M12 2s-7 8-7 13a7 7 0 0014 0c0-5-7-13-7-13z"/></svg>
+        <span class="qc-title">月经来了</span>
+        <div class="seg-yesno"><span class="on">是</span><span>否</span></div>
+      </div>
+      <div class="blank-card fg"></div>
+      <div style="height:20px;"></div>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <div class="tab-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+          <path d="M9 21V12h6v9"/>
+        </svg>
+        <span>美柚</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>记录</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span>消息</span>
+      </div>
+      <div class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span>我</span>
+      </div>
+    </div>
+  </div>
+  <div class="frame-label">pill 浮于经期卡片右上角</div>
+</div>
+
+<!-- ═══ 方案B：pill 嵌在天气条右侧 ═══ -->
+<div class="frame-wrap">
+  <div class="phone" id="phoneB">
+    <div class="weather-bg"><canvas id="rainCanvas2"></canvas></div>
+    <div class="content">
+      <div class="status-bar fg">
+        <div class="time">9:41</div>
+        <div class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><rect x="0" y="7" width="3" height="4" rx=".5"/><rect x="4.5" y="4.5" width="3" height="6.5" rx=".5"/><rect x="9" y="2" width="3" height="9" rx=".5"/><rect x="13.5" y="0" width="3" height="11" rx=".5"/></svg>
+          <svg width="15" height="11" viewBox="0 0 16 12" fill="#fff"><circle cx="8" cy="11" r="1.5"/><path d="M5.2 8.3a4 4 0 015.6 0l1-1a5.5 5.5 0 00-7.6 0z"/><path d="M2.8 5.9a7.5 7.5 0 0110.4 0l1-1a9 9 0 00-12.4 0z"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="2.5" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="18" height="8" rx="1" fill="#fff"/><rect x="22.5" y="4" width="2" height="4" rx="1" fill="#fff"/></svg>
+        </div>
+      </div>
+      <div class="top-nav fg">
+        <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <div class="identity-tabs">
+          <div class="id-tab active">程程</div>
+          <div class="id-tab" style="font-size:15px;">小柚子</div>
+        </div>
+        <div class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+      </div>
+
+      <!-- Weather strip with diary pill inline -->
+      <div class="fg" style="display:flex;align-items:center;padding:4px 16px 10px;gap:8px;">
+        <div class="weather-strip" style="padding:0;flex:1;">
+          <div class="w-icon">
+            <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+              <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fill-opacity=".88"/>
+              <g stroke="#cfe3f5" stroke-width="2.2" stroke-linecap="round"><line x1="15" y1="33" x2="12" y2="41"/><line x1="23" y1="33" x2="20" y2="41"/><line x1="31" y1="33" x2="28" y2="41"/></g>
+            </svg>
+          </div>
+          <div class="w-text">
+            <div class="w-line1"><span class="w-cond">大雨</span><span style="width:8px;"></span><span class="w-temp">20°</span></div>
+            <div class="w-line2">集美区</div>
+          </div>
+        </div>
+
+        <!-- ★ pill 嵌在天气条右侧 ★ -->
+        <div class="diary-pill" style="position:static;box-shadow:0 1px 8px rgba(0,0,0,0.12),inset 0 0 0 1px rgba(255,255,255,0.8);background:rgba(255,255,255,0.88);">
+          <div class="pill-avatars">
+            <div class="pill-ava pill-ava-her">
+              <svg viewBox="0 0 36 41" fill="none"><ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/><path d="M11 10 Q11 2 18 2 Q25 2 25 10" fill="rgba(255,255,255,0.92)"/><path d="M10 22 Q10 18 18 18 Q26 18 26 22 L29 41 H7 Z" fill="rgba(255,255,255,0.92)"/></svg>
+            </div>
+            <div class="pill-ava pill-ava-him">
+              <svg viewBox="0 0 36 41" fill="none"><ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/><path d="M11 10 Q11 3 18 3 Q25 3 25 10 L25 8 Q18 5 11 8 Z" fill="rgba(255,255,255,0.92)"/><path d="M8 22 Q8 18 18 18 Q28 18 28 22 L27 41 H9 Z" fill="rgba(255,255,255,0.92)"/></svg>
+            </div>
+          </div>
+          <div class="pill-text">
+            <span class="pill-main">恋爱日记</span>
+            <span class="pill-sub">第 102 天 · 3条新</span>
+          </div>
+          <div class="pill-dot"></div>
+          <span class="pill-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="period-card-wrap fg" style="margin-top:2px;">
+        <div class="period-card">
+          <div>
+            <div class="pc-title">预计 2 天后<br/>开始来月经</div>
+            <div class="pc-sub">了解经期月测 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="pc-detail">查看详情 ›</div>
+          </div>
+          <div class="pc-right">
+            <div class="pr-label">怀孕几率</div>
+            <div class="pr-value">28<span class="pr-unit">%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-card fg">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#FF4D88"><path d="M12 2s-7 8-7 13a7 7 0 0014 0c0-5-7-13-7-13z"/></svg>
+        <span class="qc-title">月经来了</span>
+        <div class="seg-yesno"><span class="on">是</span><span>否</span></div>
+      </div>
+      <div class="blank-card fg"></div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg><span>美柚</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>记录</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span>消息</span></div>
+      <div class="tab-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>我</span></div>
+    </div>
+  </div>
+  <div class="frame-label">pill 嵌在天气条右侧</div>
+</div>
+
+<script>
+function initRain(id, count) {
+  const c = document.getElementById(id); if (!c) return;
+  const x = c.getContext('2d');
+  const bg = c.parentElement;
+  let W, H, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  function rs() {
+    W = bg.clientWidth; H = bg.clientHeight;
+    c.width = W * dpr; c.height = H * dpr;
+    c.style.width = W + 'px'; c.style.height = H + 'px';
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  rs();
+  const A = 0.18, d = [];
+  function mk(i) {
+    const sp = 10 + Math.random() * 8, ln = 16 + Math.random() * 20, nr = Math.random() < 0.3;
+    return { x: Math.random() * (W + 80) - 40, y: i ? Math.random() * H : -ln - Math.random() * 60, len: ln, speed: sp, th: nr ? (1.3 + Math.random() * 0.9) : (0.6 + Math.random() * 0.7), op: nr ? (0.45 + Math.random() * 0.35) : (0.18 + Math.random() * 0.28) };
+  }
+  for (let i = 0; i < count; i++) d.push(mk(true));
+  function draw() {
+    x.clearRect(0, 0, W, H); x.lineCap = 'round';
+    for (const p of d) {
+      x.beginPath(); x.strokeStyle = 'rgba(120,150,185,' + p.op + ')'; x.lineWidth = p.th;
+      x.moveTo(p.x, p.y); x.lineTo(p.x - p.len * A, p.y + p.len); x.stroke();
+      p.y += p.speed; p.x -= p.speed * A;
+      if (p.y > H + p.len) Object.assign(p, mk(false));
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+initRain('rainCanvas', 200);
+initRain('rainCanvas2', 200);
+</script>
+</body>
+</html>

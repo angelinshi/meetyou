@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>解绑与恢复 · 流程原型</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#0d0d18;font-family:"PingFang SC","SF Pro Text","Helvetica Neue",sans-serif;overflow-x:auto;}
+  ::-webkit-scrollbar{width:5px;height:5px;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState} = React;
+
+const MY = {
+  brandRed:'#ff4d88', brandSoft:'rgba(255,77,136,0.1)',
+  bg:'#f2f2f5', surface:'#ffffff',
+  textPrimary:'#323232', textSecondary:'#666666', textTertiary:'#999999',
+  line:'rgba(0,0,0,0.08)',
+  success:'#00cc99', warning:'#ff9500', danger:'#ff4d4d',
+  link:'#4f7cae', purple:'#8d54ff',
+  shadow1:'0 2px 10px rgba(50,50,50,0.08)',
+};
+
+/* ── 基础组件 ─────────────────────────────────────────── */
+
+function StatusBar({light}) {
+  const c = light ? 'rgba(255,255,255,0.88)' : MY.textPrimary;
+  return (
+    <div style={{height:44,display:'flex',alignItems:'center',justifyContent:'space-between',
+      padding:'0 24px 0 32px',flexShrink:0,position:'absolute',top:0,left:0,right:0,zIndex:100}}>
+      <span style={{fontSize:14,fontWeight:600,color:c}}>9:41</span>
+      <div style={{display:'flex',gap:5,alignItems:'center'}}>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill={c}>
+          <rect x="0" y="5" width="3" height="6" rx="0.5"/>
+          <rect x="4.5" y="3" width="3" height="8" rx="0.5"/>
+          <rect x="9" y="1" width="3" height="10" rx="0.5"/>
+          <rect x="13.5" y="0" width="2.5" height="11" rx="0.5"/>
+        </svg>
+        <svg width="22" height="11" viewBox="0 0 22 11">
+          <rect x="0.5" y="0.5" width="18" height="10" rx="2" stroke={c} strokeWidth="1" fill="none"/>
+          <rect x="2" y="2" width="12" height="7" rx="1" fill={c}/>
+          <path d={`M20 3.5v4a1.5 1.5 0 000-4z`} fill={c}/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function Phone({children, bg=MY.bg, light=false}) {
+  return (
+    <div style={{width:390,height:760,background:bg,borderRadius:44,overflow:'hidden',
+      position:'relative',display:'flex',flexDirection:'column',
+      boxShadow:'0 0 0 1px rgba(255,255,255,0.07),0 40px 100px rgba(0,0,0,0.6)'}}>
+      <StatusBar light={light}/>
+      <div style={{position:'absolute',bottom:6,left:'50%',transform:'translateX(-50%)',
+        width:100,height:4,background:light?'rgba(255,255,255,0.28)':'rgba(0,0,0,0.13)',borderRadius:2,zIndex:100}}/>
+      <div style={{flex:1,display:'flex',flexDirection:'column',marginTop:44}}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Nav({title, onBack, light=false}) {
+  const c = light ? '#fff' : MY.textPrimary;
+  return (
+    <div style={{height:48,display:'flex',alignItems:'center',padding:'0 16px',flexShrink:0,
+      background:light?'transparent':MY.surface,
+      borderBottom:light?'none':`1px solid ${MY.line}`,position:'relative'}}>
+      {onBack && (
+        <div onClick={onBack} style={{position:'absolute',left:4,width:44,height:44,
+          display:'flex',alignItems:'center',justifyContent:'flex-start',cursor:'pointer',paddingLeft:8}}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18l-6-6 6-6" stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      )}
+      <span style={{fontSize:17,fontWeight:500,color:c,margin:'0 auto'}}>{title}</span>
+    </div>
+  );
+}
+
+function Btn({label, onClick, color=MY.brandRed, disabled=false, ghost=false, outline=false}) {
+  const bg = ghost ? 'transparent' : outline ? 'transparent' : disabled ? '#ddd' : color;
+  const tc = ghost ? MY.textSecondary : outline ? color : '#fff';
+  return (
+    <div onClick={!disabled ? onClick : undefined} style={{height:48,borderRadius:999,background:bg,
+      border:outline ? `1.5px solid ${color}` : 'none',
+      display:'flex',alignItems:'center',justifyContent:'center',cursor:disabled?'default':'pointer'}}>
+      <span style={{fontSize:16,fontWeight:500,color:tc}}>{label}</span>
+    </div>
+  );
+}
+
+function Avatars({size=52}) {
+  return (
+    <div style={{display:'flex',position:'relative',width:Math.round(size*1.58)}}>
+      <div style={{width:size,height:size,borderRadius:'50%',
+        background:'linear-gradient(135deg,#FFB3CC,#FF7EB3)',border:'2.5px solid #fff',
+        overflow:'hidden',display:'flex',alignItems:'flex-end',justifyContent:'center',zIndex:2}}>
+        <svg width={size*.76} height={size*.76} viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="14" r="7" fill="rgba(255,255,255,0.9)"/>
+          <ellipse cx="20" cy="37" rx="13" ry="10" fill="rgba(255,255,255,0.9)"/>
+        </svg>
+      </div>
+      <div style={{width:size,height:size,borderRadius:'50%',
+        background:'linear-gradient(135deg,#A3BFFA,#6B93F5)',border:'2.5px solid #fff',
+        overflow:'hidden',display:'flex',alignItems:'flex-end',justifyContent:'center',marginLeft:-size*.3}}>
+        <svg width={size*.76} height={size*.76} viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="13" r="7" fill="rgba(255,255,255,0.9)"/>
+          <rect x="8" y="25" width="24" height="15" rx="4" fill="rgba(255,255,255,0.9)"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ── 屏幕组件 S1–S9, R1–R3, E1–E2 ──────────────────────── */
+
+function S1({onNext}) {
+  const items = ['伴侣生日提醒','经期状态同步','日记同步通知','隐私数据访问权'];
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="关系管理" onBack={()=>{}}/>
+      <div style={{margin:'16px 16px 12px',padding:16,background:MY.bg,borderRadius:12}}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <Avatars size={40}/>
+          <div>
+            <div style={{fontSize:16,fontWeight:500,color:MY.textPrimary}}>你 &amp; 小宇</div>
+            <div style={{fontSize:13,color:MY.textSecondary,marginTop:2}}>已携手 102 天</div>
+          </div>
+          <span style={{marginLeft:'auto',fontSize:12,color:MY.brandRed,fontWeight:500}}>已绑定</span>
+        </div>
+      </div>
+      <div style={{margin:'0 16px',background:MY.surface,borderRadius:12,overflow:'hidden',
+        boxShadow:MY.shadow1}}>
+        {items.map((t,i) => (
+          <div key={i} style={{display:'flex',alignItems:'center',padding:'0 16px',height:52,
+            borderBottom:i<items.length-1?`1px solid ${MY.line}`:'none'}}>
+            <span style={{fontSize:15,color:MY.textPrimary,flex:1}}>{t}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6l6 6-6 6" stroke={MY.textTertiary} strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+          </div>
+        ))}
+      </div>
+      <div style={{flex:1}}/>
+      <div style={{padding:'0 16px 32px'}}>
+        <div style={{height:1,background:MY.line,marginBottom:20}}/>
+        <div onClick={onNext} style={{height:48,borderRadius:999,border:`1.5px solid rgba(255,77,77,0.22)`,
+          display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+          background:'rgba(255,77,77,0.03)'}}>
+          <span style={{fontSize:15,color:MY.danger}}>结束这段关系</span>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+function S2({onNext, onBack}) {
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="结束关系" onBack={onBack}/>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'28px 24px 24px'}}>
+        <Avatars size={60}/>
+        <div style={{marginTop:24,textAlign:'center'}}>
+          <div style={{fontSize:13,color:MY.textSecondary}}>你们已经在一起</div>
+          <div style={{fontSize:76,fontWeight:700,color:MY.textPrimary,lineHeight:1.05,fontVariantNumeric:'tabular-nums'}}>102</div>
+          <div style={{fontSize:18,color:MY.textSecondary,marginTop:2}}>天</div>
+        </div>
+        <div style={{display:'flex',gap:32,marginTop:24}}>
+          {[['34','共同日记'],['12','纪念日'],['86','张照片']].map(([n,l]) => (
+            <div key={l} style={{textAlign:'center'}}>
+              <div style={{fontSize:22,fontWeight:600,color:MY.textPrimary}}>{n}</div>
+              <div style={{fontSize:12,color:MY.textSecondary,marginTop:3}}>{l}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:20,padding:'12px 16px',background:'rgba(255,77,136,0.05)',borderRadius:10,
+          fontSize:13,color:MY.textSecondary,textAlign:'center',lineHeight:1.6}}>
+          确认后内容将封存 90 天，期间双方均可发起恢复
+        </div>
+        <div style={{flex:1}}/>
+        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:10}}>
+          <Btn label="继续" onClick={onNext} color={MY.danger}/>
+          <Btn label="我再想想" onClick={onBack} ghost={true}/>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+function S3({onNext, onBack}) {
+  const [sel, setSel] = useState('archive');
+  const opts = [
+    {val:'archive',icon:'📦',title:'封存记忆',badge:'推荐',
+     desc:'安全保存 90 天，期间可恢复所有共同内容',
+     tags:['恋爱日记','纪念日','里程碑','关系时长']},
+    {val:'delete',icon:'🗑️',title:'彻底清除',
+     desc:'双方共同数据立即删除，不可恢复',
+     warn:'⚠️ 此操作需要 24h 冷静期后才会执行'},
+  ];
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="记忆保存方式" onBack={onBack}/>
+      <div style={{flex:1,padding:'20px 16px 24px',display:'flex',flexDirection:'column',gap:12}}>
+        <div style={{fontSize:13,color:MY.textSecondary,lineHeight:1.6}}>选择共同内容如何处置：</div>
+        {opts.map(o => (
+          <div key={o.val} onClick={() => setSel(o.val)} style={{padding:16,borderRadius:14,cursor:'pointer',
+            border:`2px solid ${sel===o.val?(o.val==='archive'?MY.brandRed:MY.danger):MY.line}`,
+            background:sel===o.val?(o.val==='archive'?MY.brandSoft:'rgba(255,77,77,0.04)'):MY.surface}}>
+            <div style={{display:'flex',gap:12}}>
+              <span style={{fontSize:26,lineHeight:1.2}}>{o.icon}</span>
+              <div style={{flex:1}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{fontSize:15,fontWeight:500,color:MY.textPrimary}}>{o.title}</span>
+                  {o.badge && <span style={{fontSize:11,color:MY.brandRed,background:MY.brandSoft,
+                    borderRadius:999,padding:'1px 7px'}}>{o.badge}</span>}
+                </div>
+                <div style={{fontSize:13,color:MY.textSecondary,marginTop:4,lineHeight:1.5}}>{o.desc}</div>
+                {o.tags && <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:8}}>
+                  {o.tags.map(t => <span key={t} style={{fontSize:11,color:MY.textSecondary,
+                    background:MY.bg,borderRadius:999,padding:'2px 8px'}}>{t}</span>)}
+                </div>}
+                {o.warn && sel===o.val && <div style={{marginTop:8,padding:'6px 10px',
+                  background:'rgba(255,77,77,0.07)',borderRadius:8,fontSize:12,color:MY.danger}}>{o.warn}</div>}
+              </div>
+            </div>
+          </div>
+        ))}
+        <div style={{flex:1}}/>
+        <Btn label="确认" onClick={onNext} color={sel==='delete'?MY.danger:MY.brandRed}/>
+      </div>
+    </Phone>
+  );
+}
+
+function S4({onNext, onBack}) {
+  const [notify, setNotify] = useState(true);
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="通知对方" onBack={onBack}/>
+      <div style={{flex:1,padding:'20px 16px 24px',display:'flex',flexDirection:'column',gap:14}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',
+          padding:'14px 16px',background:MY.bg,borderRadius:12}}>
+          <div>
+            <div style={{fontSize:15,fontWeight:500,color:MY.textPrimary}}>通知小宇</div>
+            <div style={{fontSize:13,color:MY.textSecondary,marginTop:2}}>发送系统消息告知对方</div>
+          </div>
+          <div onClick={() => setNotify(!notify)} style={{width:48,height:28,borderRadius:14,
+            background:notify?MY.brandRed:'#ddd',position:'relative',cursor:'pointer',transition:'background 0.2s'}}>
+            <div style={{position:'absolute',top:3,left:notify?23:3,width:22,height:22,borderRadius:11,
+              background:'#fff',boxShadow:'0 1px 4px rgba(0,0,0,0.18)',transition:'left 0.2s'}}/>
+          </div>
+        </div>
+        {notify && (
+          <div style={{padding:14,background:MY.bg,borderRadius:12}}>
+            <div style={{fontSize:12,color:MY.textTertiary,marginBottom:6}}>对方将收到</div>
+            <div style={{padding:'10px 14px',background:MY.surface,borderRadius:10,
+              fontSize:13,color:MY.textSecondary,lineHeight:1.6}}>
+              💌 你的 Meetyou 伴侣已结束这段关系。记忆胶囊已封存，还有 <b>90 天</b>可申请恢复。
+            </div>
+          </div>
+        )}
+        {!notify && (
+          <div style={{padding:'10px 14px',background:'rgba(255,149,0,0.06)',borderRadius:10,
+            fontSize:13,color:MY.warning,lineHeight:1.5}}>
+            对方下次打开 App 时将自然看到关系状态变更。
+          </div>
+        )}
+        <div style={{flex:1}}/>
+        <Btn label="确认结束关系" onClick={onNext} color={MY.danger}/>
+        <Btn label="取消" onClick={onBack} ghost={true}/>
+      </div>
+    </Phone>
+  );
+}
+
+function S5({onNext}) {
+  return (
+    <Phone bg="linear-gradient(160deg,#1c0b42 0%,#0f0625 100%)" light={true}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'40px 24px 32px'}}>
+        <div style={{width:104,height:104,borderRadius:52,background:'rgba(141,84,255,0.18)',
+          border:'1px solid rgba(141,84,255,0.4)',display:'flex',alignItems:'center',justifyContent:'center',
+          boxShadow:'0 0 40px rgba(141,84,255,0.2)'}}>
+          <span style={{fontSize:50}}>📦</span>
+        </div>
+        <div style={{marginTop:24,textAlign:'center'}}>
+          <div style={{fontSize:22,fontWeight:600,color:'#fff'}}>记忆已安全封存</div>
+          <div style={{fontSize:14,color:'rgba(255,255,255,0.52)',marginTop:8,lineHeight:1.6}}>
+            102 天的故事被好好珍藏
+          </div>
+        </div>
+        <div style={{marginTop:28,padding:'16px 28px',background:'rgba(255,255,255,0.08)',
+          borderRadius:16,textAlign:'center',width:'100%',backdropFilter:'blur(8px)'}}>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.38)',marginBottom:4}}>胶囊保留期限</div>
+          <div style={{display:'flex',alignItems:'baseline',gap:6,justifyContent:'center'}}>
+            <span style={{fontSize:44,fontWeight:700,color:'#fff',fontVariantNumeric:'tabular-nums'}}>90</span>
+            <span style={{fontSize:18,color:'rgba(255,255,255,0.6)'}}>天</span>
+          </div>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.32)',marginTop:4}}>到期：2026.09.02</div>
+        </div>
+        <div style={{flex:1}}/>
+        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:10}}>
+          <div onClick={onNext} style={{height:48,borderRadius:999,background:'rgba(141,84,255,0.82)',
+            display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+            boxShadow:'0 4px 20px rgba(141,84,255,0.28)'}}>
+            <span style={{color:'#fff',fontSize:16,fontWeight:500}}>查看记忆胶囊</span>
+          </div>
+          <div style={{height:44,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+            <span style={{fontSize:15,color:'rgba(255,255,255,0.28)'}}>返回首页</span>
+          </div>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+function S6({onNext}) {
+  return (
+    <Phone bg={MY.bg}>
+      <div style={{height:180,background:'linear-gradient(160deg,#6B93F5,#a78bfa)',
+        borderRadius:'0 0 24px 24px',padding:'8px 16px 16px',flexShrink:0,
+        display:'flex',flexDirection:'column',justifyContent:'flex-end'}}>
+        <div style={{fontSize:13,color:'rgba(255,255,255,0.68)'}}>6月4日 周三</div>
+        <div style={{fontSize:20,fontWeight:500,color:'#fff',marginTop:4}}>早上好 ☀️</div>
+      </div>
+      <div onClick={onNext} style={{margin:'12px 16px 0',padding:'14px 16px',borderRadius:14,
+        background:'rgba(141,84,255,0.07)',border:'1px solid rgba(141,84,255,0.18)',cursor:'pointer',
+        display:'flex',alignItems:'center',gap:12}}>
+        <span style={{fontSize:26}}>📦</span>
+        <div style={{flex:1}}>
+          <div style={{fontSize:14,fontWeight:500,color:'#5b21b6'}}>记忆胶囊封存中</div>
+          <div style={{fontSize:12,color:MY.textSecondary,marginTop:2}}>还有 <b style={{color:MY.purple}}>67 天</b> · 可申请恢复关系</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M9 6l6 6-6 6" stroke={MY.purple} strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      </div>
+      <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+        <div style={{padding:16,background:MY.surface,borderRadius:12,boxShadow:MY.shadow1}}>
+          <div style={{fontSize:14,fontWeight:500,color:MY.textPrimary,marginBottom:6}}>今日经期</div>
+          <div style={{fontSize:28,fontWeight:700,color:MY.brandRed}}>第 3 天</div>
+          <div style={{fontSize:13,color:MY.textSecondary,marginTop:3}}>经量中等 · 轻微不适</div>
+        </div>
+        {[['💊','叶酸','已打卡'],['🏃','步数','8,234']].map(([icon,name,val]) => (
+          <div key={name} style={{padding:'12px 16px',background:MY.surface,borderRadius:12,
+            display:'flex',alignItems:'center',gap:10,boxShadow:MY.shadow1}}>
+            <span style={{fontSize:18}}>{icon}</span>
+            <span style={{flex:1,fontSize:14,color:MY.textPrimary}}>{name}</span>
+            <span style={{fontSize:13,color:MY.textSecondary}}>{val}</span>
+          </div>
+        ))}
+      </div>
+    </Phone>
+  );
+}
+
+function S7({onNext, onBack}) {
+  return (
+    <Phone bg="linear-gradient(160deg,#1c0b42 0%,#0f0625 100%)" light={true}>
+      <Nav title="记忆胶囊" onBack={onBack} light={true}/>
+      <div style={{flex:1,overflowY:'auto',padding:'12px 16px 24px'}}>
+        <div style={{textAlign:'center',padding:'16px 0 20px'}}>
+          <span style={{fontSize:54}}>📦</span>
+          <div style={{fontSize:18,fontWeight:600,color:'#fff',marginTop:12}}>你 &amp; 小宇</div>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.42)',marginTop:4}}>2026.02.22 — 2026.06.04</div>
+          <div style={{display:'flex',justifyContent:'center',gap:28,marginTop:18}}>
+            {[['102','天'],['34','日记'],['12','纪念日']].map(([n,l]) => (
+              <div key={l} style={{textAlign:'center'}}>
+                <div style={{fontSize:24,fontWeight:700,color:'#fff',fontVariantNumeric:'tabular-nums'}}>{n}</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.42)',marginTop:2}}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{padding:'12px 16px',background:'rgba(255,255,255,0.08)',borderRadius:12,
+          display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:12,color:'rgba(255,255,255,0.38)'}}>封存保留期</div>
+            <div style={{fontSize:15,fontWeight:500,color:'#fff',marginTop:2}}>还有 67 天</div>
+          </div>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.32)',textAlign:'right',lineHeight:1.6}}>
+            <div>到期</div><div>2026.09.02</div>
+          </div>
+        </div>
+        <div style={{padding:14,background:'rgba(255,255,255,0.05)',borderRadius:12,
+          marginBottom:20,filter:'blur(2.5px)',userSelect:'none',opacity:0.55}}>
+          <div style={{fontSize:13,color:'rgba(255,255,255,0.8)',marginBottom:6}}>📝 5月28日 · 日记</div>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.55)',lineHeight:1.6}}>
+            今天一起去了海边，看到夕阳落入海面那一刻……
+          </div>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          <div onClick={onNext} style={{height:48,borderRadius:999,background:'rgba(141,84,255,0.85)',
+            display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+            boxShadow:'0 4px 20px rgba(141,84,255,0.28)'}}>
+            <span style={{color:'#fff',fontSize:15,fontWeight:500}}>💌 申请恢复关系</span>
+          </div>
+          <div style={{height:44,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+            <span style={{fontSize:14,color:'rgba(255,255,255,0.22)'}}>让记忆消散</span>
+          </div>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+function S8({onNext, onBack}) {
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="恢复申请" onBack={onBack}/>
+      <div style={{flex:1,padding:'20px 16px 24px',display:'flex',flexDirection:'column',gap:14}}>
+        <div style={{fontSize:13,color:MY.textSecondary}}>留一句话给 <b>小宇</b>（可选）</div>
+        <div style={{padding:'12px 14px',background:MY.bg,borderRadius:12,minHeight:90,
+          fontSize:15,color:MY.textPrimary,lineHeight:1.6}}>
+          想和你重新开始
+        </div>
+        <div style={{padding:14,background:MY.bg,borderRadius:12}}>
+          <div style={{fontSize:12,color:MY.textTertiary,marginBottom:6}}>小宇将收到</div>
+          <div style={{padding:'10px 14px',background:MY.surface,borderRadius:10,
+            fontSize:13,color:MY.textSecondary,lineHeight:1.5}}>
+            💌 前伴侣申请恢复关系，并留言："想和你重新开始"
+          </div>
+        </div>
+        <div style={{padding:'10px 14px',background:'rgba(255,149,0,0.06)',borderRadius:10,
+          fontSize:12,color:MY.warning,lineHeight:1.5}}>
+          申请有效期 7 天，对方不回应视为婉拒
+        </div>
+        <div style={{flex:1}}/>
+        <Btn label="发送申请" onClick={onNext} color={MY.purple}/>
+        <Btn label="取消" onClick={onBack} ghost={true}/>
+      </div>
+    </Phone>
+  );
+}
+
+function S9({onBack}) {
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="等待回应" onBack={onBack}/>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'40px 24px 32px'}}>
+        <span style={{fontSize:60}}>⏳</span>
+        <div style={{fontSize:20,fontWeight:600,color:MY.textPrimary,marginTop:18}}>申请已发送</div>
+        <div style={{fontSize:14,color:MY.textSecondary,marginTop:8,textAlign:'center',lineHeight:1.7}}>
+          等待小宇的回应<br/>申请 7 天内有效
+        </div>
+        <div style={{marginTop:26,padding:'14px 32px',background:MY.bg,borderRadius:14,textAlign:'center'}}>
+          <div style={{fontSize:12,color:MY.textTertiary,marginBottom:4}}>剩余时间</div>
+          <div style={{fontSize:34,fontWeight:700,color:MY.purple,fontVariantNumeric:'tabular-nums'}}>6天23时</div>
+        </div>
+        <div style={{marginTop:14,padding:'10px 16px',background:'rgba(141,84,255,0.05)',borderRadius:10,
+          fontSize:13,color:MY.textSecondary,textAlign:'center',lineHeight:1.5}}>
+          若对方已绑定新伴侣，申请将自动失效
+        </div>
+        <div style={{flex:1}}/>
+        <div style={{width:'100%',height:44,display:'flex',alignItems:'center',justifyContent:'center',
+          cursor:'pointer',border:`1px solid ${MY.line}`,borderRadius:999}}>
+          <span style={{fontSize:14,color:MY.textSecondary}}>撤回申请</span>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+function R1({onAccept, onDecline}) {
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="恢复申请" onBack={onDecline}/>
+      <div style={{flex:1,padding:'24px 16px 32px',display:'flex',flexDirection:'column',gap:14}}>
+        <div style={{padding:20,background:'rgba(141,84,255,0.06)',borderRadius:16,
+          border:'1px solid rgba(141,84,255,0.14)',textAlign:'center'}}>
+          <Avatars size={48}/>
+          <div style={{fontSize:16,fontWeight:500,color:MY.textPrimary,marginTop:12}}>
+            林思涵 申请恢复关系
+          </div>
+          <div style={{fontSize:14,color:MY.textSecondary,marginTop:6,lineHeight:1.5,fontStyle:'italic'}}>
+            "想和你重新开始"
+          </div>
+        </div>
+        <div style={{padding:'12px 14px',background:MY.bg,borderRadius:12,
+          fontSize:13,color:MY.textSecondary,lineHeight:1.6}}>
+          接受后，<b>102 天</b>的日记、纪念日、里程碑将全部还原，双方可选择续接时长或重新开始。
+        </div>
+        <div style={{padding:'8px 14px',background:'rgba(255,149,0,0.06)',borderRadius:10}}>
+          <span style={{fontSize:13,color:MY.warning}}>⏱ 申请还有 6天23时 有效</span>
+        </div>
+        <div style={{flex:1}}/>
+        <Btn label="接受，重新在一起 💛" onClick={onAccept} color={MY.purple}/>
+        <div onClick={onDecline} style={{height:44,display:'flex',alignItems:'center',justifyContent:'center',
+          cursor:'pointer',border:`1px solid ${MY.line}`,borderRadius:999}}>
+          <span style={{fontSize:14,color:MY.textSecondary}}>婉拒申请</span>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+function R2({onNext, onBack}) {
+  const [mode, setMode] = useState('continue');
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="恢复关系" onBack={onBack}/>
+      <div style={{flex:1,padding:'20px 16px 24px',display:'flex',flexDirection:'column',gap:12}}>
+        <div style={{fontSize:13,color:MY.textSecondary,marginBottom:2}}>即将恢复的内容</div>
+        {[['📝','恋爱日记','34 篇，双方各持'],['🎯','纪念日','12 个里程碑'],['⏱','关系时长','原始 102 天记录']].map(([icon,name,val]) => (
+          <div key={name} style={{display:'flex',alignItems:'center',gap:12,
+            padding:'10px 14px',background:MY.bg,borderRadius:10}}>
+            <span style={{fontSize:18}}>{icon}</span>
+            <span style={{flex:1,fontSize:14,color:MY.textPrimary}}>{name}</span>
+            <span style={{fontSize:12,color:MY.textSecondary}}>{val}</span>
+          </div>
+        ))}
+        <div style={{fontSize:13,color:MY.textSecondary,marginTop:4}}>关系时长如何计算？</div>
+        <div style={{display:'flex',borderRadius:10,overflow:'hidden',border:`1px solid ${MY.line}`}}>
+          {[['continue','续接（第103天）'],['restart','重新开始（第1天）']].map(([v,l]) => (
+            <div key={v} onClick={() => setMode(v)} style={{flex:1,textAlign:'center',padding:'11px 4px',
+              background:mode===v?MY.purple:MY.surface,cursor:'pointer',transition:'background 0.15s'}}>
+              <span style={{fontSize:12,color:mode===v?'#fff':MY.textSecondary,fontWeight:mode===v?500:400}}>{l}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{flex:1}}/>
+        <Btn label="确认恢复关系 💛" onClick={onNext} color={MY.purple}/>
+        <Btn label="取消" onClick={onBack} ghost={true}/>
+      </div>
+    </Phone>
+  );
+}
+
+function R3({onNext}) {
+  return (
+    <Phone bg="linear-gradient(160deg,#0c2a1c,#051810)" light={true}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'52px 24px 36px'}}>
+        <span style={{fontSize:72}}>💛</span>
+        <div style={{fontSize:24,fontWeight:700,color:'#fff',marginTop:20,textAlign:'center',lineHeight:1.25}}>
+          你们重新在一起了
+        </div>
+        <div style={{fontSize:14,color:'rgba(255,255,255,0.52)',marginTop:10,textAlign:'center',lineHeight:1.7}}>
+          分开了 23 天后，<br/>重新续写这段故事
+        </div>
+        <div style={{marginTop:28,padding:'14px 20px',background:'rgba(0,204,153,0.14)',
+          borderRadius:14,border:'1px solid rgba(0,204,153,0.24)',textAlign:'center',width:'100%'}}>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.45)',marginBottom:6}}>新里程碑已记录</div>
+          <div style={{fontSize:14,color:'#7fffd4'}}>🌱 分离 23 天后勇敢重新开始</div>
+        </div>
+        <div style={{flex:1}}/>
+        <div onClick={onNext} style={{width:'100%',height:48,borderRadius:999,background:MY.success,
+          display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+          boxShadow:'0 4px 24px rgba(0,204,153,0.3)'}}>
+          <span style={{color:'#fff',fontSize:16,fontWeight:500}}>返回首页</span>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+function E1({onRestore}) {
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="胶囊到期提醒"/>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'32px 24px'}}>
+        <span style={{fontSize:56}}>⏰</span>
+        <div style={{fontSize:18,fontWeight:600,color:MY.textPrimary,marginTop:16,textAlign:'center'}}>
+          记忆胶囊还有 7 天到期
+        </div>
+        <div style={{fontSize:14,color:MY.textSecondary,marginTop:8,textAlign:'center',lineHeight:1.6}}>
+          到期后关联永久断开，不可恢复
+        </div>
+        <div style={{marginTop:20,padding:16,background:MY.bg,borderRadius:14,width:'100%'}}>
+          <div style={{fontSize:12,color:MY.textTertiary,marginBottom:10}}>胶囊内容</div>
+          {[['34 篇','恋爱日记'],['12 个','纪念日'],['102 天','关系时长']].map(([n,l]) => (
+            <div key={l} style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+              <span style={{fontSize:14,color:MY.textPrimary}}>{l}</span>
+              <span style={{fontSize:14,fontWeight:500,color:MY.textSecondary}}>{n}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{flex:1}}/>
+        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:10}}>
+          <Btn label="申请恢复关系" onClick={onRestore} color={MY.purple}/>
+          <div style={{height:44,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+            <span style={{fontSize:14,color:MY.textTertiary}}>让记忆消散</span>
+          </div>
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+function E2({onClose}) {
+  return (
+    <Phone bg={MY.surface}>
+      <Nav title="申请结果" onBack={onClose}/>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',padding:'40px 24px 32px'}}>
+        <span style={{fontSize:56}}>🌧</span>
+        <div style={{fontSize:18,fontWeight:600,color:MY.textPrimary,marginTop:16}}>
+          TA 婉拒了申请
+        </div>
+        <div style={{fontSize:14,color:MY.textSecondary,marginTop:8,textAlign:'center',lineHeight:1.7}}>
+          感谢你曾经的勇气。<br/>记忆胶囊还在，还有时间。
+        </div>
+        <div style={{marginTop:24,padding:'14px 24px',background:MY.bg,borderRadius:14,width:'100%',textAlign:'center'}}>
+          <div style={{fontSize:12,color:MY.textTertiary,marginBottom:4}}>胶囊剩余时间</div>
+          <div style={{fontSize:34,fontWeight:700,color:MY.purple,fontVariantNumeric:'tabular-nums'}}>60 天</div>
+        </div>
+        <div style={{marginTop:14,padding:'10px 14px',background:'rgba(79,124,174,0.06)',borderRadius:10,
+          fontSize:13,color:MY.link,textAlign:'center',lineHeight:1.5}}>
+          胶囊到期前，仍可再次申请恢复关系
+        </div>
+        <div style={{flex:1}}/>
+        <Btn label="好的，知道了" onClick={onClose} color={MY.textSecondary}/>
+      </div>
+    </Phone>
+  );
+}
+
+/* ── 画布组件 ─────────────────────────────────────────── */
+
+const SC = 0.37;
+const PW = 390, PH = 760;
+const MW = Math.round(PW * SC);   // 144
+const MH = Math.round(PH * SC);   // 281
+const AW = 44;                     // arrow width
+const CELL = MW + AW;              // 188
+
+function Mini({id, label, onOpen, children}) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div onClick={() => onOpen(id)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer',flexShrink:0}}>
+      <div style={{width:MW,height:MH,overflow:'hidden',borderRadius:Math.round(44*SC),flexShrink:0,
+        boxShadow:hov?`0 0 0 2px rgba(255,255,255,0.28),0 16px 48px rgba(0,0,0,0.55)`
+                     :`0 0 0 1px rgba(255,255,255,0.07),0 12px 40px rgba(0,0,0,0.5)`,
+        transition:'box-shadow 0.15s',position:'relative'}}>
+        <div style={{width:PW,height:PH,transform:`scale(${SC})`,transformOrigin:'top left',
+          pointerEvents:'none',userSelect:'none'}}>
+          {children}
+        </div>
+        {hov && <div style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.04)',borderRadius:Math.round(44*SC)}}/>}
+      </div>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:11.5,fontWeight:500,
+          color:hov?'rgba(255,255,255,0.88)':'rgba(255,255,255,0.55)',transition:'color 0.15s'}}>{label}</div>
+        <div style={{fontSize:10,color:'rgba(255,255,255,0.22)',marginTop:1}}>点击交互</div>
+      </div>
+    </div>
+  );
+}
+
+function Arr({label}) {
+  return (
+    <div style={{width:AW,flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',
+      justifyContent:'center',gap:3,paddingBottom:22}}>
+      {label && <span style={{fontSize:9,color:'rgba(255,255,255,0.26)',whiteSpace:'nowrap'}}>{label}</span>}
+      <svg width="36" height="10" viewBox="0 0 36 10">
+        <line x1="0" y1="5" x2="27" y2="5" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5"/>
+        <path d="M36 5L24 0.5v9z" fill="rgba(255,255,255,0.18)"/>
+      </svg>
+    </div>
+  );
+}
+
+function DArr({offsetCells, color='rgba(255,255,255,0.18)', label}) {
+  // offsetCells = how many "cells" from left edge to center the arrow
+  const left = Math.round(MW * offsetCells + AW * (offsetCells - 0.5) + MW / 2 - 5);
+  return (
+    <div style={{position:'relative',height:44,flexShrink:0}}>
+      <div style={{position:'absolute',left,display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+        <svg width="10" height="26" viewBox="0 0 10 26">
+          <line x1="5" y1="0" x2="5" y2="18" stroke={color} strokeWidth="1.5"/>
+          <path d="M5 26L0.5 14h9z" fill={color}/>
+        </svg>
+        {label && <span style={{fontSize:9.5,color:'rgba(255,255,255,0.25)',whiteSpace:'nowrap'}}>{label}</span>}
+      </div>
+    </div>
+  );
+}
+
+function Head({title, color, note}) {
+  return (
+    <div style={{marginBottom:14}}>
+      <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:note?3:0}}>
+        <div style={{width:3,height:17,borderRadius:2,background:color,flexShrink:0}}/>
+        <span style={{fontSize:14.5,fontWeight:600,color:'#fff'}}>{title}</span>
+      </div>
+      {note && <div style={{fontSize:11.5,color:'rgba(255,255,255,0.32)',paddingLeft:12}}>{note}</div>}
+    </div>
+  );
+}
+
+function Modal({id, screens, onClose}) {
+  if (!id) return null;
+  const {label, el} = screens[id];
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{
+      position:'fixed',inset:0,zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',
+      background:'rgba(0,0,0,0.88)',backdropFilter:'blur(18px)'}}>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:14}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <span style={{fontSize:15,fontWeight:500,color:'rgba(255,255,255,0.72)'}}>{label}</span>
+          <div onClick={onClose} style={{width:28,height:28,borderRadius:14,
+            background:'rgba(255,255,255,0.12)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <div style={{borderRadius:44,overflow:'hidden',
+          boxShadow:'0 0 0 1px rgba(255,255,255,0.06),0 40px 100px rgba(0,0,0,0.7)'}}>
+          {el}
+        </div>
+        <div style={{fontSize:11,color:'rgba(255,255,255,0.2)'}}>点击背景关闭 · 按钮可跳转下一步</div>
+      </div>
+    </div>
+  );
+}
+
+/* ── App ───────────────────────────────────────────────── */
+
+function App() {
+  const [openId, setOpenId] = useState(null);
+  const go = id => setOpenId(id);
+  const close = () => setOpenId(null);
+
+  const screens = {
+    S1:{label:'① 关系设置',   el:<S1 onNext={()=>go('S2')}/>},
+    S2:{label:'② 情感确认',   el:<S2 onNext={()=>go('S3')} onBack={()=>go('S1')}/>},
+    S3:{label:'③ 数据去向',   el:<S3 onNext={()=>go('S4')} onBack={()=>go('S2')}/>},
+    S4:{label:'④ 通知设置',   el:<S4 onNext={()=>go('S5')} onBack={()=>go('S3')}/>},
+    S5:{label:'⑤ 封存成功',   el:<S5 onNext={()=>go('S7')}/>},
+    S6:{label:'① 主页封存入口',el:<S6 onNext={()=>go('S7')}/>},
+    S7:{label:'② 记忆胶囊',   el:<S7 onNext={()=>go('S8')} onBack={()=>go('S6')}/>},
+    S8:{label:'③ 申请恢复',   el:<S8 onNext={()=>go('S9')} onBack={()=>go('S7')}/>},
+    S9:{label:'④ 等待中',     el:<S9 onBack={()=>go('S8')}/>},
+    R1:{label:'① 收到申请',   el:<R1 onAccept={()=>go('R2')} onDecline={()=>go('E2')}/>},
+    R2:{label:'② 恢复确认',   el:<R2 onNext={()=>go('R3')} onBack={()=>go('R1')}/>},
+    R3:{label:'③ 恢复成功',   el:<R3 onNext={close}/>},
+    E1:{label:'到期提醒',     el:<E1 onRestore={()=>go('S8')}/>},
+    E2:{label:'恢复被拒',     el:<E2 onClose={close}/>},
+  };
+
+  const m = id => <Mini id={id} label={screens[id].label} onOpen={go}>{screens[id].el}</Mini>;
+
+  return (
+    <div style={{minHeight:'100vh',background:'#0d0d18',padding:'44px 44px 80px',minWidth:'max-content'}}>
+
+      {/* 页头 */}
+      <div style={{marginBottom:52}}>
+        <div style={{fontSize:11,fontWeight:600,letterSpacing:'0.1em',color:'rgba(255,255,255,0.28)',
+          textTransform:'uppercase',marginBottom:10}}>Meetyou · Product Flow Prototype</div>
+        <div style={{fontSize:30,fontWeight:700,color:'#fff',letterSpacing:'-0.5px'}}>解绑与恢复</div>
+        <div style={{fontSize:13,color:'rgba(255,255,255,0.32)',marginTop:7,lineHeight:1.6}}>
+          点击任意界面 → 查看完整交互 &nbsp;·&nbsp; 模态内按钮可逐步跳转流程
+        </div>
+      </div>
+
+      {/* ─── 第一阶段：解绑流程 ─── */}
+      <Head title="发起方 · 解绑流程" color="#ff4d88" note="三步引导 · 冷静设计 · 默认封存记忆胶囊"/>
+      <div style={{display:'flex',alignItems:'center',marginBottom:0}}>
+        {m('S1')}<Arr/>{m('S2')}<Arr/>{m('S3')}<Arr/>{m('S4')}<Arr label="确认"/>{m('S5')}
+      </div>
+
+      {/* S5 → 下方：封存完成 */}
+      <DArr offsetCells={5} color="rgba(255,77,136,0.35)" label="封存完成"/>
+
+      {/* ─── 第二阶段：封存期 & 申请恢复 ─── */}
+      <Head title="发起方 · 封存期 & 申请恢复" color="#8d54ff" note="90天内可随时发起恢复申请"/>
+      <div style={{display:'flex',alignItems:'center',marginBottom:0}}>
+        {m('S6')}<Arr/>{m('S7')}<Arr/>{m('S8')}<Arr label="发送"/>{m('S9')}
+      </div>
+
+      {/* S9 → 下方：发送给对方 */}
+      <DArr offsetCells={4} color="rgba(141,84,255,0.35)" label="申请发送给对方"/>
+
+      {/* ─── 第三阶段：接收方流程 ─── */}
+      <Head title="接收方 · 恢复流程" color="#00cc99" note="接受申请 → 确认内容 → 关系恢复"/>
+      {/* 左边留出 S6+S7+S8 的宽度，让 R1 对齐 S9 位置 */}
+      <div style={{display:'flex',alignItems:'center',paddingLeft: CELL * 3 + MW, marginBottom:0}}>
+        {m('R1')}<Arr label="接受"/>{m('R2')}<Arr/>{m('R3')}
+      </div>
+
+      {/* 分割线 */}
+      <div style={{height:1,background:'rgba(255,255,255,0.05)',margin:'40px 0 32px'}}/>
+
+      {/* ─── 边界情况 ─── */}
+      <Head title="边界情况" color="#ff9500"/>
+      <div style={{display:'flex',gap:48,alignItems:'flex-start'}}>
+        <div>
+          <div style={{fontSize:11,color:'rgba(255,149,0,0.55)',marginBottom:8,paddingLeft:2}}>
+            触发：封存期到期前 7 天推送
+          </div>
+          {m('E1')}
+        </div>
+        <div>
+          <div style={{fontSize:11,color:'rgba(255,149,0,0.55)',marginBottom:8,paddingLeft:2}}>
+            触发：接收方点击「婉拒申请」
+          </div>
+          {m('E2')}
+        </div>
+      </div>
+
+      <Modal id={openId} screens={screens} onClose={close}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

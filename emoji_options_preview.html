@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>贴贴表情备选</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#EDECEA;font-family:"PingFang SC","SF Pro Text","Helvetica Neue",sans-serif;
+  padding:40px 32px 80px;-webkit-font-smoothing:antialiased;}
+h2{font-size:22px;font-weight:700;color:#1A1A1A;margin-bottom:4px;}
+p{font-size:13px;color:rgba(0,0,0,0.42);margin-bottom:36px;line-height:1.6;}
+.grid{display:flex;gap:14px;flex-wrap:wrap;}
+.card{background:#fff;border-radius:14px;padding:18px 16px;width:140px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.07);cursor:pointer;
+  transition:transform .15s,box-shadow .15s;border:2px solid transparent;}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(255,77,136,0.14);
+  border-color:rgba(255,77,136,0.25);}
+.card .emoji{font-size:44px;line-height:1;}
+.card .name{font-size:13px;font-weight:600;color:#1A1A1A;}
+.card .desc{font-size:11px;color:rgba(0,0,0,0.38);text-align:center;line-height:1.5;}
+.preview{display:flex;align-items:center;gap:3px;background:#F2F2F5;
+  border-radius:8px;padding:4px 8px;margin-top:2px;}
+.preview span{font-size:17px;line-height:1;}
+.preview .hl{opacity:1;}
+.preview .dim{opacity:0.28;}
+.section-label{font-size:11px;font-weight:600;color:rgba(0,0,0,0.3);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;}
+.fixed{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;
+  border-radius:10px;margin-bottom:28px;font-size:13px;color:#1A1A1A;
+  box-shadow:0 2px 8px rgba(0,0,0,0.07);}
+.fixed span{font-size:22px;}
+</style>
+</head>
+<body>
+
+<h2>贴贴 · 备选表情</h2>
+<p>抱抱已确认为 🫂，以下为贴贴的备选，整体预览见每卡片下方的五表情条。</p>
+
+<div class="fixed">
+  <span>🫂</span> 抱抱已锁定，选一个贴贴和它搭配
+</div>
+
+<div class="section-label">备选方案</div>
+<div class="grid">
+
+  <div class="card">
+    <div class="emoji">🫶</div>
+    <div class="name">比心</div>
+    <div class="desc">Heart Hands<br/>手势感，亲密</div>
+    <div class="preview">
+      <span class="hl">🫂</span><span class="hl">😘</span>
+      <span style="font-size:17px;opacity:1;">🫶</span>
+      <span class="hl">💭</span><span class="hl">❤️</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🌸</div>
+    <div class="name">樱花</div>
+    <div class="desc">Cherry Blossom<br/>轻柔、贴近感</div>
+    <div class="preview">
+      <span class="hl">🫂</span><span class="hl">😘</span>
+      <span style="font-size:17px;opacity:1;">🌸</span>
+      <span class="hl">💭</span><span class="hl">❤️</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🐱</div>
+    <div class="name">猫咪</div>
+    <div class="desc">Cat Face<br/>蹭蹭感，俏皮</div>
+    <div class="preview">
+      <span class="hl">🫂</span><span class="hl">😘</span>
+      <span style="font-size:17px;opacity:1;">🐱</span>
+      <span class="hl">💭</span><span class="hl">❤️</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🧸</div>
+    <div class="name">玩偶</div>
+    <div class="desc">Teddy Bear<br/>软软的依靠</div>
+    <div class="preview">
+      <span class="hl">🫂</span><span class="hl">😘</span>
+      <span style="font-size:17px;opacity:1;">🧸</span>
+      <span class="hl">💭</span><span class="hl">❤️</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🍬</div>
+    <div class="name">糖果</div>
+    <div class="desc">Candy<br/>甜甜的贴近</div>
+    <div class="preview">
+      <span class="hl">🫂</span><span class="hl">😘</span>
+      <span style="font-size:17px;opacity:1;">🍬</span>
+      <span class="hl">💭</span><span class="hl">❤️</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji">🐰</div>
+    <div class="name">兔兔</div>
+    <div class="desc">Rabbit<br/>软萌，亲近感</div>
+    <div class="preview">
+      <span class="hl">🫂</span><span class="hl">😘</span>
+      <span style="font-size:17px;opacity:1;">🐰</span>
+      <span class="hl">💭</span><span class="hl">❤️</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji">☁️</div>
+    <div class="name">云朵</div>
+    <div class="desc">Cloud<br/>轻盈、包裹感</div>
+    <div class="preview">
+      <span class="hl">🫂</span><span class="hl">😘</span>
+      <span style="font-size:17px;opacity:1;">☁️</span>
+      <span class="hl">💭</span><span class="hl">❤️</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji">💌</div>
+    <div class="name">情书</div>
+    <div class="desc">Love Letter<br/>亲密传递</div>
+    <div class="preview">
+      <span class="hl">🫂</span><span class="hl">😘</span>
+      <span style="font-size:17px;opacity:1;">💌</span>
+      <span class="hl">💭</span><span class="hl">❤️</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>恋爱日记入口 · 5款样式探索</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{background:#DCDCDC;font-family:"PingFang SC",-apple-system,"Helvetica Neue",sans-serif;
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 20px;overflow:auto;}
+    .grid{display:flex;flex-wrap:wrap;gap:32px;justify-content:center;max-width:1200px;}
+    .card{display:flex;flex-direction:column;align-items:center;gap:10px;}
+    .label{font-size:11.5px;color:rgba(0,0,0,0.35);font-weight:500;letter-spacing:.5px;}
+    /* 天气条容器 */
+    .strip{
+      width:340px;background:linear-gradient(180deg,#8ab6e0 0%,#b2cce8 60%,#d8e8f4 100%);
+      border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:10px;
+      position:relative;overflow:hidden;
+      box-shadow:0 8px 28px rgba(100,140,200,0.22);
+    }
+    .strip::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-72deg,transparent,transparent 3px,rgba(140,175,215,0.08) 3px,rgba(140,175,215,0.08) 4px);}
+    .w-info{display:flex;align-items:center;gap:8px;flex:1;}
+    .w-text{display:flex;flex-direction:column;line-height:1.3;}
+    .w-cond{font-size:16px;font-weight:500;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.14);}
+    .w-loc{font-size:11.5px;color:rgba(255,255,255,0.65);}
+    /* 雨icon */
+    .rain-ico svg{filter:drop-shadow(0 1px 3px rgba(80,120,180,0.3));}
+  </style>
+</head>
+<body>
+<div class="grid">
+
+<!-- ═══ D · 渐变粉金胶囊 ═══ -->
+<div class="card">
+  <div class="strip">
+    <div class="w-info">
+      <div class="rain-ico">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fill-opacity=".88"/>
+          <g stroke="#cfe3f5" stroke-width="2.2" stroke-linecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+      </div>
+      <div class="w-text">
+        <span class="w-cond">大雨 20°</span>
+        <span class="w-loc">集美区</span>
+      </div>
+    </div>
+    <!-- pill D -->
+    <div style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#ff7cad,#ff4d88);border-radius:999px;padding:5px 12px 5px 5px;box-shadow:0 2px 12px rgba(255,77,136,0.38);cursor:pointer;flex-shrink:0;">
+      <!-- 白色半透明心 -->
+      <div style="width:24px;height:24px;border-radius:12px;background:rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="13" height="12" viewBox="0 0 26 24" fill="white">
+          <path d="M13 22S2 15 2 8a5.5 5.5 0 0111 0 5.5 5.5 0 0111 0c0 7-11 14-11 14z"/>
+        </svg>
+      </div>
+      <span style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;">恋爱日记</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+  <div class="label">D · 品牌红渐变 + 白心</div>
+</div>
+
+<!-- ═══ E · 毛玻璃 ═══ -->
+<div class="card">
+  <div class="strip">
+    <div class="w-info">
+      <div class="rain-ico">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fill-opacity=".88"/>
+          <g stroke="#cfe3f5" stroke-width="2.2" stroke-linecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+      </div>
+      <div class="w-text">
+        <span class="w-cond">大雨 20°</span>
+        <span class="w-loc">集美区</span>
+      </div>
+    </div>
+    <!-- pill E: frosted glass -->
+    <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,0.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:999px;padding:5px 12px 5px 6px;border:1px solid rgba(255,255,255,0.45);cursor:pointer;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,0.4),0 2px 8px rgba(0,0,0,0.08);">
+      <!-- 双头像 mini -->
+      <div style="position:relative;width:32px;height:24px;flex-shrink:0;">
+        <div style="position:absolute;left:0;top:0;width:22px;height:22px;border-radius:11px;background:#FFB5C8;border:1.5px solid rgba(255,255,255,0.8);overflow:hidden;z-index:2;display:flex;align-items:flex-end;justify-content:center;">
+          <svg width="16" height="18" viewBox="0 0 36 41" fill="none">
+            <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+            <path d="M11 10 Q11 2 18 2 Q25 2 25 10" fill="rgba(255,255,255,0.92)"/>
+            <path d="M10 22 Q10 18 18 18 Q26 18 26 22 L29 41 H7 Z" fill="rgba(255,255,255,0.92)"/>
+          </svg>
+        </div>
+        <div style="position:absolute;left:10px;top:0;width:22px;height:22px;border-radius:11px;background:#A8C5E0;border:1.5px solid rgba(255,255,255,0.8);overflow:hidden;z-index:1;display:flex;align-items:flex-end;justify-content:center;">
+          <svg width="16" height="18" viewBox="0 0 36 41" fill="none">
+            <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+            <path d="M11 10 Q11 3 18 3 Q25 3 25 10 L25 8 Q18 5 11 8 Z" fill="rgba(255,255,255,0.92)"/>
+            <path d="M8 22 Q8 18 18 18 Q28 18 28 22 L27 41 H9 Z" fill="rgba(255,255,255,0.92)"/>
+          </svg>
+        </div>
+      </div>
+      <span style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.92);white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,0.15);">恋爱日记</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+  <div class="label">E · 毛玻璃 + 双头像</div>
+</div>
+
+<!-- ═══ F · 纯白极简 ═══ -->
+<div class="card">
+  <div class="strip">
+    <div class="w-info">
+      <div class="rain-ico">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fill-opacity=".88"/>
+          <g stroke="#cfe3f5" stroke-width="2.2" stroke-linecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+      </div>
+      <div class="w-text">
+        <span class="w-cond">大雨 20°</span>
+        <span class="w-loc">集美区</span>
+      </div>
+    </div>
+    <!-- pill F: solid white minimal -->
+    <div style="display:inline-flex;align-items:center;gap:5px;background:#fff;border-radius:999px;padding:5px 11px 5px 5px;box-shadow:0 2px 10px rgba(0,0,0,0.12);cursor:pointer;flex-shrink:0;">
+      <!-- 粉红点 -->
+      <div style="position:relative;flex-shrink:0;">
+        <div style="width:24px;height:24px;border-radius:12px;background:rgba(255,77,136,0.1);display:flex;align-items:center;justify-content:center;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#FF4D88">
+            <path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/>
+          </svg>
+        </div>
+        <div style="position:absolute;top:-1px;right:-1px;width:7px;height:7px;border-radius:3.5px;background:#FF4D4D;border:1.5px solid #fff;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;line-height:1.2;">
+        <span style="font-size:12.5px;font-weight:600;color:#323232;white-space:nowrap;">恋爱日记</span>
+        <span style="font-size:9.5px;color:#FF4D88;">第 102 天</span>
+      </div>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2.2" stroke-linecap="round" style="margin-left:1px;"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+  <div class="label">F · 纯白极简 + 天数副标</div>
+</div>
+
+<!-- ═══ G · 深色暗调 ═══ -->
+<div class="card">
+  <div class="strip" style="background:linear-gradient(180deg,#3d5a7a 0%,#4e6d8a 50%,#6382a0 100%);">
+    <div class="w-info">
+      <div class="rain-ico">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fill-opacity=".75"/>
+          <g stroke="rgba(200,225,245,0.7)" stroke-width="2.2" stroke-linecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+      </div>
+      <div class="w-text">
+        <span class="w-cond">大雨 20°</span>
+        <span class="w-loc">集美区</span>
+      </div>
+    </div>
+    <!-- pill G: dark glass -->
+    <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,77,136,0.18);border-radius:999px;padding:5px 12px 5px 5px;border:1px solid rgba(255,100,150,0.35);cursor:pointer;flex-shrink:0;">
+      <div style="width:24px;height:24px;border-radius:12px;background:rgba(255,77,136,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="5" width="20" height="15" rx="2.5" fill="rgba(255,255,255,0.85)"/>
+          <path d="M2 7.5L12 14l10-6.5" stroke="#FF4D88" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M12 18s-3.5-2-3.5-4a2 2 0 014 0 2 2 0 014 0c0 2-3.5 4-3.5 4z" fill="#FF4D88"/>
+        </svg>
+        <div style="position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:3.5px;background:#FF4D88;border:1.5px solid #3d5a7a;"></div>
+      </div>
+      <span style="font-size:13px;font-weight:500;color:rgba(255,200,215,0.95);white-space:nowrap;">恋爱日记</span>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,160,190,0.7)" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+  <div class="label">G · 深蓝天空 · 粉红玻璃pill</div>
+</div>
+
+<!-- ═══ H · 计数器徽章 ═══ -->
+<div class="card">
+  <div class="strip">
+    <div class="w-info">
+      <div class="rain-ico">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fill-opacity=".88"/>
+          <g stroke="#cfe3f5" stroke-width="2.2" stroke-linecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+      </div>
+      <div class="w-text">
+        <span class="w-cond">大雨 20°</span>
+        <span class="w-loc">集美区</span>
+      </div>
+    </div>
+    <!-- pill H: day counter badge style -->
+    <div style="display:inline-flex;align-items:center;gap:0;cursor:pointer;flex-shrink:0;">
+      <!-- avatar part -->
+      <div style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.92);border-radius:999px 0 0 999px;padding:4px 8px 4px 5px;gap:5px;border:1px solid rgba(255,255,255,0.7);border-right:none;">
+        <div style="position:relative;width:30px;height:24px;flex-shrink:0;">
+          <div style="position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:11px;background:#FFB5C8;border:1.5px solid #fff;overflow:hidden;z-index:2;display:flex;align-items:flex-end;justify-content:center;">
+            <svg width="16" height="18" viewBox="0 0 36 41" fill="none"><ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/><path d="M10 22 Q10 18 18 18 Q26 18 26 22 L29 41 H7 Z" fill="rgba(255,255,255,0.92)"/></svg>
+          </div>
+          <div style="position:absolute;left:10px;top:1px;width:22px;height:22px;border-radius:11px;background:#A8C5E0;border:1.5px solid #fff;overflow:hidden;z-index:1;display:flex;align-items:flex-end;justify-content:center;">
+            <svg width="16" height="18" viewBox="0 0 36 41" fill="none"><ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/><path d="M8 22 Q8 18 18 18 Q28 18 28 22 L27 41 H9 Z" fill="rgba(255,255,255,0.92)"/></svg>
+          </div>
+        </div>
+        <span style="font-size:12.5px;font-weight:600;color:#323232;white-space:nowrap;">恋爱日记</span>
+      </div>
+      <!-- day badge -->
+      <div style="background:#FF4D88;border-radius:0 999px 999px 0;padding:4px 10px;display:flex;align-items:center;gap:2px;box-shadow:0 2px 8px rgba(255,77,136,0.35);">
+        <span style="font-size:12px;font-weight:700;color:#fff;">102</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.8);">天</span>
+      </div>
+    </div>
+  </div>
+  <div class="label">H · 双色拼接 · 天数徽章</div>
+</div>
+
+</div>
+</body>
+</html>

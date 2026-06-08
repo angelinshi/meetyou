@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>「我」Tab · 恋爱日记入口位置方案</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{background:#DCDCDC;font-family:"PingFang SC",-apple-system,sans-serif;
+      min-height:100vh;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px;}
+    .grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;max-width:1400px;}
+    .card{display:flex;flex-direction:column;align-items:center;gap:10px;}
+    .label{font-size:12px;font-weight:500;color:rgba(0,0,0,0.38);letter-spacing:.4px;text-align:center;}
+    .desc{font-size:11px;color:rgba(0,0,0,0.25);text-align:center;max-width:180px;line-height:1.5;}
+
+    /* phone */
+    .ph{width:260px;height:500px;background:#F2F2F5;border-radius:24px;overflow:hidden;position:relative;
+      box-shadow:0 12px 36px rgba(0,0,0,0.18),0 0 0 1px rgba(0,0,0,0.07);font-family:"PingFang SC",sans-serif;font-size:12px;}
+    .ph-scroll{position:absolute;top:0;left:0;right:0;bottom:44px;overflow:hidden;display:flex;flex-direction:column;}
+    .surface{background:#fff;}
+    .bg{background:#f2f2f5;}
+    .row{display:flex;align-items:center;padding:0 12px;height:44px;background:#fff;}
+    .row+.row{border-top:.5px solid rgba(0,0,0,0.07);}
+    .sec-gap{height:8px;background:#f2f2f5;}
+    /* tab bar */
+    .tabbar{position:absolute;bottom:0;left:0;right:0;height:44px;background:#fff;
+      border-top:.5px solid rgba(0,0,0,0.08);display:flex;font-size:8px;}
+    .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#bbb;}
+    .tab.on{color:#ff4d88;font-weight:600;}
+    /* diary entry styles */
+    .de-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,77,136,0.08);
+      border-radius:999px;padding:4px 10px 4px 5px;cursor:pointer;}
+    .de-row{display:flex;align-items:center;padding:0 12px;height:52px;background:#fff;cursor:pointer;}
+    .de-card{margin:0 10px;background:#fff;border-radius:10px;overflow:hidden;
+      box-shadow:0 1px 6px rgba(0,0,0,0.07);cursor:pointer;}
+    .de-banner{margin:0 10px;background:linear-gradient(135deg,#fff0f5,#ffe8f2);
+      border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+    .ava-sm{width:20px;height:20px;border-radius:10px;flex-shrink:0;}
+    .arr{color:#bbb;font-size:10px;margin-left:auto;}
+    .brand{color:#ff4d88;}
+    .bold{font-weight:600;}
+  </style>
+</head>
+<body>
+<div class="grid">
+
+<!-- ══ 方案A：顶部用户行右侧加入口 pill ══ -->
+<div class="card">
+  <div class="ph">
+    <div class="ph-scroll">
+      <!-- 顶部用户行 + diary pill -->
+      <div style="display:flex;align-items:center;padding:8px 12px;background:#fff;gap:8px;min-height:50px;">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;">
+          <div style="position:relative;width:42px;height:28px;flex-shrink:0;">
+            <div style="position:absolute;left:0;top:0;width:28px;height:28px;border-radius:14px;background:#FFB5C8;border:2px solid #fff;"></div>
+            <div style="position:absolute;right:0;top:0;width:28px;height:28px;border-radius:14px;background:#A8C5E0;border:2px solid #fff;"></div>
+            <div style="position:absolute;right:0;bottom:-1px;width:7px;height:7px;border-radius:4px;background:#ff4d88;border:1.5px solid #fff;z-index:3;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:500;color:#323232;">女友殿下</span>
+        </div>
+        <!-- ★ 入口pill -->
+        <div class="de-pill">
+          <div style="width:18px;height:18px;border-radius:9px;background:#ff4d88;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/></svg>
+          </div>
+          <span style="font-size:11px;font-weight:600;color:#ff4d88;">恋爱日记</span>
+          <span style="font-size:10px;color:#bbb;">›</span>
+        </div>
+      </div>
+      <!-- 高亮框 -->
+      <div style="margin:0 10px;border:2px solid #ff4d88;border-radius:8px;overflow:hidden;position:relative;">
+        <div style="position:absolute;top:-9px;left:8px;background:#DCDCDC;padding:0 4px;font-size:9px;color:#ff4d88;font-weight:600;">入口位置</div>
+        <div style="height:4px;background:rgba(255,77,136,0.1);"></div>
+      </div>
+      <div class="sec-gap"></div>
+      <!-- 会员卡 placeholder -->
+      <div style="margin:0 10px;background:linear-gradient(135deg,#ffe2d6,#ffc8b5);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:600;color:#7A3B1C;">美柚会员</div>
+        <div style="font-size:9.5px;color:#A86541;margin-top:2px;">开通享 12 项权益</div>
+      </div>
+      <div class="sec-gap"></div>
+      <!-- 4模式 placeholder -->
+      <div style="margin:0 10px;background:#fff;border-radius:8px;padding:10px 4px;display:flex;">
+        <div style="flex:1;text-align:center;font-size:9px;color:#ff4d88;font-weight:600;">
+          <div style="width:28px;height:28px;border-radius:6px;background:rgba(255,77,136,0.12);margin:0 auto 3px;border:1.5px solid #ff4d88;"></div>经期
+        </div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>备孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>怀孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>育儿</div>
+      </div>
+      <div class="sec-gap"></div>
+      <!-- 列表 -->
+      <div style="margin:0 10px;background:#fff;border-radius:8px;overflow:hidden;">
+        <div class="row"><span style="font-size:12px;color:#323232;">个人主页</span><span class="arr">›</span></div>
+        <div class="row"><span style="font-size:12px;color:#323232;">钱包</span><span class="arr">›</span></div>
+        <div class="row"><span style="font-size:12px;color:#323232;">订单</span><span class="arr">›</span></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab"><span style="font-size:14px;">⊕</span>美柚</div>
+      <div class="tab"><span style="font-size:14px;">📅</span>记录</div>
+      <div class="tab"><span style="font-size:14px;">↩</span>返现</div>
+      <div class="tab"><span style="font-size:14px;">💬</span>消息</div>
+      <div class="tab on"><span style="font-size:14px;">👤</span>我</div>
+    </div>
+  </div>
+  <div class="label">方案A · 顶部用户行右侧 pill</div>
+  <div class="desc">紧贴用户身份，自然联想<br/>不增加页面长度</div>
+</div>
+
+<!-- ══ 方案B：会员卡下方独立卡片 ══ -->
+<div class="card">
+  <div class="ph">
+    <div class="ph-scroll">
+      <div style="display:flex;align-items:center;padding:8px 12px;background:#fff;gap:8px;min-height:50px;">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;">
+          <div style="position:relative;width:42px;height:28px;flex-shrink:0;">
+            <div style="position:absolute;left:0;top:0;width:28px;height:28px;border-radius:14px;background:#FFB5C8;border:2px solid #fff;"></div>
+            <div style="position:absolute;right:0;top:0;width:28px;height:28px;border-radius:14px;background:#A8C5E0;border:2px solid #fff;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:500;color:#323232;">女友殿下</span>
+        </div>
+        <div style="display:flex;gap:10px;color:#323232;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="3" rx="1" stroke="currentColor" strokeWidth="1.6"/><path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9" stroke="currentColor" strokeWidth="1.6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="1.6"/><path d="M8 7l2-3h4l2 3" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><circle cx="12" cy="13.5" r="3.5" stroke="currentColor" strokeWidth="1.6"/></svg>
+        </div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:linear-gradient(135deg,#ffe2d6,#ffc8b5);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:600;color:#7A3B1C;">美柚会员</div>
+        <div style="font-size:9.5px;color:#A86541;margin-top:2px;">开通享 12 项权益</div>
+      </div>
+      <div class="sec-gap"></div>
+      <!-- ★ 独立日记卡 -->
+      <div class="de-banner" style="border:2px solid #ff4d88;position:relative;">
+        <div style="position:absolute;top:-9px;left:8px;background:#DCDCDC;padding:0 4px;font-size:9px;color:#ff4d88;font-weight:600;">入口位置</div>
+        <div style="position:relative;width:32px;height:24px;flex-shrink:0;">
+          <div style="position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:11px;background:#FFB5C8;border:1.5px solid #fff;"></div>
+          <div style="position:absolute;left:10px;top:1px;width:22px;height:22px;border-radius:11px;background:#A8C5E0;border:1.5px solid #fff;"></div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:600;color:#323232;">恋爱日记</div>
+          <div style="font-size:10px;color:#ff4d88;margin-top:1px;">第 102 天 · 1条新消息</div>
+        </div>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:#fff;border-radius:8px;padding:10px 4px;display:flex;">
+        <div style="flex:1;text-align:center;font-size:9px;color:#ff4d88;font-weight:600;">
+          <div style="width:28px;height:28px;border-radius:6px;background:rgba(255,77,136,0.12);margin:0 auto 3px;border:1.5px solid #ff4d88;"></div>经期
+        </div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>备孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>怀孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>育儿</div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:#fff;border-radius:8px;overflow:hidden;">
+        <div class="row"><span style="font-size:12px;color:#323232;">个人主页</span><span class="arr">›</span></div>
+        <div class="row"><span style="font-size:12px;color:#323232;">钱包</span><span class="arr">›</span></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab"><span style="font-size:14px;">⊕</span>美柚</div>
+      <div class="tab"><span style="font-size:14px;">📅</span>记录</div>
+      <div class="tab"><span style="font-size:14px;">↩</span>返现</div>
+      <div class="tab"><span style="font-size:14px;">💬</span>消息</div>
+      <div class="tab on"><span style="font-size:14px;">👤</span>我</div>
+    </div>
+  </div>
+  <div class="label">方案B · 会员卡下独立卡片</div>
+  <div class="desc">显眼独立模块，含头像+天数+未读<br/>视觉权重仅次于会员</div>
+</div>
+
+<!-- ══ 方案C：列表中加一行（个人主页/恋爱日记/钱包/订单）══ -->
+<div class="card">
+  <div class="ph">
+    <div class="ph-scroll">
+      <div style="display:flex;align-items:center;padding:8px 12px;background:#fff;gap:8px;min-height:50px;">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;">
+          <div style="position:relative;width:42px;height:28px;flex-shrink:0;">
+            <div style="position:absolute;left:0;top:0;width:28px;height:28px;border-radius:14px;background:#FFB5C8;border:2px solid #fff;"></div>
+            <div style="position:absolute;right:0;top:0;width:28px;height:28px;border-radius:14px;background:#A8C5E0;border:2px solid #fff;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:500;color:#323232;">女友殿下</span>
+        </div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:linear-gradient(135deg,#ffe2d6,#ffc8b5);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:600;color:#7A3B1C;">美柚会员</div>
+        <div style="font-size:9.5px;color:#A86541;">开通享 12 项权益</div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:#fff;border-radius:8px;padding:10px 4px;display:flex;">
+        <div style="flex:1;text-align:center;font-size:9px;color:#ff4d88;font-weight:600;"><div style="width:28px;height:28px;border-radius:6px;background:rgba(255,77,136,0.12);margin:0 auto 3px;border:1.5px solid #ff4d88;"></div>经期</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>备孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>怀孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>育儿</div>
+      </div>
+      <div class="sec-gap"></div>
+      <!-- ★ 列表中加一行 -->
+      <div style="margin:0 10px;background:#fff;border-radius:8px;overflow:hidden;border:2px solid #ff4d88;position:relative;">
+        <div style="position:absolute;top:-9px;left:8px;background:#DCDCDC;padding:0 4px;font-size:9px;color:#ff4d88;font-weight:600;">入口位置</div>
+        <div class="row"><span style="font-size:12px;color:#323232;">个人主页</span><span class="arr">›</span></div>
+        <!-- 日记行 -->
+        <div class="row" style="border-top:.5px solid rgba(0,0,0,0.07);">
+          <div style="width:22px;height:22px;border-radius:6px;background:rgba(255,77,136,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:8px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#ff4d88"><path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/></svg>
+          </div>
+          <span style="font-size:12px;font-weight:500;color:#ff4d88;flex:1;">恋爱日记</span>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:9.5px;color:#ff4d88;background:rgba(255,77,136,0.1);padding:1px 5px;border-radius:8px;">第102天</span>
+            <div style="width:6px;height:6px;border-radius:3px;background:#ff4d4d;"></div>
+            <span class="arr">›</span>
+          </div>
+        </div>
+        <div class="row" style="border-top:.5px solid rgba(0,0,0,0.07);"><span style="font-size:12px;color:#323232;">钱包</span><span class="arr">›</span></div>
+        <div class="row" style="border-top:.5px solid rgba(0,0,0,0.07);"><span style="font-size:12px;color:#323232;">订单</span><span class="arr">›</span></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab"><span style="font-size:14px;">⊕</span>美柚</div>
+      <div class="tab"><span style="font-size:14px;">📅</span>记录</div>
+      <div class="tab"><span style="font-size:14px;">↩</span>返现</div>
+      <div class="tab"><span style="font-size:14px;">💬</span>消息</div>
+      <div class="tab on"><span style="font-size:14px;">👤</span>我</div>
+    </div>
+  </div>
+  <div class="label">方案C · 列表中加一行</div>
+  <div class="desc">融入原有列表结构<br/>最自然，改动最小</div>
+</div>
+
+<!-- ══ 方案D：4模式下方独立入口条 ══ -->
+<div class="card">
+  <div class="ph">
+    <div class="ph-scroll">
+      <div style="display:flex;align-items:center;padding:8px 12px;background:#fff;gap:8px;min-height:50px;">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;">
+          <div style="position:relative;width:42px;height:28px;flex-shrink:0;">
+            <div style="position:absolute;left:0;top:0;width:28px;height:28px;border-radius:14px;background:#FFB5C8;border:2px solid #fff;"></div>
+            <div style="position:absolute;right:0;top:0;width:28px;height:28px;border-radius:14px;background:#A8C5E0;border:2px solid #fff;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:500;color:#323232;">女友殿下</span>
+        </div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:linear-gradient(135deg,#ffe2d6,#ffc8b5);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:600;color:#7A3B1C;">美柚会员</div>
+        <div style="font-size:9.5px;color:#A86541;">开通享 12 项权益</div>
+      </div>
+      <div class="sec-gap"></div>
+      <!-- 4模式 -->
+      <div style="margin:0 10px;background:#fff;border-radius:8px 8px 0 0;padding:10px 4px 10px;display:flex;">
+        <div style="flex:1;text-align:center;font-size:9px;color:#ff4d88;font-weight:600;"><div style="width:28px;height:28px;border-radius:6px;background:rgba(255,77,136,0.12);margin:0 auto 3px;border:1.5px solid #ff4d88;"></div>经期</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>备孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>怀孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>育儿</div>
+      </div>
+      <!-- ★ 4模式下方条状入口 -->
+      <div style="margin:0 10px;border-top:.5px solid rgba(255,77,136,0.15);background:#fff;border-radius:0 0 8px 8px;
+        padding:8px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;border:2px solid #ff4d88;border-top:none;position:relative;">
+        <div style="position:absolute;top:-9px;left:8px;background:#DCDCDC;padding:0 4px;font-size:9px;color:#ff4d88;font-weight:600;">入口位置</div>
+        <div style="position:relative;width:28px;height:22px;flex-shrink:0;">
+          <div style="position:absolute;left:0;top:0;width:20px;height:20px;border-radius:10px;background:#FFB5C8;border:1.5px solid #fff;"></div>
+          <div style="position:absolute;left:9px;top:0;width:20px;height:20px;border-radius:10px;background:#A8C5E0;border:1.5px solid #fff;"></div>
+        </div>
+        <div style="flex:1;">
+          <span style="font-size:11.5px;font-weight:500;color:#323232;">恋爱日记</span>
+          <span style="font-size:10px;color:#ff4d88;margin-left:6px;">第 102 天</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div style="width:6px;height:6px;border-radius:3px;background:#ff4d4d;"></div>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:#fff;border-radius:8px;overflow:hidden;">
+        <div class="row"><span style="font-size:12px;color:#323232;">个人主页</span><span class="arr">›</span></div>
+        <div class="row"><span style="font-size:12px;color:#323232;">钱包</span><span class="arr">›</span></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab"><span style="font-size:14px;">⊕</span>美柚</div>
+      <div class="tab"><span style="font-size:14px;">📅</span>记录</div>
+      <div class="tab"><span style="font-size:14px;">↩</span>返现</div>
+      <div class="tab"><span style="font-size:14px;">💬</span>消息</div>
+      <div class="tab on"><span style="font-size:14px;">👤</span>我</div>
+    </div>
+  </div>
+  <div class="label">方案D · 4模式模块下沿入口条</div>
+  <div class="desc">与「经期/备孕/怀孕/育儿」同组<br/>暗示恋爱日记是并列的情感功能</div>
+</div>
+
+<!-- ══ 方案E：服务grid加入恋爱日记格子 ══ -->
+<div class="card">
+  <div class="ph">
+    <div class="ph-scroll">
+      <div style="display:flex;align-items:center;padding:8px 12px;background:#fff;gap:8px;min-height:50px;">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;">
+          <div style="position:relative;width:42px;height:28px;flex-shrink:0;">
+            <div style="position:absolute;left:0;top:0;width:28px;height:28px;border-radius:14px;background:#FFB5C8;border:2px solid #fff;"></div>
+            <div style="position:absolute;right:0;top:0;width:28px;height:28px;border-radius:14px;background:#A8C5E0;border:2px solid #fff;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:500;color:#323232;">女友殿下</span>
+        </div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:linear-gradient(135deg,#ffe2d6,#ffc8b5);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:600;color:#7A3B1C;">美柚会员</div>
+        <div style="font-size:9.5px;color:#A86541;">开通享 12 项权益</div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:#fff;border-radius:8px;padding:10px 4px;display:flex;">
+        <div style="flex:1;text-align:center;font-size:9px;color:#ff4d88;font-weight:600;"><div style="width:28px;height:28px;border-radius:6px;background:rgba(255,77,136,0.12);margin:0 auto 3px;border:1.5px solid #ff4d88;"></div>经期</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>备孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>怀孕</div>
+        <div style="flex:1;text-align:center;font-size:9px;color:#999;"><div style="width:28px;height:28px;border-radius:6px;background:#f5f5f5;margin:0 auto 3px;"></div>育儿</div>
+      </div>
+      <div class="sec-gap"></div>
+      <div style="margin:0 10px;background:#fff;border-radius:8px;overflow:hidden;">
+        <div class="row"><span style="font-size:12px;color:#323232;">个人主页</span><span class="arr">›</span></div>
+        <div class="row"><span style="font-size:12px;color:#323232;">钱包</span><span class="arr">›</span></div>
+        <div class="row"><span style="font-size:12px;color:#323232;">订单</span><span class="arr">›</span></div>
+      </div>
+      <div class="sec-gap"></div>
+      <!-- ★ 服务grid加恋爱日记 -->
+      <div style="margin:0 10px;background:#fff;border-radius:8px;padding:10px 8px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;border:2px solid #ff4d88;position:relative;">
+        <div style="position:absolute;top:-9px;left:8px;background:#DCDCDC;padding:0 4px;font-size:9px;color:#ff4d88;font-weight:600;">入口位置</div>
+        <!-- ★ 恋爱日记格 -->
+        <div style="text-align:center;cursor:pointer;position:relative;">
+          <div style="width:32px;height:32px;border-radius:8px;background:rgba(255,77,136,0.12);display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,77,136,0.25);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff4d88"><path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/></svg>
+          </div>
+          <div style="position:absolute;top:0;right:3px;width:6px;height:6px;border-radius:3px;background:#ff4d4d;border:1px solid #fff;"></div>
+          <div style="font-size:9px;margin-top:3px;color:#ff4d88;font-weight:600;">日记</div>
+        </div>
+        <div style="text-align:center;"><div style="width:32px;height:32px;border-radius:8px;background:#fff8f0;display:inline-flex;align-items:center;justify-content:center;font-size:14px;">🍊</div><div style="font-size:9px;margin-top:3px;color:#323232;">柚子街</div></div>
+        <div style="text-align:center;"><div style="width:32px;height:32px;border-radius:8px;background:#f0f8ff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;">🩺</div><div style="font-size:9px;margin-top:3px;color:#323232;">问医生</div></div>
+        <div style="text-align:center;"><div style="width:32px;height:32px;border-radius:8px;background:#f8f0ff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;">📲</div><div style="font-size:9px;margin-top:3px;color:#323232;">小组件</div></div>
+        <div style="text-align:center;"><div style="width:32px;height:32px;border-radius:8px;background:#fffff0;display:inline-flex;align-items:center;justify-content:center;font-size:14px;">✨</div><div style="font-size:9px;margin-top:3px;color:#323232;">更多</div></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab"><span style="font-size:14px;">⊕</span>美柚</div>
+      <div class="tab"><span style="font-size:14px;">📅</span>记录</div>
+      <div class="tab"><span style="font-size:14px;">↩</span>返现</div>
+      <div class="tab"><span style="font-size:14px;">💬</span>消息</div>
+      <div class="tab on"><span style="font-size:14px;">👤</span>我</div>
+    </div>
+  </div>
+  <div class="label">方案E · 服务 grid 首位</div>
+  <div class="desc">融入服务格子，红点通知明显<br/>最小改动，但入口相对隐蔽</div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// screens-diary-v2.jsx — 恋爱日记新版 UI + 交互
+// screens-diary-v2.jsx — 恋爱记新版 UI + 交互
 // 覆盖：DiaryHomeModule / Screen5DiaryAll / BFDiary
 // 依赖：MY / USER / PARTNER / Phone / ImgSlot（来自 screens-shared.jsx）
 
@@ -12,6 +12,9 @@
     '@keyframes diaryBlink{0%,100%{opacity:1}50%{opacity:0}}',
     '@keyframes diaryWave{0%,100%{height:4px}50%{height:14px}}',
     '@keyframes diaryFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}',
+    '@keyframes fanPop{0%{transform:scale(0);opacity:0;}70%{transform:scale(1.14);opacity:1;}100%{transform:scale(1);opacity:1;}}',
+    '@keyframes emojiRainFall{0%{transform:translateY(-30px) translateX(0) rotate(0deg);opacity:1;}70%{opacity:0.85;}100%{transform:translateY(860px) translateX(var(--emoji-drift)) rotate(var(--emoji-spin));opacity:0;}}',
+    '@keyframes spin{to{transform:rotate(360deg)}}',
   ].join('');
   document.head.appendChild(s);
 })();
@@ -90,6 +93,12 @@ const DIARY_POSTS_V2 = [
   { id: 'dv1b', authorKey: 'M', time: '14:20', daysTag: '第102天', kind: 'text',
     text: '今天出发前帮你备好了防晒和水，出门记得带哦 ☀️', photos: 0,
     comments: [] },
+  { id: 'dv0a', authorKey: 'M', time: '10:15', daysTag: '第102天', kind: 'interact',
+    interactEmoji: '🫂', interactLabel: '抱抱', interactColor: '#FF8C42',
+    comments: [] },
+  { id: 'dv0b', authorKey: 'M', time: '09:30', daysTag: '第102天', kind: 'interact',
+    interactEmoji: '❤️', interactLabel: '爱你', interactColor: '#FF4D4D',
+    comments: [] },
   { id: 'dv2',  authorKey: 'M', time: '23:08', daysTag: '第101天', kind: 'voice',
     voiceSec: 18, photos: 0,
     comments: [{ authorKey: 'F', text: '没事啦，谢谢你这么细心 ❤︎' }] },
@@ -128,95 +137,169 @@ function getPostTimeLabel(daysTag, time) {
 }
 
 // ── 单条帖子卡片 ─────────────────────────────────────────────────
-function DiaryPostCard({ post, showDayTag, isLast, playingId, onPlay, onReply, replyingId, onDelete }) {
+function DiaryPostCard({ post, showDayTag, isLast, playingId, onPlay, onReply, replyingId, onDelete, onReact, viewerKey = 'F' }) {
   const au = post.authorKey === 'M' ? PARTNER : USER;
-  const isMe = post.authorKey === 'F';
+  const isMe = post.authorKey === viewerKey;
+
+  // ── 互动卡片渲染 ──
+  if (post.kind === 'interact') {
+    const color = post.interactColor || MY.brandRed;
+    return (
+      <div style={{ padding: '0 16px', paddingBottom: isLast ? 6 : 8, animation: 'diaryFade 0.22s ease' }}>
+        <div style={{ display: 'flex', alignItems: 'stretch', borderRadius: 10, overflow: 'hidden',
+          border: `1px solid ${color}22`, background: '#fff', boxShadow: `0 2px 8px ${color}14` }}>
+          <div style={{ flexShrink: 0, width: 44,
+            background: `linear-gradient(160deg,${color}1E,${color}0F)`,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+            padding: '8px 0', borderRight: `1px dashed ${color}30` }}>
+            <div style={{ fontSize: 20, lineHeight: 1 }}>{post.interactEmoji}</div>
+            <div style={{ fontSize: 8, fontWeight: 600, color: `${color}BB`, letterSpacing: '0.04em' }}>{post.interactLabel}</div>
+          </div>
+          <div style={{ flex: 1, padding: '8px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: MY.textPri, lineHeight: 1.3 }}>
+              {isMe ? '送出了一个' + post.interactLabel : 'TA送来了一个' + post.interactLabel}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9.5, color: MY.textTer }}>
+              <DiaryAva person={au} size={13}/>
+              {au.name} · {post.time}
+              <span style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 600,
+                background: `${color}14`, color, borderRadius: 4, padding: '1px 5px' }}>
+                {isMe ? '已送出' : '收到了'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const nameColor = isMe ? MY.brandRed : MY.link;
   const isPlaying = playingId === post.id;
   const isReplying = replyingId === post.id;
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [myReaction, setMyReaction] = React.useState(null);
+
+  const REACT_EMOJIS_V2 = ['❤️','🥰','😊','🫂','😂','👍'];
+
+  const ReactionBubble = () => (
+    <div style={{ position: 'relative' }}>
+      {pickerOpen && (
+        <>
+          <div onClick={() => setPickerOpen(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 10 }}/>
+          <div style={{
+            position: 'absolute', bottom: 'calc(100% + 6px)', left: 0,
+            background: '#fff', borderRadius: 20,
+            boxShadow: '0 6px 24px rgba(0,0,0,0.14)',
+            padding: '6px 8px', display: 'flex', gap: 2, alignItems: 'center',
+            zIndex: 11, animation: 'diaryFade 0.15s ease',
+          }}>
+            {REACT_EMOJIS_V2.map(e => (
+              <span key={e}
+                onClick={() => { setMyReaction(e); setPickerOpen(false); onReact && onReact(e); }}
+                style={{ fontSize: 24, lineHeight: 1, padding: '4px 4px',
+                  borderRadius: 8, cursor: 'pointer', display: 'block', transition: 'transform .12s' }}
+                onMouseEnter={ev => ev.currentTarget.style.transform = 'scale(1.28)'}
+                onMouseLeave={ev => ev.currentTarget.style.transform = 'scale(1)'}
+              >{e}</span>
+            ))}
+          </div>
+        </>
+      )}
+      {myReaction ? (
+        <div onClick={() => setMyReaction(null)}
+          style={{ display: 'inline-flex', alignItems: 'center',
+            background: 'rgba(255,77,136,0.08)', border: '1.5px solid rgba(255,77,136,0.2)',
+            borderRadius: 20, padding: '3px 8px 3px 20px',
+            fontSize: 17, lineHeight: 1, cursor: 'pointer', position: 'relative' }}>
+          <div style={{ position: 'absolute', left: -2, top: '50%', transform: 'translateY(-50%)',
+            width: 18, height: 18, borderRadius: '50%', overflow: 'hidden',
+            border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}>
+            <DiaryAva person={USER} size={18}/>
+          </div>
+          {myReaction}
+        </div>
+      ) : (
+        <div onClick={() => setPickerOpen(s => !s)}
+          style={{ width: 28, height: 28, borderRadius: '50%',
+            background: pickerOpen ? 'rgba(255,77,136,0.1)' : MY.bg,
+            border: `1.5px solid ${pickerOpen ? 'rgba(255,77,136,0.25)' : 'rgba(0,0,0,0.08)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M12 21C6.5 15.5 2 11.5 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 4-4.5 8-10 13.5z"
+              stroke={pickerOpen ? MY.brandRed : '#999'} strokeWidth="1.8"
+              fill={pickerOpen ? MY.brandRed : 'none'}/>
+          </svg>
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div style={{ display: 'flex', paddingLeft: 16, paddingRight: 16, animation: 'diaryFade 0.22s ease' }}>
-      {/* 时间轴 */}
-      <div style={{ width: 20, flexShrink: 0, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', paddingTop: showDayTag ? 4 : 2 }}>
-        {showDayTag && (
-          <div style={{ width: 9, height: 9, borderRadius: '50%', background: MY.brandRed, flexShrink: 0, zIndex: 1 }}/>
-        )}
-        {!isLast && (
-          <div style={{ flex: 1, width: 1.5, background: '#E8E8E8', marginTop: showDayTag ? 3 : 0 }}/>
-        )}
-      </div>
-
-      {/* 内容 */}
-      <div style={{ flex: 1, minWidth: 0, paddingLeft: 10, paddingBottom: isLast ? 12 : 18 }}>
-        {showDayTag && (
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: MY.textPri, marginBottom: 8, lineHeight: 1 }}>
-            {getDayLabel(post.daysTag)}
-          </div>
-        )}
-
-        {/* 作者行（时间已移至底部） */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, paddingTop: showDayTag ? 0 : 1 }}>
-          <DiaryAva person={au} size={22}/>
-          <span style={{ fontSize: 12.5, fontWeight: 600, color: nameColor }}>{au.name}</span>
-          {post.kind === 'voice' && (
-            <span style={{ fontSize: 10, color: MY.textTer, background: MY.bg, padding: '1px 5px', borderRadius: 99 }}>🎙</span>
-          )}
-        </div>
-
-        {/* 内容气泡（统一圆角） */}
-        <div style={{ background: MY.bg, borderRadius: 12, padding: '10px 12px' }}>
-          {post.kind === 'voice'
-            ? <DiaryVoiceBubble sec={post.voiceSec} playing={isPlaying} onPlay={() => onPlay && onPlay(post.id)}/>
-            : <div style={{ fontSize: 14, color: MY.textPri, lineHeight: '22px' }}>{post.text}</div>
-          }
-          {post.photos > 0 && (
-            <div style={{ display: 'grid',
-              gridTemplateColumns: `repeat(${Math.min(post.photos, 3)}, 1fr)`,
-              gap: 3, marginTop: 8 }}>
-              {Array.from({ length: post.photos }).map((_, i) => (
-                <ImgSlot key={i} h={post.photos === 1 ? 130 : post.photos === 2 ? 100 : 76} label="" radius={MY.rxs}/>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 时间 + 操作行（内容下方，评论上方） */}
-        <div style={{ display: 'flex', alignItems: 'center', marginTop: 6, gap: 6 }}>
-          <span style={{ fontSize: 11, color: MY.textTer }}>{getPostTimeLabel(post.daysTag, post.time)}</span>
-          <div onClick={() => onDelete && onDelete(post.id)} style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', padding: '2px', opacity: 0.5,
-          }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke={MY.textTer} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    <div style={{ padding: '0 16px', paddingBottom: isLast ? 8 : 12, animation: 'diaryFade 0.22s ease' }}>
+      <div style={{ background: '#fff', borderRadius: 14, position: 'relative',
+        boxShadow: '0 1px 1px rgba(0,0,0,0.08),0 3px 8px rgba(0,0,0,0.08),0 8px 20px rgba(0,0,0,0.06)',
+        border: '1px solid rgba(0,0,0,0.04)', padding: '11px 13px' }}>
+        {isMe && (
+          <div onClick={() => onDelete && onDelete(post.id)}
+            style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', opacity: 0.22, transition: 'opacity 0.15s', zIndex: 2 }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.65'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '0.22'}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <polyline points="3 6 5 6 21 6" stroke="#666" strokeWidth="1.8" strokeLinecap="round"/>
+              <path d="M19 6l-1 14H6L5 6" stroke="#666" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <DiaryAva person={au} size={28}/>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: nameColor }}>{au.name}</div>
+            <div style={{ fontSize: 10.5, color: MY.textTer, marginTop: 1 }}>{post.daysTag} · {post.time}</div>
+          </div>
+        </div>
+        {post.kind === 'voice'
+          ? <DiaryVoiceBubble sec={post.voiceSec} playing={isPlaying} onPlay={() => onPlay && onPlay(post.id)}/>
+          : <div style={{ fontSize: 14, color: MY.textPri, lineHeight: '22px', marginBottom: 6 }}>{post.text}</div>
+        }
+        {post.photos > 0 && (
+          <div style={{ display: 'grid',
+            gridTemplateColumns: `repeat(${Math.min(post.photos, 3)}, 1fr)`,
+            gap: 3, marginTop: 8, marginBottom: 6 }}>
+            {Array.from({ length: post.photos }).map((_, i) => (
+              <ImgSlot key={i} h={post.photos === 1 ? 130 : post.photos === 2 ? 100 : 76} label="" radius={MY.rxs}/>
+            ))}
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8,
+          paddingTop: 8, borderTop: `1px solid ${MY.line}` }}>
+          {!isMe && <ReactionBubble/>}
           <div style={{ flex: 1 }}/>
-          <div onClick={() => onReply && onReply(post.id)} style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            cursor: 'pointer', padding: '4px 10px', borderRadius: 99,
-            background: isReplying ? MY.brandSoft : MY.bg,
-            border: `1px solid ${isReplying ? MY.brandRed : 'transparent'}`,
-          }}>
+          <div onClick={() => onReply && onReply(post.id)}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer',
+              padding: '4px 10px', borderRadius: 99,
+              background: isReplying ? MY.brandSoft : MY.bg,
+              border: `1px solid ${isReplying ? MY.brandRed : 'transparent'}` }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke={isReplying ? MY.brandRed : MY.textTer} strokeWidth="1.8" strokeLinejoin="round"/>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                stroke={isReplying ? MY.brandRed : MY.textTer} strokeWidth="1.8" strokeLinejoin="round"/>
             </svg>
             <span style={{ fontSize: 12, color: isReplying ? MY.brandRed : MY.textTer }}>回复</span>
           </div>
         </div>
-
-        {/* 评论列表（时间行下方） */}
         {post.comments && post.comments.length > 0 && (
-          <div style={{ marginTop: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
             {post.comments.map((c, i) => {
               const ca = c.authorKey === 'M' ? PARTNER : USER;
               const cc = c.authorKey === 'F' ? MY.brandRed : MY.link;
               return (
-                <div key={i} style={{ fontSize: 12.5, lineHeight: '18px', marginBottom: 3 }}>
-                  <span style={{ fontWeight: 600, color: cc, marginRight: 3 }}>{ca.name}</span>
-                  <span style={{ color: MY.textSec }}>{c.text}</span>
+                <div key={i} style={{ animation: 'diaryFade 0.18s ease' }}>
+                  <div style={{ background: MY.bg, borderRadius: 10, padding: '6px 10px',
+                    display: 'inline-flex', maxWidth: '92%' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: cc, marginRight: 5, flexShrink: 0 }}>{ca.name}</span>
+                    <span style={{ fontSize: 13, color: MY.textSec, lineHeight: '18px' }}>{c.text}</span>
+                  </div>
                 </div>
               );
             })}
@@ -336,13 +419,35 @@ function DiaryKeyboard({ text, placeholder, onChar, onDelete, onSend, onClose, o
 }
 
 // ── 语音录制浮层 ──────────────────────────────────────────────────
-function DiaryVoiceRecorder({ onFinish, onCancel }) {
+function DiaryVoiceRecorder({ onFinish, onCancel, onTranscribe }) {
   const [sec, setSec] = React.useState(0);
-  const [phase, setPhase] = React.useState('recording');
+  const [phase, setPhase] = React.useState('recording'); // recording | preview | transcribing
+  const [transcript, setTranscript] = React.useState('');
+  const intervalRef = React.useRef(null);
+
   React.useEffect(() => {
-    const t = setInterval(() => setSec(s => s + 1), 1000);
-    return () => clearInterval(t);
+    intervalRef.current = setInterval(() => setSec(s => s + 1), 1000);
+    return () => clearInterval(intervalRef.current);
   }, []);
+
+  const stopRecording = () => { clearInterval(intervalRef.current); setPhase('preview'); };
+  const reRecord = () => { setSec(0); setTranscript(''); setPhase('recording'); intervalRef.current = setInterval(() => setSec(s => s + 1), 1000); };
+
+  const handleTranscribe = async () => {
+    setPhase('transcribing');
+    try {
+      const res = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 200,
+          messages: [{ role: 'user', content: `请模拟一段恋人之间真实自然的语音转文字结果，内容温柔甜蜜，语气口语化，长度约${Math.max(10, sec * 3)}字以内，只返回转写文字本身` }] }),
+      });
+      const data = await res.json();
+      setTranscript(data.content?.[0]?.text?.trim() || '');
+    } catch { setTranscript('（转写失败，请重试）'); }
+    setPhase('preview');
+  };
+
   const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   const BARS = 26;
 
@@ -350,50 +455,72 @@ function DiaryVoiceRecorder({ onFinish, onCancel }) {
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.52)',
       display: 'flex', alignItems: 'flex-end', zIndex: 40 }}>
       <div style={{ width: '100%', background: MY.surface, borderRadius: '20px 20px 0 0', padding: '24px 20px 28px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 18 }}>
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: MY.textPri }}>
-            {phase === 'recording' ? '正在录音…' : '预览语音'}
+            {phase === 'recording' ? '正在录音…' : phase === 'transcribing' ? '正在转文字…' : transcript ? '转写结果' : '预览语音'}
           </div>
-          <div style={{ fontSize: 26, fontWeight: 700, color: MY.brandRed, marginTop: 6, letterSpacing: 2 }}>
-            {fmt(sec)}
+          {phase !== 'transcribing' && !transcript && (
+            <div style={{ fontSize: 26, fontWeight: 700, color: MY.brandRed, marginTop: 6, letterSpacing: 2 }}>
+              {fmt(sec)}
+            </div>
+          )}
+        </div>
+
+        {phase === 'transcribing' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 60, gap: 8, marginBottom: 24 }}>
+            <div style={{ width: 26, height: 26, border: `3px solid ${MY.brandSoft}`, borderTop: `3px solid ${MY.brandRed}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}/>
+            <span style={{ fontSize: 13, color: MY.textTer }}>AI 语音转文字中…</span>
           </div>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 3, height: 36, marginBottom: 22 }}>
-          {Array.from({ length: BARS }).map((_, i) => {
-            const h = 4 + Math.round(Math.sin(i / BARS * Math.PI * 4) * 8 + Math.sin(i / BARS * Math.PI * 9) * 4 + 5);
-            return (
-              <div key={i} style={{
-                width: 3, height: h, borderRadius: 2,
-                background: phase === 'recording' ? MY.brandRed : '#C0B8C8',
-                animation: phase === 'recording' ? `diaryWave ${0.45 + i * 0.035}s ease-in-out infinite alternate` : 'none',
-                animationDelay: `${i * 0.035}s`,
-              }}/>
-            );
-          })}
-        </div>
+        ) : transcript ? (
+          <div style={{ background: MY.bg, borderRadius: 12, padding: '12px 14px', marginBottom: 20, minHeight: 52 }}>
+            <p style={{ fontSize: 14.5, color: MY.textPri, lineHeight: '22px', margin: 0 }}>{transcript}</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 3, height: 36, marginBottom: 22 }}>
+            {Array.from({ length: BARS }).map((_, i) => {
+              const h = 4 + Math.round(Math.sin(i / BARS * Math.PI * 4) * 8 + Math.sin(i / BARS * Math.PI * 9) * 4 + 5);
+              return (
+                <div key={i} style={{
+                  width: 3, height: h, borderRadius: 2,
+                  background: phase === 'recording' ? MY.brandRed : '#C0B8C8',
+                  animation: phase === 'recording' ? `diaryWave ${0.45 + i * 0.035}s ease-in-out infinite alternate` : 'none',
+                  animationDelay: `${i * 0.035}s`,
+                }}/>
+              );
+            })}
+          </div>
+        )}
+
         {phase === 'recording' ? (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 28 }}>
             <button onClick={onCancel} style={{ width: 54, height: 54, borderRadius: '50%', background: MY.bg, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke={MY.textSec} strokeWidth="2" strokeLinecap="round"/></svg>
               <span style={{ fontSize: 10, color: MY.textSec }}>取消</span>
             </button>
-            <button onClick={() => setPhase('preview')} style={{ width: 70, height: 70, borderRadius: '50%', background: MY.brandRed, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 8px ${MY.brandSoft}` }}>
+            <button onClick={stopRecording} style={{ width: 70, height: 70, borderRadius: '50%', background: MY.brandRed, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 8px ${MY.brandSoft}` }}>
               <div style={{ width: 20, height: 20, borderRadius: 4, background: '#fff' }}/>
             </button>
+            <button onClick={onCancel} style={{ width: 54, height: 54, borderRadius: '50%', background: MY.bg, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, opacity: 0 }}/>
           </div>
-        ) : (
+        ) : transcript ? (
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={onCancel} style={{ flex: 1, height: 44, borderRadius: 22, background: MY.bg, border: 'none', cursor: 'pointer', fontSize: 14, color: MY.textSec }}>取消</button>
-            <button onClick={() => onFinish(sec)} style={{ flex: 1.5, height: 44, borderRadius: 22, background: MY.brandRed, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#fff' }}>发送语音</button>
+            <button onClick={reRecord} style={{ flex: 1, height: 44, borderRadius: 22, background: MY.bg, border: 'none', cursor: 'pointer', fontSize: 14, color: MY.textSec }}>重录</button>
+            <button onClick={() => onTranscribe && onTranscribe(transcript)} style={{ flex: 2, height: 44, borderRadius: 22, background: MY.brandRed, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#fff' }}>使用文字</button>
           </div>
-        )}
+        ) : phase !== 'transcribing' ? (
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={reRecord} style={{ flex: 1, height: 44, borderRadius: 22, background: MY.bg, border: 'none', cursor: 'pointer', fontSize: 13.5, color: MY.textSec }}>重录</button>
+            <button onClick={handleTranscribe} style={{ flex: 1, height: 44, borderRadius: 22, background: MY.bg, border: 'none', cursor: 'pointer', fontSize: 13.5, color: MY.textSec }}>转文字</button>
+            <button onClick={() => onFinish(sec)} style={{ flex: 1, height: 44, borderRadius: 22, background: MY.brandRed, border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, color: '#fff' }}>发送语音</button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
 // ── 日记屏幕主体（Screen5DiaryAll / BFDiary 共用）────────────────
-function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }) {
+function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false, authorKey = 'F', showFilter = false, hideNav = false }) {
   const [posts, setPosts]         = React.useState(DIARY_POSTS_V2.map(p => ({ ...p })));
   const [replyingId, setReplyId]  = React.useState(null);
   const [replyText, setReplyText] = React.useState('');
@@ -404,6 +531,10 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
   const [navScrolled, setNav]     = React.useState(false);
   const [showVoice, setVoice]     = React.useState(false);
   const [showMore, setShowMore]   = React.useState(false);
+  const [fabOpen, setFabOpen]     = React.useState(false);
+  const [interactOpen, setInteractOpen] = React.useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
+  const [emojiRain, setEmojiRain] = React.useState(null);
   const [coverIdx, setCoverIdx]   = React.useState(0);
   const feedRef = React.useRef(null);
   const KB_H = 286;
@@ -416,7 +547,36 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
     'linear-gradient(135deg, #FFF0C8 0%, #FFD880 45%, #F0B840 100%)',
   ];
 
+  const INTERACT_OPTIONS_V2 = [
+    { emoji:'🫂', label:'抱抱', color:'#FF8C42' },
+    { emoji:'😘', label:'亲亲', color:MY.brandRed },
+    { emoji:'🧸', label:'贴贴', color:'#A064DC' },
+    { emoji:'💭', label:'想你', color:'#60A5FA' },
+    { emoji:'❤️', label:'爱你', color:'#FF4D4D' },
+  ];
+
+  const handleInteract = (opt) => {
+    const np = { id: Date.now(), authorKey, daysTag: '今天', kind: 'interact',
+      interactEmoji: opt.emoji, interactLabel: opt.label, interactColor: opt.color,
+      time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      photos: 0, comments: [] };
+    setPosts(ps => [np, ...ps]);
+    setInteractOpen(false); setFabOpen(false);
+    triggerRain(opt.emoji);
+    if (feedRef.current) feedRef.current.scrollTop = 0;
+  };
+
   const dismissKb = () => { setKbOpen(false); setReplyKb(false); setReplyId(null); };
+
+  const [filterKey, setFilterKey] = React.useState('all');
+  const filteredPosts = React.useMemo(() => {
+    if (!showFilter || filterKey === 'all') return posts;
+    if (filterKey === 'her') return posts.filter(p => p.authorKey === 'F');
+    if (filterKey === 'mine') return posts.filter(p => p.authorKey === 'M');
+    if (filterKey === 'interact') return posts.filter(p => p.kind === 'interact');
+    return posts;
+  }, [posts, filterKey, showFilter]);
+  const displayPosts = showFilter ? filteredPosts : posts;
 
   React.useEffect(() => {
     const el = feedRef.current;
@@ -436,7 +596,7 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
 
   const handleSend = () => {
     if (!kbText.trim()) return;
-    const np = { id: Date.now(), authorKey: 'F', daysTag: '今天', kind: 'text',
+    const np = { id: Date.now(), authorKey, daysTag: '今天', kind: 'text',
       time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
       text: kbText.trim(), photos: 0, comments: [] };
     setPosts(ps => [np, ...ps]);
@@ -451,11 +611,37 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
     setReplyText(''); setReplyKb(false); setReplyId(null);
   };
 
-  const handleDelete = id => setPosts(ps => ps.filter(p => p.id !== id));
+  const triggerRain = (emoji) => {
+    const DECO = ['✨','⭐','💫','💕','🌟','❤️','✦','·'];
+    const particles = Array.from({length:36},(_,i)=>({id:i,
+      x:3+Math.random()*94,delay:Math.random()*1.2,
+      dur:1.5+Math.random()*1.8,
+      size:i<18?18+Math.random()*18:i<28?11+Math.random()*10:8+Math.random()*8,
+      drift:(Math.random()-0.5)*100,spin:(Math.random()-0.5)*180,
+      opacity:i<18?1:i<28?0.55+Math.random()*0.35:0.3+Math.random()*0.4,
+      symbol:i<18?emoji:DECO[Math.floor(Math.random()*DECO.length)],
+    }));
+    setEmojiRain({emoji,particles});
+    setTimeout(()=>setEmojiRain(null),3800);
+  };
+
+  const handleTranscribeFinish = (text) => {
+    setVoice(false);
+    const now = new Date();
+    const ds = now.toISOString().slice(0,10);
+    const ts = now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    const np = { id: Date.now(), authorKey, daysTag: '今天', kind: 'text',
+      time: ts, text, photos: 0, comments: [] };
+    setPosts(ps => [np, ...ps]);
+    if (feedRef.current) feedRef.current.scrollTop = 0;
+  };
+
+  const handleDelete = id => setDeleteConfirmId(id);
+  const confirmDeleteFn = () => { if (deleteConfirmId) setPosts(ps => ps.filter(p => p.id !== deleteConfirmId)); setDeleteConfirmId(null); };
 
   const handleVoiceFinish = sec => {
     setVoice(false);
-    const np = { id: Date.now(), authorKey: 'F', daysTag: '今天', kind: 'voice', voiceSec: sec,
+    const np = { id: Date.now(), authorKey, daysTag: '今天', kind: 'voice', voiceSec: sec,
       time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
       photos: 0, comments: [] };
     setPosts(ps => [np, ...ps]);
@@ -472,12 +658,13 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
         onClick={isKbAny ? dismissKb : undefined}
         style={{
           position: 'absolute', top: 0, left: 0, right: 0,
-          bottom: isKbAny ? KB_H : 64,
+          bottom: isKbAny ? KB_H : 0,
           overflowY: 'auto', transition: 'bottom 0.25s cubic-bezier(0.32,0.72,0,1)',
+          zIndex: 1,
         }}>
-        {/* 封面 — marginTop:-36 延伸至状态栏区域，颜色可换 */}
+        {/* 封面 — marginTop:-36 随 feed 滚动 */}
         <div style={{
-          marginTop: -36, height: 256, position: 'relative', overflow: 'hidden', flexShrink: 0,
+          marginTop: -36, height: 292, position: 'relative', overflow: 'hidden', flexShrink: 0,
           background: COVERS[coverIdx], transition: 'background 0.4s ease',
         }}>
           <div style={{ position: 'absolute', top: -40, right: -30, width: 180, height: 180,
@@ -498,8 +685,7 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
             </div>
           </div>
         </div>
-
-        <div style={{ height: 20 }}/>
+        <div style={{ height: 12 }}/>
 
         {/* 帖子列表 */}
         {isEmpty ? (
@@ -588,8 +774,19 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
         ) : (
           <>
             <div style={{ height: 20 }}/>
-            {posts.map((post, i) => {
-              const prevSameDay = i > 0 && posts[i - 1].daysTag === post.daysTag;
+            {showFilter && (
+              <div style={{ display: 'flex', gap: 8, padding: '4px 16px 10px', background: MY.bg, flexShrink: 0 }}>
+                {[{k:'all',l:'全部'},{k:'her',l:'她写的'},{k:'mine',l:'我写的'},{k:'interact',l:'互动'}].map(f=>(
+                  <div key={f.k} onClick={()=>setFilterKey(f.k)}
+                    style={{ padding:'5px 14px', borderRadius:999, fontSize:12, fontWeight:500, cursor:'pointer',
+                      background: filterKey===f.k ? '#fff' : 'rgba(0,0,0,0.04)',
+                      border: `1.5px solid ${filterKey===f.k ? 'rgba(255,77,136,0.25)' : 'transparent'}`,
+                      color: filterKey===f.k ? MY.brandRed : MY.textSec, transition:'all .15s' }}>{f.l}</div>
+                ))}
+              </div>
+            )}
+            {displayPosts.map((post, i) => {
+              const prevSameDay = i > 0 && displayPosts[i - 1].daysTag === post.daysTag;
               return (
                 <DiaryPostCard key={post.id} post={post}
                   showDayTag={!prevSameDay}
@@ -599,6 +796,8 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
                   onReply={id => { setReplyId(id); setReplyText(''); setReplyKb(true); setKbOpen(false); }}
                   replyingId={replyingId}
                   onDelete={handleDelete}
+                  onReact={triggerRain}
+                  viewerKey={authorKey}
                 />
               );
             })}
@@ -608,7 +807,7 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
       </div>
 
       {/* ── 导航栏（透明→白，随滚动切换）── */}
-      <div style={{
+      {!hideNav && (<div style={{
         position: 'absolute', top: -36, left: 0, right: 0, height: 80,
         zIndex: 10, pointerEvents: 'none',
         background: navScrolled ? MY.surface : 'transparent',
@@ -666,7 +865,7 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
             </div>
           )}
         </div>
-      </div>
+      </div>)}
 
       {/* 点击空白收起更多菜单 */}
       {showMore && (
@@ -674,30 +873,122 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
           style={{ position: 'absolute', inset: 0, zIndex: 20 }}/>
       )}
 
-      {/* ── 底部输入栏 ── */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: 64,
-        background: MY.surface, borderTop: `1px solid ${MY.line}`,
-        padding: '10px 12px', zIndex: 10,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <DiaryAva person={USER} size={32}/>
-          <div onClick={() => { setKbOpen(true); setReplyKb(false); setReplyId(null); }} style={{
-            flex: 1, background: MY.bg, borderRadius: 20, padding: '8px 16px',
-            cursor: 'text', fontSize: 14, color: MY.textTer,
-          }}>记录这一刻…</div>
-          <div onClick={() => setVoice(true)} style={{
-            width: 36, height: 36, borderRadius: '50%', background: MY.brandSoft,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', border: `1.5px solid ${MY.brandSoft2}`, flexShrink: 0,
-          }}>
-            <svg width="14" height="18" viewBox="0 0 16 20" fill="none">
-              <rect x="5" y="1" width="6" height="10" rx="3" fill={MY.brandRed}/>
-              <path d="M2 9c0 3.314 2.686 6 6 6s6-2.686 6-6" stroke={MY.brandRed} strokeWidth="1.6" strokeLinecap="round"/>
-              <line x1="8" y1="15" x2="8" y2="19" stroke={MY.brandRed} strokeWidth="1.6" strokeLinecap="round"/>
-              <line x1="5" y1="19" x2="11" y2="19" stroke={MY.brandRed} strokeWidth="1.6" strokeLinecap="round"/>
-            </svg>
+      {/* 表情雨 — top:-36 bottom:-24 填满整个手机 */}
+      {emojiRain && (
+        <div style={{ position: 'absolute', top: -36, bottom: -24, left: 0, right: 0, pointerEvents: 'none', zIndex: 100, overflow: 'hidden' }}>
+          {emojiRain.particles.map(p => (
+            <div key={p.id} style={{
+              position: 'absolute', top: 0, left: `${p.x}%`,
+              fontSize: p.size, lineHeight: 1,
+              animation: `emojiRainFall ${p.dur}s ${p.delay}s ease-in forwards`,
+              '--emoji-drift': `${p.drift}px`,
+              '--emoji-spin': `${p.spin}deg`,
+              opacity: p.opacity,
+            }}>{p.symbol || emojiRain.emoji}</div>
+          ))}
+        </div>
+      )}
+
+      {/* ── 美柚规范删除弹窗 ── */}}
+      {deleteConfirmId && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 60,
+          background: 'rgba(0,0,0,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '0 32px', animation: 'diaryFade 0.15s ease' }}
+          onClick={() => setDeleteConfirmId(null)}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 12, width: '100%',
+              padding: '24px 20px 20px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.20)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div style={{ fontSize: 17, fontWeight: 500, color: '#323232', marginBottom: 8 }}>删除这条记录？</div>
+              <div style={{ fontSize: 13, color: '#666' }}>删除后无法恢复</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={confirmDeleteFn} style={{
+                height: 44, borderRadius: 8, border: 'none',
+                background: '#ff4d4d', color: '#fff',
+                fontSize: 15, fontWeight: 600, cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(255,77,77,0.25)' }}>删除</button>
+              <button onClick={() => setDeleteConfirmId(null)} style={{
+                height: 44, borderRadius: 8,
+                border: '1px solid rgba(0,0,0,0.12)', background: '#fff',
+                color: '#666', fontSize: 15, cursor: 'pointer' }}>取消</button>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* FAB 覆层 */}
+      {fabOpen && (
+        <div onClick={() => { setFabOpen(false); setInteractOpen(false); }}
+          style={{ position: 'absolute', inset: 0, zIndex: 18,
+            background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(2px)',
+            WebkitBackdropFilter: 'blur(2px)' }}/>
+      )}
+
+      {/* 互动选择面板 */}
+      {interactOpen && (
+        <div style={{ position: 'absolute', bottom: 80, left: 16, right: 16, zIndex: 25,
+          background: '#fff', borderRadius: 16,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.18)', padding: '16px 12px',
+          animation: 'diaryFade 0.2s ease' }}>
+          <div style={{ fontSize: 12, color: MY.textTer, marginBottom: 12, textAlign: 'center' }}>选一个互动发出</div>
+          <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+            {INTERACT_OPTIONS_V2.map(opt => (
+              <div key={opt.emoji} onClick={() => handleInteract(opt)}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                  cursor: 'pointer', minWidth: 44, minHeight: 44, justifyContent: 'center' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 22,
+                  background: `${opt.color}18`, border: `1.5px solid ${opt.color}30`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+                  {opt.emoji}
+                </div>
+                <span style={{ fontSize: 11, color: MY.textSec, fontWeight: 500 }}>{opt.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 方案3 扇形 FAB */}
+      <div style={{ position: 'absolute', right: 18, bottom: 28, zIndex: 20, width: 52, height: 52 }}>
+        {fabOpen && [
+          { label: '互动', bg: `linear-gradient(135deg,${MY.brandRed},#FF8475)`, shadow: 'rgba(255,77,136,0.42)', delay: '0s',
+            left: 4, top: -86, onClick: () => setInteractOpen(s => !s),
+            icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21C6.5 15.5 2 11.5 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 4-4.5 8-10 13.5z" fill="#fff"/></svg>) },
+          { label: '日记', bg: 'linear-gradient(135deg,#6B9FD4,#4A7AAF)', shadow: 'rgba(74,122,175,0.42)', delay: '0.07s',
+            left: -58, top: -58, onClick: () => { setKbOpen(true); setFabOpen(false); setInteractOpen(false); },
+            icon: (<svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>) },
+          { label: '语音', bg: 'linear-gradient(135deg,#A78BFA,#7C3AED)', shadow: 'rgba(124,58,237,0.38)', delay: '0.14s',
+            left: -86, top: 4, onClick: () => { setVoice(true); setFabOpen(false); setInteractOpen(false); },
+            icon: (<svg width="19" height="19" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="#fff" strokeWidth="2"/><path d="M5 11a7 7 0 0014 0" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><line x1="12" y1="18" x2="12" y2="22" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><line x1="9" y1="22" x2="15" y2="22" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>) },
+        ].map(b => (
+          <div key={b.label} onClick={b.onClick}
+            style={{ position: 'absolute', left: b.left, top: b.top,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+              cursor: 'pointer',
+              animation: `fanPop 0.3s ${b.delay} cubic-bezier(0.34,1.56,0.64,1) both` }}>
+            <div style={{ width: 44, height: 44, borderRadius: 22,
+              background: b.bg, boxShadow: `0 5px 16px ${b.shadow}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {b.icon}
+            </div>
+            <span style={{ fontSize: 11, color: '#fff', fontWeight: 600,
+              textShadow: '0 1px 4px rgba(0,0,0,0.45)', whiteSpace: 'nowrap' }}>{b.label}</span>
+          </div>
+        ))}
+        <div onClick={() => setFabOpen(s => !s)} style={{
+          position: 'absolute', inset: 0, borderRadius: '50%',
+          background: `linear-gradient(135deg,${MY.brandRed},#FF8475)`,
+          boxShadow: '0 8px 20px rgba(255,77,136,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+          transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)',
+          transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+        }}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M11 4v14M4 11h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/>
+          </svg>
         </div>
       </div>
 
@@ -724,13 +1015,13 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false }
 
       {/* 语音录制 */}
       {showVoice && (
-        <DiaryVoiceRecorder onFinish={handleVoiceFinish} onCancel={() => setVoice(false)}/>
+        <DiaryVoiceRecorder onFinish={handleVoiceFinish} onCancel={() => setVoice(false)} onTranscribe={handleTranscribeFinish}/>
       )}
     </div>
   );
 }
 
-// ── 首页恋爱日记模块（纯文字标题 + 时间轴与二级页一致）────────────
+// ── 首页恋爱记模块（纯文字标题 + 时间轴与二级页一致）────────────
 function DiaryHomeModule({ onViewAll, isEmpty = false }) {
 
   // ── 空值态 ──────────────────────────────────────────────────
@@ -766,74 +1057,71 @@ function DiaryHomeModule({ onViewAll, isEmpty = false }) {
 
   return (
     <div style={{ background: MY.surface, borderRadius: MY.rmd, padding: '14px 14px 14px', boxShadow: MY.shadow1 }}>
-      <div style={{ fontSize: 15, fontWeight: 700, color: MY.textPri, marginBottom: 14 }}>恋爱日记</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: MY.textPri, marginBottom: 14 }}>恋爱记</div>
 
       {isEmpty ? <EmptyContent/> : (
         <>
-          {/* 帖子列表（截断 + 渐隐）*/}
+          {/* 帖子列表 — 白色卡片样式（与 v7 一致），截断渐隐 */}
           <div style={{ position: 'relative' }}>
-            <div style={{ height: 140, overflow: 'hidden' }}>
-              {DIARY_POSTS_V2.slice(0, 3).map((post, i) => {
+            <div style={{ maxHeight: 160, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {DIARY_POSTS_V2.slice(0, 2).map((post, i) => {
                 const au = post.authorKey === 'M' ? PARTNER : USER;
                 const nameColor = post.authorKey === 'F' ? MY.brandRed : MY.link;
-                const prevSameDay = i > 0 && DIARY_POSTS_V2[i - 1].daysTag === post.daysTag;
-                const isLast = i === 2;
-                return (
-                  <div key={post.id} style={{ display: 'flex' }}>
-                    <div style={{ width: 18, flexShrink: 0, display: 'flex', flexDirection: 'column',
-                      alignItems: 'center', paddingTop: !prevSameDay ? 4 : 2 }}>
-                      {!prevSameDay && (
-                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: MY.brandRed, flexShrink: 0, zIndex: 1 }}/>
-                      )}
-                      {!isLast && (
-                        <div style={{ flex: 1, width: 1.5, background: '#E8E8E8', marginTop: !prevSameDay ? 3 : 0 }}/>
-                      )}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0, paddingLeft: 8, paddingBottom: isLast ? 0 : 16 }}>
-                      {!prevSameDay && (
-                        <div style={{ fontSize: 12, fontWeight: 700, color: MY.textPri, marginBottom: 6, lineHeight: 1 }}>
-                          {getDayLabel(post.daysTag)}
+                if (post.kind === 'interact') {
+                  const color = post.interactColor || MY.brandRed;
+                  return (
+                    <div key={post.id} style={{ display: 'flex', alignItems: 'stretch', borderRadius: 10, overflow: 'hidden',
+                      border: `1px solid ${color}22`, background: '#fff', boxShadow: `0 2px 8px ${color}10` }}>
+                      <div style={{ flexShrink: 0, width: 36, background: `linear-gradient(160deg,${color}1E,${color}0F)`,
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                        padding: '6px 0', borderRight: `1px dashed ${color}30` }}>
+                        <div style={{ fontSize: 16 }}>{post.interactEmoji}</div>
+                        <div style={{ fontSize: 7, fontWeight: 600, color: `${color}BB` }}>{post.interactLabel}</div>
+                      </div>
+                      <div style={{ flex: 1, padding: '6px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 600, color: MY.textPri }}>
+                          {post.authorKey === 'F' ? '你送出了一个' + post.interactLabel : 'TA送来了一个' + post.interactLabel}
                         </div>
-                      )}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-                        <DiaryAva person={au} size={18}/>
-                        <span style={{ fontSize: 11.5, fontWeight: 600, color: nameColor }}>{au.name}</span>
-                      </div>
-                      <div style={{ background: MY.bg, borderRadius: 8, padding: '6px 10px' }}>
-                        {post.kind === 'voice'
-                          ? <span style={{ fontSize: 12, color: MY.textTer }}>🎙 语音 {post.voiceSec}"</span>
-                          : <>
-                              {post.text ? (
-                                <div style={{ fontSize: 12, color: MY.textPri, lineHeight: '18px',
-                                  overflow: 'hidden', textOverflow: 'ellipsis',
-                                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                                  marginBottom: post.photos > 0 ? 5 : 0 }}>
-                                  {post.text}
-                                </div>
-                              ) : null}
-                              {post.photos > 0 && (
-                                <div style={{ display: 'grid',
-                                  gridTemplateColumns: `repeat(${Math.min(post.photos, 3)}, 1fr)`, gap: 2 }}>
-                                  {Array.from({ length: Math.min(post.photos, 3) }).map((_, pi) => (
-                                    <div key={pi} style={{ height: 48, borderRadius: 4,
-                                      background: `hsl(${340 + pi * 18}, 50%, ${88 - pi * 3}%)` }}/>
-                                  ))}
-                                </div>
-                              )}
-                            </>
-                        }
-                      </div>
-                      {/* 发布时间（内容下方左侧） */}
-                      <div style={{ fontSize: 10, color: MY.textTer, marginTop: 4 }}>
-                        {getPostTimeLabel(post.daysTag, post.time)}
+                        <div style={{ fontSize: 9.5, color: MY.textTer }}>{au.name} · {post.time}</div>
                       </div>
                     </div>
+                  );
+                }
+                return (
+                  <div key={post.id} style={{ background: '#fff', borderRadius: 12,
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.08),0 3px 10px rgba(0,0,0,0.06)',
+                    border: '1px solid rgba(0,0,0,0.04)', padding: '9px 11px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <DiaryAva person={au} size={22}/>
+                      <div>
+                        <div style={{ fontSize: 11.5, fontWeight: 600, color: nameColor }}>{au.name}</div>
+                        <div style={{ fontSize: 9.5, color: MY.textTer, marginTop: 0.5 }}>{post.daysTag} · {post.time}</div>
+                      </div>
+                    </div>
+                    {post.kind === 'voice'
+                      ? <div style={{ fontSize: 12, color: MY.textTer }}>🎙 语音 {post.voiceSec}"</div>
+                      : post.text ? (
+                          <div style={{ fontSize: 12.5, color: MY.textPri, lineHeight: '18px',
+                            overflow: 'hidden', textOverflow: 'ellipsis',
+                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                            {post.text}
+                          </div>
+                        ) : null
+                    }
+                    {post.photos > 0 && (
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(post.photos,3)},1fr)`, gap: 2, marginTop: 5 }}>
+                        {Array.from({ length: Math.min(post.photos,3) }).map((_,pi) => (
+                          <div key={pi} style={{ height: 40, borderRadius: 4,
+                            background: `hsl(${340+pi*18},50%,${88-pi*3}%)` }}/>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-            <div style={{ position: 'absolute', top: 68, left: 0, right: 0, height: 72,
-              background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 85%, #fff 100%)',
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 56,
+              background: 'linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,0.96) 80%,#fff 100%)',
               pointerEvents: 'none', zIndex: 1 }}/>
           </div>
           <button onClick={onViewAll} style={{

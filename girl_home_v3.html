@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>女生视角首页</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    html,body{margin:0;padding:0;height:100%;background:#DCDCDC;
+      font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;overflow:hidden;}
+    *{box-sizing:border-box;}
+    #root{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:auto;}
+    ::-webkit-scrollbar{display:none;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+const MY = {
+  brandRed:'#ff4d88', brandSoft:'rgba(255,77,136,0.08)',
+  bg:'#f2f2f5', surface:'#ffffff',
+  textPri:'#323232', textSec:'#666666', textTer:'#999999',
+  line:'rgba(0,0,0,0.08)', shadow1:'0 2px 10px rgba(50,50,50,0.08)',
+  rmd:12, rsm:8, rpill:999,
+  font:'"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif',
+};
+const USER    = { name:'女友殿下', initial:'女', bg:'#FFB5C8' };
+const PARTNER = { name:'男友先生', initial:'男', bg:'#A8C5E0' };
+
+/* ── Avatar SVG ── */
+function AvatarSVG({ isFemale, size }) {
+  const w = size * 0.72, h = size * 0.82;
+  if (isFemale) return (
+    <svg width={w} height={h} viewBox="0 0 36 41" fill="none">
+      <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+      <path d="M11 10 Q11 2 18 2 Q25 2 25 10" fill="rgba(255,255,255,0.92)"/>
+      <path d="M11 8 Q9 12 10 16" stroke="rgba(255,255,255,0.92)" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M25 8 Q27 12 26 16" stroke="rgba(255,255,255,0.92)" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M10 22 Q10 18 18 18 Q26 18 26 22 L29 41 H7 Z" fill="rgba(255,255,255,0.92)"/>
+    </svg>
+  );
+  return (
+    <svg width={w} height={h} viewBox="0 0 36 41" fill="none">
+      <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+      <path d="M11 10 Q11 3 18 3 Q25 3 25 10 L25 8 Q18 5 11 8 Z" fill="rgba(255,255,255,0.92)"/>
+      <path d="M8 22 Q8 18 18 18 Q28 18 28 22 L27 41 H9 Z" fill="rgba(255,255,255,0.92)"/>
+    </svg>
+  );
+}
+function Avatar({ size=36, bg='#FFB5C8', initial='女' }) {
+  return (
+    <div style={{ width:size, height:size, borderRadius:'50%', background:bg,
+      display:'inline-flex', alignItems:'flex-end', justifyContent:'center',
+      flexShrink:0, overflow:'hidden' }}>
+      <AvatarSVG isFemale={initial==='女'} size={size}/>
+    </div>
+  );
+}
+
+/* ── Status bar ── */
+function StatusBar({ dark=false }) {
+  const c = dark ? 'rgba(255,255,255,0.92)' : MY.textPri;
+  return (
+    <div style={{ height:36, display:'flex', alignItems:'flex-end', justifyContent:'space-between',
+      padding:'0 20px 6px', flexShrink:0 }}>
+      <span style={{ fontSize:14, fontWeight:600, color:c }}>9:41</span>
+      <div style={{ display:'flex', gap:5, alignItems:'center' }}>
+        <svg width="17" height="11" viewBox="0 0 17 11" fill={c}>
+          <rect x="0" y="7" width="3" height="4" rx=".5"/><rect x="4.5" y="4.5" width="3" height="6.5" rx=".5"/>
+          <rect x="9" y="2" width="3" height="9" rx=".5"/><rect x="13.5" y="0" width="3" height="11" rx=".5"/>
+        </svg>
+        <svg width="15" height="11" viewBox="0 0 16 12" fill={c}>
+          <circle cx="8" cy="11" r="1.5"/>
+          <path d="M5.2 8.3a4 4 0 015.6 0l1-1a5.5 5.5 0 00-7.6 0z"/>
+          <path d="M2.8 5.9a7.5 7.5 0 0110.4 0l1-1a9 9 0 00-12.4 0z"/>
+        </svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+          <rect x=".5" y=".5" width="21" height="11" rx="2.5" stroke={c} opacity=".5"/>
+          <rect x="2" y="2" width="18" height="8" rx="1" fill={c}/>
+          <rect x="22.5" y="4" width="2" height="4" rx="1" fill={c}/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ── Phone shell ── */
+function Phone({ children, bg=MY.bg }) {
+  return (
+    <div style={{ width:360, height:780, borderRadius:36, overflow:'hidden',
+      position:'relative', background:bg,
+      boxShadow:'0 24px 56px rgba(50,50,50,0.18), 0 0 0 1px rgba(0,0,0,0.08)',
+      fontFamily:MY.font, color:MY.textPri }}>
+      <div style={{ position:'absolute', inset:'36px 0 24px' }}>
+        {children}
+      </div>
+      <div style={{ position:'absolute', top:0, left:0, right:0, pointerEvents:'none', zIndex:20 }}>
+        <StatusBar dark={true}/>
+      </div>
+      {/* Home indicator */}
+      <div style={{ position:'absolute', bottom:6, left:0, right:0,
+        display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none', zIndex:20 }}>
+        <div style={{ width:120, height:4, borderRadius:2, background:'rgba(0,0,0,0.18)' }}/>
+      </div>
+    </div>
+  );
+}
+
+/* ── Tab bar（与 Meetyou_Interactive_v3 一致）── */
+function TabBar({ active='home', onChange }) {
+  const items = [
+    { id:'home', label:'推荐', icon:(c,on) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {on
+          ? <g fill={c}><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/><circle cx="12" cy="12" r="3" fill="#fff"/></g>
+          : <g stroke={c} strokeWidth="1.6" fill="none"><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/></g>
+        }
+      </svg>
+    )},
+    { id:'record', label:'记录', icon:(c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="5" width="16" height="16" rx="3" stroke={c} strokeWidth="1.8"/>
+        <rect x="7" y="3" width="2" height="4" rx="1" fill={c}/>
+        <rect x="15" y="3" width="2" height="4" rx="1" fill={c}/>
+        <path d="M8 11h8M8 15h5" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
+      </svg>
+    )},
+    { id:'shop', label:'返现', icon:(c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke={c} strokeWidth="1.8"/>
+        <path d="M8.5 14.5c0 1.4 1.6 2.5 3.5 2.5s3.5-1.1 3.5-2.5c0-1.8-3.5-2.5-3.5-4C12 8.6 13.6 7.5 15.5 7.5" stroke={c} strokeWidth="1.6" strokeLinecap="round" fill="none"/>
+        <path d="M12 6v12" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
+      </svg>
+    )},
+    { id:'msg', label:'消息', icon:(c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/>
+      </svg>
+    )},
+    { id:'me', label:'我', icon:(c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke={c} strokeWidth="1.8"/>
+        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke={c} strokeWidth="1.8" strokeLinecap="round"/>
+      </svg>
+    )},
+  ];
+  return (
+    <div style={{ position:'absolute', bottom:0, left:0, right:0,
+      background:MY.surface, borderTop:`1px solid ${MY.line}`,
+      display:'flex', justifyContent:'space-around', padding:'6px 4px 20px', zIndex:10 }}>
+      {items.map(it => {
+        const on = it.id === active;
+        const c = on ? MY.brandRed : '#7C7479';
+        return (
+          <div key={it.id} onClick={() => onChange && onChange(it.id)}
+            style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2,
+              flex:1, color:c, fontSize:10, fontWeight: on ? 600 : 400,
+              cursor:'pointer', minHeight:44, justifyContent:'center' }}>
+            {it.icon(c, on)}
+            <span style={{ letterSpacing:0 }}>{it.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── 天气背景 + 雨动画 ── */
+function WeatherBgLayer() {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = 360, H = 220;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const A = 0.18;
+    const drops = Array.from({ length: 200 }, () => ({
+      x: Math.random() * (W + 80) - 40, y: Math.random() * H,
+      len: 15 + Math.random() * 20, speed: 9 + Math.random() * 7,
+      thick: Math.random() < 0.3 ? 1.1 + Math.random() * 0.8 : 0.45 + Math.random() * 0.55,
+      op: Math.random() < 0.3 ? 0.38 + Math.random() * 0.28 : 0.14 + Math.random() * 0.22,
+    }));
+    let raf;
+    function draw() {
+      ctx.clearRect(0, 0, W, H); ctx.lineCap = 'round';
+      for (const p of drops) {
+        ctx.beginPath(); ctx.strokeStyle = 'rgba(140,170,205,' + p.op + ')';
+        ctx.lineWidth = p.thick; ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - p.len * A, p.y + p.len); ctx.stroke();
+        p.y += p.speed; p.x -= p.speed * A;
+        if (p.y > H + p.len) { p.y = -p.len - Math.random() * 60; p.x = Math.random() * (W + 80) - 40; }
+      }
+      raf = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return (
+    <div style={{ position:'absolute', top:-36, left:0, right:0, height:220, zIndex:0, pointerEvents:'none',
+      background:'linear-gradient(180deg,#7FA8DD 0%,#A8C3E8 28%,#C2D7EF 55%,#DCE6F2 78%,#F2F2F5 100%)' }}>
+      <canvas ref={canvasRef} style={{ position:'absolute', top:0, left:0, pointerEvents:'none' }}/>
+    </div>
+  );
+}
+
+/* ── 天气条 + 日记 pill 同行 ── */
+function WeatherStrip() {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8, padding:'2px 16px 10px', position:'relative', zIndex:2 }}>
+      {/* 天气信息 */}
+      <div style={{ display:'flex', alignItems:'center', gap:8, flex:1, minWidth:0 }}>
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none" style={{ flexShrink:0 }}>
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fillOpacity=".88"/>
+          <g stroke="#cfe3f5" strokeWidth="2.2" strokeLinecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+        <div style={{ display:'flex', flexDirection:'column', lineHeight:1.3 }}>
+          <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
+            <span style={{ fontSize:16, fontWeight:500, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>大雨</span>
+            <span style={{ fontSize:16, fontWeight:500, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>20°</span>
+          </div>
+          <span style={{ fontSize:11.5, color:'rgba(255,255,255,0.68)', marginTop:1 }}>集美区</span>
+        </div>
+      </div>
+      {/* 恋爱记 pill 嵌入右侧 */}
+      <DiaryPill/>
+    </div>
+  );
+}
+
+/* ── 恋爱记 pill ── */
+function DiaryPill() {
+  return (
+    <div style={{
+      display:'inline-flex', alignItems:'center', gap:5,
+      background:'rgba(255,255,255,0.88)',
+      borderRadius:999, padding:'4px 10px 4px 5px',
+      boxShadow:'0 1px 8px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.8)',
+      cursor:'pointer', flexShrink:0,
+    }}>
+      <div style={{ position:'relative', width:34, height:24, flexShrink:0 }}>
+        <div style={{ position:'absolute', left:0, top:0, width:24, height:24, borderRadius:'50%',
+          border:'2px solid #fff', overflow:'hidden', background:USER.bg, zIndex:2,
+          display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
+          <AvatarSVG isFemale={true} size={24}/>
+        </div>
+        <div style={{ position:'absolute', left:11, top:0, width:24, height:24, borderRadius:'50%',
+          border:'2px solid #fff', overflow:'hidden', background:PARTNER.bg, zIndex:1,
+          display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
+          <AvatarSVG isFemale={false} size={24}/>
+        </div>
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', lineHeight:1.25 }}>
+        <span style={{ fontSize:12.5, fontWeight:600, color:'#323232', whiteSpace:'nowrap' }}>恋爱记</span>
+        <span style={{ fontSize:10, color:MY.brandRed, whiteSpace:'nowrap' }}>第 102 天</span>
+      </div>
+      <div style={{ width:7, height:7, borderRadius:'50%', background:MY.brandRed, flexShrink:0, marginLeft:1,
+        boxShadow:'0 0 0 2.5px rgba(255,77,136,0.18)' }}/>
+      <span style={{ fontSize:13, color:'rgba(0,0,0,0.28)', flexShrink:0 }}>›</span>
+    </div>
+  );
+}
+
+
+/* ── 恋爱记 pill — 方案B（2位亲友风格）── */
+function DiaryPillB() {
+  return (
+    <div style={{
+      display:'inline-flex', alignItems:'center', gap:6,
+      background:'rgba(255,255,255,0.96)',
+      borderRadius:999, padding:'5px 12px 5px 6px',
+      boxShadow:'0 2px 12px rgba(0,0,0,0.12)',
+      cursor:'pointer',
+    }}>
+      {/* 品牌红圆 + 白心 + 红点 */}
+      <div style={{ position:'relative', flexShrink:0 }}>
+        <div style={{
+          width:26, height:26, borderRadius:13,
+          background:MY.brandRed,
+          display:'flex', alignItems:'center', justifyContent:'center',
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+            <path d="M12 21s-9-5.5-9-12a5 5 0 0110 0 5 5 0 0110 0c0 6.5-9 12-9 12z"/>
+          </svg>
+        </div>
+        {/* 红点 */}
+        <div style={{
+          position:'absolute', top:-2, right:-2,
+          width:8, height:8, borderRadius:4,
+          background:'#ff4d4d', border:'1.5px solid #fff',
+        }}/>
+      </div>
+      {/* 文字 */}
+      <span style={{ fontSize:13, fontWeight:500, color:MY.textPri, whiteSpace:'nowrap' }}>
+        恋爱记
+      </span>
+      {/* 箭头 */}
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke={MY.textTer} strokeWidth="2" strokeLinecap="round">
+        <path d="M9 6l6 6-6 6"/>
+      </svg>
+    </div>
+  );
+}
+/* ── 经期 Hero 卡 ── */
+function PeriodHeroCard() {
+  return (
+    <div style={{
+      margin:'0 16px', borderRadius:MY.rmd, padding:'16px 16px 14px',
+      background:`linear-gradient(120deg,${MY.brandRed} 0%,#ff80aa 55%,#ffafc8 100%)`,
+      color:'#fff', position:'relative', overflow:'hidden',
+      boxShadow:'0 6px 16px rgba(255,77,136,0.28)',
+    }}>
+      <div style={{ fontSize:21, fontWeight:600, lineHeight:'28px' }}>距月经开始还有 3 天</div>
+      <div style={{ fontSize:13, opacity:0.92, marginTop:4, lineHeight:'18px' }}>预测经期开始日 5月30日 ›</div>
+      <div style={{ display:'inline-block', marginTop:12, padding:'6px 16px',
+        background:'rgba(255,255,255,0.22)', borderRadius:MY.rpill, fontSize:12, fontWeight:500 }}>查看详情</div>
+      {/* 花形怀孕几率 */}
+      <div style={{ position:'absolute', right:14, top:12, width:84, height:84 }}>
+        <svg width="84" height="84" viewBox="0 0 84 84" style={{ position:'absolute', inset:0 }}>
+          <defs>
+            <radialGradient id="pg2" cx="50%" cy="40%" r="55%">
+              <stop offset="0%" stopColor="#fff"/><stop offset="55%" stopColor="#ffd6e8"/><stop offset="100%" stopColor="#ffafc8"/>
+            </radialGradient>
+          </defs>
+          <g transform="translate(42 42)">
+            {[0,72,144,216,288].map(d=>(
+              <ellipse key={d} cx="0" cy="-21" rx="15" ry="21" fill="url(#pg2)" transform={`rotate(${d})`}/>
+            ))}
+            <circle r="20" fill="#ffe0ec"/>
+          </g>
+        </svg>
+        <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column',
+          alignItems:'center', justifyContent:'center' }}>
+          <div style={{ fontSize:9, color:'#cc0066', fontWeight:600 }}>今日怀孕几率</div>
+          <div style={{ fontSize:17, color:'#cc0066', fontWeight:600, marginTop:1 }}>4.1%</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── 月经来了引导条 ── */
+function PeriodTodayRow() {
+  return (
+    <div style={{ margin:'8px 16px 0', padding:'0 16px', background:MY.surface, borderRadius:MY.rmd,
+      display:'flex', alignItems:'center', justifyContent:'space-between', height:56, boxShadow:MY.shadow1 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path d="M12 2c3.5 4 6 7.2 6 11a6 6 0 1 1-12 0c0-3.8 2.5-7 6-11z" fill={MY.brandRed}/>
+        </svg>
+        <span style={{ fontSize:15, fontWeight:500, color:MY.textPri }}>月经来了</span>
+      </div>
+      <div style={{ display:'flex' }}>
+        <button style={{ padding:'0 20px', height:36, borderRadius:'8px 0 0 8px', border:'none',
+          background:'#ECEAEC', color:MY.textSec, fontSize:14, fontWeight:500, cursor:'pointer', fontFamily:MY.font }}>是</button>
+        <button style={{ padding:'0 20px', height:36, borderRadius:'0 8px 8px 0', border:'none',
+          background:MY.brandRed, color:'#fff', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:MY.font }}>否</button>
+      </div>
+    </div>
+  );
+}
+
+/* ── 日记首页模块（已绑定）── */
+function DiaryModule() {
+  const items = [
+    { id:1, author:'男友先生', text:'今天出发前帮你备好了防晒和水，出门记得带哦 ☀️', time:'14:20', tag:'他' },
+    { id:2, author:'女友殿下', text:'一起走完雁荡山，下山的时候腿都软了 😂', time:'21:42', tag:'我', photos:3 },
+  ];
+  return (
+    <div style={{ margin:'8px 16px 0', borderRadius:MY.rmd, overflow:'hidden', boxShadow:MY.shadow1 }}>
+      {/* 头部 */}
+      <div style={{ background:MY.surface, padding:'12px 14px 10px',
+        display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ display:'flex' }}>
+            <Avatar size={28} bg={USER.bg} initial="女"/>
+            <Avatar size={28} bg={PARTNER.bg} initial="男" style={{ marginLeft:-10 }}/>
+          </div>
+          <span style={{ fontSize:15, fontWeight:500, color:MY.textPri }}>恋爱记</span>
+          <span style={{ fontSize:12, color:MY.textTer }}>第 102 天</span>
+        </div>
+        <span style={{ fontSize:13, color:MY.brandRed }}>全部 ›</span>
+      </div>
+      {/* 记录列表 */}
+      {items.map((item, i) => (
+        <div key={item.id} style={{ background:MY.surface, padding:'10px 14px 10px',
+          borderTop:`1px solid ${MY.line}`, display:'flex', gap:10 }}>
+          <Avatar size={32} bg={item.tag==='我' ? USER.bg : PARTNER.bg} initial={item.tag==='我'?'女':'男'}/>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+              <span style={{ fontSize:13, fontWeight:500, color:MY.textPri }}>{item.author}</span>
+              <span style={{ fontSize:10, padding:'1px 6px', borderRadius:4,
+                background: item.tag==='我' ? MY.brandSoft : 'rgba(168,197,224,0.15)',
+                color: item.tag==='我' ? MY.brandRed : '#4f7cae' }}>{item.tag}</span>
+              <span style={{ fontSize:11, color:MY.textTer, marginLeft:'auto' }}>{item.time}</span>
+            </div>
+            <div style={{ fontSize:13, color:MY.textSec, lineHeight:'18px', overflow:'hidden',
+              textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.text}</div>
+            {item.photos && (
+              <div style={{ display:'flex', gap:3, marginTop:6 }}>
+                {Array.from({length:item.photos}).map((_,j)=>(
+                  <div key={j} style={{ width:52, height:52, borderRadius:6,
+                    background:`hsl(${340+j*22},55%,${88-j*3}%)` }}/>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+      {/* 发布栏 */}
+      <div style={{ background:MY.surface, padding:'8px 14px 10px', borderTop:`1px solid ${MY.line}`,
+        display:'flex', alignItems:'center', gap:8 }}>
+        <Avatar size={26} bg={USER.bg} initial="女"/>
+        <div style={{ flex:1, background:MY.bg, borderRadius:20, height:34,
+          display:'flex', alignItems:'center', padding:'0 14px',
+          fontSize:13, color:MY.textTer }}>随手记一句…</div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={MY.textTer} strokeWidth="1.6" strokeLinecap="round">
+          <rect x="2" y="5" width="20" height="15" rx="2.5"/><circle cx="12" cy="12.5" r="3.5"/>
+          <path d="M7 5l1.5-2h7L17 5"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ── 社区帖子 ── */
+function CommunityFeed() {
+  const posts = [
+    { bg:'#C5B0E8', initial:'柳', name:'柳安·小满', sub:'宝宝 3 个月', tag:'求助', tagBg:'#FFF0E8', tagC:'#D9663E',
+      text:'孕 40 周，今天去产检，做 B 超时医生问我下面是不是流东西了？说羊水 80，问是不是羊水…',
+      likes:'1.1k', comments:'592', hasImg:false },
+    { bg:'#F7B8C5', initial:'嘉', name:'嘉嘉Cindy', sub:'经期记录 · 28天周期', tag:null,
+      text:'黄体期真的超级容易焦虑，昨晚因为一点小事跟他闹别扭，今天他发消息道歉我又哭了…有没有同感的姐妹',
+      likes:'3.2k', comments:'284', hasImg:false },
+    { bg:'#A8D8B0', initial:'宋', name:'宋宋很健康', sub:'备孕中 · 第 3 个月', tag:'分享', tagBg:'#E8F5EB', tagC:'#3A9954',
+      text:'今天基础体温升高了 0.3 度！排卵应该来了，赶快行动！叶酸已经吃了三个月，一直保持跑步习惯，希望好孕快来 🌸',
+      likes:'887', comments:'116', hasImg:true, photos:['#E8D5F5','#D5EAF5'] },
+    { bg:'#FFD0A0', initial:'晓', name:'晓晓妈妈', sub:'产后恢复 · 42天', tag:null,
+      text:'顺产后 42 天复查终于通过啦！医生说恢复很好，骨盆也回位了。分享一下我坚持做的三个动作，对腰背很有帮助👇',
+      likes:'2.4k', comments:'431', hasImg:true, photos:['#F5D5C8','#F5E8C8','#D5E8F5'] },
+    { bg:'#B0C8E8', initial:'周', name:'周小圆', sub:'记录每一天', tag:'好物', tagBg:'#EFF5FF', tagC:'#4F7CAE',
+      text:'安利一个超好用的暖宫贴！经痛严重的姐妹可以看一下，贴在小腹真的暖呼呼的，痛感降低很多，不刺激皮肤',
+      likes:'1.6k', comments:'203', hasImg:false },
+  ];
+
+  return (
+    <div style={{ margin:'8px 16px 16px', display:'flex', flexDirection:'column', gap:8 }}>
+      {posts.map((p, i) => (
+        <div key={i} style={{ background:MY.surface, borderRadius:MY.rmd, padding:'14px 14px 12px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+            <Avatar size={32} bg={p.bg} initial={p.initial}/>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:14, fontWeight:500, color:MY.textPri }}>{p.name}</div>
+              <div style={{ fontSize:12, color:MY.textTer, marginTop:1 }}>{p.sub}</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <circle cx="5" cy="12" r="1.5" fill={MY.textTer}/>
+              <circle cx="12" cy="12" r="1.5" fill={MY.textTer}/>
+              <circle cx="19" cy="12" r="1.5" fill={MY.textTer}/>
+            </svg>
+          </div>
+          <div style={{ display:'flex', alignItems:'flex-start', gap:6, marginBottom:p.hasImg?8:0 }}>
+            {p.tag && (
+              <span style={{ flexShrink:0, padding:'2px 8px', background:p.tagBg, color:p.tagC,
+                borderRadius:MY.rxs, fontSize:11, fontWeight:600, lineHeight:'18px' }}>{p.tag}</span>
+            )}
+            <div style={{ fontSize:14, lineHeight:'22px', color:MY.textPri }}>
+              {p.text}
+              <span style={{ color:MY.brandRed }}> 全文</span>
+            </div>
+          </div>
+          {p.hasImg && (
+            <div style={{ display:'flex', gap:4, marginBottom:8 }}>
+              {p.photos.map((c, j) => (
+                <div key={j} style={{ flex:1, height:80, borderRadius:MY.rsm, background:c }}/>
+              ))}
+            </div>
+          )}
+          <div style={{ display:'flex', gap:16, marginTop:8, fontSize:12, color:MY.textTer }}>
+            <span>♥ {p.likes}</span>
+            <span>💬 {p.comments}</span>
+            <span style={{ marginLeft:'auto' }}>分享</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── 导航栏（天气版）── */
+function HomeTopBarWeather() {
+  const wc = 'rgba(255,255,255,0.92)';
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
+      padding:'8px 16px', position:'relative', minHeight:44, zIndex:2 }}>
+      {/* 左：搜索 */}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)' }}>
+        <circle cx="11" cy="11" r="7" stroke={wc} strokeWidth="1.8" fill="none"/>
+        <path d="M16.5 16.5L21 21" stroke={wc} strokeWidth="1.8" strokeLinecap="round"/>
+      </svg>
+      {/* 中：美柚 */}
+      <span style={{ fontSize:17, fontWeight:500, color:wc, letterSpacing:.5,
+        textShadow:'0 1px 5px rgba(0,0,0,0.18)' }}>美柚</span>
+      {/* 右：发帖铅笔 */}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        style={{ position:'absolute', right:16, top:'50%', transform:'translateY(-50%)' }}>
+        <path d="M12 20h9" stroke={wc} strokeWidth="1.8" strokeLinecap="round"/>
+        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"
+          stroke={wc} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </div>
+  );
+}
+
+/* ── 主屏 ── */
+function GirlHome() {
+  const [tab, setTab] = React.useState('home');
+  return (
+    <Phone bg={MY.bg}>
+      <WeatherBgLayer/>
+      <HomeTopBarWeather/>
+      <WeatherStrip/>
+      <div style={{ position:'absolute', inset:'96px 0 50px', overflowY:'auto' }}>
+        <div style={{ height:8 }}/>
+        <div style={{ position:'relative' }}>
+          <PeriodHeroCard/>
+        </div>
+        <PeriodTodayRow/>
+        <CommunityFeed/>
+      </div>
+      <TabBar active={tab} onChange={setTab}/>
+    </Phone>
+  );
+}
+
+
+/* ── 方案B 首页（2位亲友风格入口）── */
+
+/* ── 天气条（无pill，供方案B用）── */
+function WeatherStripNoPill() {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8, padding:'2px 16px 10px', position:'relative', zIndex:2 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8, flex:1, minWidth:0 }}>
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none" style={{ flexShrink:0 }}>
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fillOpacity=".88"/>
+          <g stroke="#cfe3f5" strokeWidth="2.2" strokeLinecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+        <div style={{ display:'flex', flexDirection:'column', lineHeight:1.3 }}>
+          <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
+            <span style={{ fontSize:16, fontWeight:500, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>大雨</span>
+            <span style={{ fontSize:16, fontWeight:500, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>20°</span>
+          </div>
+          <span style={{ fontSize:11.5, color:'rgba(255,255,255,0.68)', marginTop:1 }}>集美区</span>
+        </div>
+      </div>
+      <DiaryPillB style={{ position:'static' }}/>
+    </div>
+  );
+}
+
+function GirlHomeB() {
+  const [tab, setTab] = React.useState('home');
+  return (
+    <Phone bg={MY.bg}>
+      <WeatherBgLayer/>
+      <HomeTopBarWeather/>
+      <WeatherStripNoPill/>
+      <div style={{ position:'absolute', inset:'96px 0 50px', overflowY:'auto' }}>
+        <div style={{ height:8 }}/>
+        <div style={{ position:'relative' }}>
+          <PeriodHeroCard/>
+        </div>
+        <PeriodTodayRow/>
+        <CommunityFeed/>
+      </div>
+      <TabBar active={tab} onChange={setTab}/>
+    </Phone>
+  );
+}
+
+
+/* ── 恋爱记 pill — 方案C（粉底 + 信封心图标）── */
+function DiaryPillC() {
+  return (
+    <div style={{
+      display:'inline-flex', alignItems:'center', gap:7,
+      background:'rgba(255,133,155,0.88)',
+      borderRadius:999, padding:'5px 11px 5px 6px',
+      boxShadow:'0 1px 8px rgba(255,77,136,0.22)',
+      cursor:'pointer', flexShrink:0,
+    }}>
+      {/* 信封+爱心 icon */}
+      <div style={{ position:'relative',flexShrink:0 }}>
+      <div style={{
+        width:24, height:24, borderRadius:12,
+        background:'rgba(255,255,255,0.28)',
+        display:'flex', alignItems:'center', justifyContent:'center',
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="6" width="20" height="14" rx="2" fill="rgba(255,255,255,0.9)"/>
+          <path d="M2 6l10 8 10-8" stroke="rgba(255,100,130,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          <path d="M12 17s-3.5-2.2-3.5-4.5a2 2 0 014 0 2 2 0 014 0C16.5 14.8 12 17 12 17z" fill="rgba(255,77,136,0.95)"/>
+        </svg>
+      </div>
+      <div style={{ position:'absolute',top:-2,right:-2,width:7,height:7,borderRadius:3.5,
+        background:'#FF4D4D',border:'1.5px solid rgba(255,133,155,0.5)' }}/>
+      </div>
+      <span style={{ fontSize:13, fontWeight:500, color:'#fff', whiteSpace:'nowrap', letterSpacing:.2 }}>恋爱记</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+        stroke="rgba(255,255,255,0.75)" strokeWidth="2.2" strokeLinecap="round">
+        <path d="M9 6l6 6-6 6"/>
+      </svg>
+    </div>
+  );
+}
+
+/* ── 天气条（方案C）── */
+function WeatherStripC() {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:8, padding:'2px 16px 10px', position:'relative', zIndex:2 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8, flex:1, minWidth:0 }}>
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none" style={{ flexShrink:0 }}>
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fillOpacity=".88"/>
+          <g stroke="#cfe3f5" strokeWidth="2.2" strokeLinecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+        <div style={{ display:'flex', flexDirection:'column', lineHeight:1.3 }}>
+          <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
+            <span style={{ fontSize:16, fontWeight:500, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>大雨</span>
+            <span style={{ fontSize:16, fontWeight:500, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>20°</span>
+          </div>
+          <span style={{ fontSize:11.5, color:'rgba(255,255,255,0.68)', marginTop:1 }}>集美区</span>
+        </div>
+      </div>
+      <DiaryPillC/>
+    </div>
+  );
+}
+
+
+/* ── D · 品牌红渐变 + 白心 ── */
+function DiaryPillD() {
+  return (
+    <div style={{ display:'inline-flex',alignItems:'center',gap:6,
+      background:'linear-gradient(135deg,#ff7cad,#ff4d88)',
+      borderRadius:999,padding:'5px 12px 5px 5px',
+      boxShadow:'0 2px 12px rgba(255,77,136,0.38)',cursor:'pointer',flexShrink:0 }}>
+      <div style={{ position:'relative',flexShrink:0 }}>
+        <div style={{ width:24,height:24,borderRadius:12,background:'rgba(255,255,255,0.22)',
+          display:'flex',alignItems:'center',justifyContent:'center' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
+            <path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/>
+          </svg>
+        </div>
+        <div style={{ position:'absolute',top:-2,right:-2,width:7,height:7,borderRadius:3.5,
+          background:'#FF4D4D',border:'1.5px solid #FF4D88' }}/>
+      </div>
+      <span style={{ fontSize:13,fontWeight:600,color:'#fff',whiteSpace:'nowrap' }}>恋爱记</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.2" strokeLinecap="round">
+        <path d="M9 6l6 6-6 6"/>
+      </svg>
+    </div>
+  );
+}
+
+/* ── E · 毛玻璃 + 双头像 ── */
+function DiaryPillE() {
+  return (
+    <div style={{ display:'inline-flex',alignItems:'center',gap:7,
+      background:'rgba(255,255,255,0.22)',
+      backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',
+      borderRadius:999,padding:'5px 12px 5px 6px',
+      border:'1px solid rgba(255,255,255,0.45)',cursor:'pointer',flexShrink:0,
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,0.4),0 2px 8px rgba(0,0,0,0.08)' }}>
+      <div style={{ position:'relative',flexShrink:0 }}>
+        <div style={{ position:'relative',width:32,height:24 }}>
+          <div style={{ position:'absolute',left:0,top:1,width:22,height:22,borderRadius:11,
+            background:USER.bg,border:'1.5px solid rgba(255,255,255,0.8)',overflow:'hidden',
+            zIndex:2,display:'flex',alignItems:'flex-end',justifyContent:'center' }}>
+            <AvatarSVG isFemale={true} size={22}/>
+          </div>
+          <div style={{ position:'absolute',left:10,top:1,width:22,height:22,borderRadius:11,
+            background:PARTNER.bg,border:'1.5px solid rgba(255,255,255,0.8)',overflow:'hidden',
+            zIndex:1,display:'flex',alignItems:'flex-end',justifyContent:'center' }}>
+            <AvatarSVG isFemale={false} size={22}/>
+          </div>
+        </div>
+        <div style={{ position:'absolute',top:-2,right:-2,width:7,height:7,borderRadius:3.5,
+          background:'#FF4D4D',border:'1.5px solid rgba(255,255,255,0.5)',zIndex:3 }}/>
+      </div>
+      <span style={{ fontSize:13,fontWeight:500,color:'rgba(255,255,255,0.92)',whiteSpace:'nowrap',
+        textShadow:'0 1px 3px rgba(0,0,0,0.15)' }}>恋爱记</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="2.2" strokeLinecap="round">
+        <path d="M9 6l6 6-6 6"/>
+      </svg>
+    </div>
+  );
+}
+
+/* ── F · 纯白极简 + 天数副标 ── */
+function DiaryPillF() {
+  return (
+    <div style={{ display:'inline-flex',alignItems:'center',gap:5,background:'#fff',
+      borderRadius:999,padding:'5px 11px 5px 5px',
+      boxShadow:'0 2px 10px rgba(0,0,0,0.12)',cursor:'pointer',flexShrink:0 }}>
+      <div style={{ position:'relative',flexShrink:0 }}>
+        <div style={{ width:24,height:24,borderRadius:12,background:'rgba(255,77,136,0.1)',
+          display:'flex',alignItems:'center',justifyContent:'center' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={MY.brandRed}>
+            <path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/>
+          </svg>
+        </div>
+        <div style={{ position:'absolute',top:-1,right:-1,width:7,height:7,borderRadius:3.5,
+          background:'#FF4D4D',border:'1.5px solid #fff' }}/>
+      </div>
+      <div style={{ display:'flex',flexDirection:'column',lineHeight:1.2 }}>
+        <span style={{ fontSize:12.5,fontWeight:600,color:'#323232',whiteSpace:'nowrap' }}>恋爱记</span>
+        <span style={{ fontSize:9.5,color:MY.brandRed }}>第 102 天</span>
+      </div>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2.2" strokeLinecap="round" style={{ marginLeft:1 }}>
+        <path d="M9 6l6 6-6 6"/>
+      </svg>
+    </div>
+  );
+}
+
+/* ── 通用天气条（接受pill组件）── */
+function WeatherStripWith({ pill }) {
+  return (
+    <div style={{ display:'flex',alignItems:'center',gap:8,padding:'2px 16px 10px',position:'relative',zIndex:2 }}>
+      <div style={{ display:'flex',alignItems:'center',gap:8,flex:1,minWidth:0 }}>
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none" style={{ flexShrink:0 }}>
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fillOpacity=".88"/>
+          <g stroke="#cfe3f5" strokeWidth="2.2" strokeLinecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+        <div style={{ display:'flex',flexDirection:'column',lineHeight:1.3 }}>
+          <div style={{ display:'flex',alignItems:'baseline',gap:7 }}>
+            <span style={{ fontSize:16,fontWeight:500,color:'#fff',textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>大雨</span>
+            <span style={{ fontSize:16,fontWeight:500,color:'#fff',textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>20°</span>
+          </div>
+          <span style={{ fontSize:11.5,color:'rgba(255,255,255,0.68)',marginTop:1 }}>集美区</span>
+        </div>
+      </div>
+      {pill}
+    </div>
+  );
+}
+
+/* ── GirlHomeD / E / F ── */
+function GirlHomeD() {
+  const [tab,setTab]=React.useState('home');
+  return (
+    <Phone bg={MY.bg}>
+      <WeatherBgLayer/><HomeTopBarWeather/>
+      <WeatherStripWith pill={<DiaryPillD/>}/>
+      <div style={{ position:'absolute',inset:'96px 0 50px',overflowY:'auto' }}>
+        <div style={{ height:8 }}/><div style={{ position:'relative' }}><PeriodHeroCard/></div>
+        <PeriodTodayRow/><CommunityFeed/>
+      </div>
+      <TabBar active={tab} onChange={setTab}/>
+    </Phone>
+  );
+}
+function GirlHomeE() {
+  const [tab,setTab]=React.useState('home');
+  return (
+    <Phone bg={MY.bg}>
+      <WeatherBgLayer/><HomeTopBarWeather/>
+      <WeatherStripWith pill={<DiaryPillE/>}/>
+      <div style={{ position:'absolute',inset:'96px 0 50px',overflowY:'auto' }}>
+        <div style={{ height:8 }}/><div style={{ position:'relative' }}><PeriodHeroCard/></div>
+        <PeriodTodayRow/><CommunityFeed/>
+      </div>
+      <TabBar active={tab} onChange={setTab}/>
+    </Phone>
+  );
+}
+function GirlHomeF() {
+  const [tab,setTab]=React.useState('home');
+  return (
+    <Phone bg={MY.bg}>
+      <WeatherBgLayer/><HomeTopBarWeather/>
+      <WeatherStripWith pill={<DiaryPillF/>}/>
+      <div style={{ position:'absolute',inset:'96px 0 50px',overflowY:'auto' }}>
+        <div style={{ height:8 }}/><div style={{ position:'relative' }}><PeriodHeroCard/></div>
+        <PeriodTodayRow/><CommunityFeed/>
+      </div>
+      <TabBar active={tab} onChange={setTab}/>
+    </Phone>
+  );
+}
+
+/* ── 方案C 首页 ── */
+function GirlHomeC() {
+  const [tab, setTab] = React.useState('home');
+  return (
+    <Phone bg={MY.bg}>
+      <WeatherBgLayer/>
+      <HomeTopBarWeather/>
+      <WeatherStripC/>
+      <div style={{ position:'absolute', inset:'96px 0 50px', overflowY:'auto' }}>
+        <div style={{ height:8 }}/>
+        <div style={{ position:'relative' }}>
+          <PeriodHeroCard/>
+        </div>
+        <PeriodTodayRow/>
+        <CommunityFeed/>
+      </div>
+      <TabBar active={tab} onChange={setTab}/>
+    </Phone>
+  );
+}
+
+function App() {
+  const [scale, setScale] = React.useState(1);
+  useEffect(() => {
+    const compute = () => {
+      const totalW = 360 * 3 + 32 * 2 + 40;
+      const totalH = 780 * 2 + 28 + 80 * 2 + 40;
+      const s = Math.min(1,
+        (window.innerHeight - 40) / totalH,
+        (window.innerWidth - 40) / totalW
+      );
+      setScale(s);
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, []);
+  return (
+    <div style={{ transform:`scale(${scale})`, transformOrigin:'center center',
+      display:'flex', flexDirection:'column', alignItems:'center', gap:0 }}>
+      <div style={{ display:'flex',flexDirection:'column',gap:28,alignItems:'center' }}>
+        {/* Row 1 — Top picks */}
+        <div style={{ display:'flex',gap:32,alignItems:'flex-start' }}>
+          {[
+            { C:<GirlHomeE/>, l:'方案A · 毛玻璃 + 双头像' },
+            { C:<GirlHomeF/>, l:'方案B · 纯白极简 + 天数副标' },
+            { C:<GirlHome/>,  l:'方案C · 双头像 + 天数' },
+          ].map(({C,l},i)=>(
+            <div key={i} style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:8 }}>
+              {C}
+              <div style={{ fontSize:11.5,fontWeight:500,
+                color: 'rgba(0,0,0,0.35)',
+                letterSpacing:'.4px',fontFamily:'"PingFang SC",sans-serif' }}>{l}</div>
+            </div>
+          ))}
+        </div>
+        {/* Row 2 */}
+        <div style={{ display:'flex',gap:32,alignItems:'flex-start' }}>
+          {[
+            { C:<GirlHomeD/>, l:'方案D · 品牌红渐变 + 白心' },
+            { C:<GirlHomeB/>, l:'方案E · 圆形心标 + 文字' },
+            { C:<GirlHomeC/>, l:'方案F · 粉底信封 + 爱心' },
+          ].map(({C,l},i)=>(
+            <div key={i} style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:8 }}>
+              {C}
+              <div style={{ fontSize:11.5,fontWeight:500,color:'rgba(0,0,0,0.35)',
+                letterSpacing:'.4px',fontFamily:'"PingFang SC",sans-serif' }}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

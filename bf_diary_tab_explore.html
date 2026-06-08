@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>男友版 · 日记 Tab 探索</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{min-height:100%;background:#EDECEA;
+    font-family:"PingFang SC","SF Pro Text","Helvetica Neue",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow:auto;}
+  #root{min-height:100vh;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes diarySlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  @keyframes diaryBlink{0%,100%{opacity:1}50%{opacity:0}}
+  @keyframes diaryWave{0%,100%{height:4px}50%{height:14px}}
+  @keyframes diaryFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="image-slot.js"></script>
+<script type="text/babel" src="screens-shared.jsx"></script>
+<script type="text/babel" src="screens-invite.jsx"></script>
+<script type="text/babel" src="screens-me.jsx"></script>
+<script type="text/babel" src="screens-bf.jsx"></script>
+<script type="text/babel" src="screens-diary-v2.jsx"></script>
+
+<script type="text/babel">
+const { useState, useCallback } = React;
+
+/* ── 改造后的底栏：「返现」→「日记」 ─────────────────────────────── */
+function BFTabBarNew({ active = 'home', onChange }) {
+  const items = [
+    { id: 'home', label: '推荐', icon: (c, on) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {on
+          ? <g fill={c}><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/><circle cx="12" cy="12" r="3" fill="#fff"/></g>
+          : <g stroke={c} strokeWidth="1.6" fill="none"><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/></g>
+        }
+      </svg>
+    )},
+    { id: 'record', label: '记录', icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="5" width="16" height="16" rx="3" stroke={c} strokeWidth="1.8"/>
+        <rect x="7" y="3" width="2" height="4" rx="1" fill={c}/>
+        <rect x="15" y="3" width="2" height="4" rx="1" fill={c}/>
+        <path d="M8 11h8M8 15h5" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
+      </svg>
+    )},
+    /* 「日记」替换「返现」*/
+    { id: 'diary', label: '日记', icon: (c, on) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        {on
+          ? <><path d="M5 3h10l4 4v14H5V3z" fill={c} opacity=".18"/><path d="M5 3h10l4 4v14H5V3z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 9h6M9 13h6M9 17h4" stroke={c} strokeWidth="1.6" strokeLinecap="round"/></>
+          : <><path d="M5 3h10l4 4v14H5V3z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 9h6M9 13h6M9 17h4" stroke={c} strokeWidth="1.6" strokeLinecap="round"/></>
+        }
+      </svg>
+    )},
+    { id: 'msg', label: '消息', icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z"
+          stroke={c} strokeWidth="1.8" strokeLinejoin="round"/>
+      </svg>
+    )},
+    { id: 'me', label: '我', icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke={c} strokeWidth="1.8"/>
+        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke={c} strokeWidth="1.8" strokeLinecap="round"/>
+      </svg>
+    )},
+  ];
+
+  return (
+    <div style={{
+      position:'absolute',bottom:0,left:0,right:0,
+      background:MY.surface,borderTop:`1px solid ${MY.line}`,
+      display:'flex',justifyContent:'space-around',
+      padding:'6px 4px 20px',
+    }}>
+      {items.map(it => {
+        const on = it.id === active;
+        const c = on ? MY.brandRed : '#7C7479';
+        return (
+          <div key={it.id} onClick={() => onChange && onChange(it.id)} style={{
+            display:'flex',flexDirection:'column',alignItems:'center',gap:2,
+            flex:1,color:c,fontSize:10,fontWeight:on?600:400,
+            cursor:'pointer',minHeight:44,justifyContent:'center',
+          }}>
+            {it.icon(c, on)}
+            <span style={{letterSpacing:0}}>{it.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── 日记 Tab 主体（与 BFDiary 一致，去返回键，加底栏）── */
+function BFDiaryTab({ onTabChange }) {
+  return (
+    <Phone bg={MY.bg}>
+      {/* Hero 图片区：与 BFDiary 完全一致 */}
+      <div style={{ position:'absolute', top:-36, left:0, right:0, height:246, overflow:'hidden' }}>
+        <div style={{
+          position:'absolute', inset:0,
+          background:'linear-gradient(160deg, #ffd3dd 0%, #f5a8b8 50%, #e8809a 100%)',
+        }}/>
+        <div style={{
+          position:'absolute', top:-30, right:-30, width:180, height:180,
+          borderRadius:'50%',
+          background:'radial-gradient(circle, rgba(255,255,255,0.38) 0%, transparent 65%)',
+        }}/>
+        {[{s:14,t:60,l:48},{s:9,t:85,l:80},{s:12,t:75,r:56}].map((h,i)=>(
+          <svg key={i} width={h.s} height={h.s} viewBox="0 0 24 24"
+            style={{ position:'absolute', top:h.t, left:h.l, right:h.r }}>
+            <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" fill="rgba(255,255,255,0.55)"/>
+          </svg>
+        ))}
+
+        {/* 情侣身份 */}
+        <div style={{
+          position:'absolute', bottom:12, left:16, right:16,
+          display:'flex', alignItems:'center', gap:12,
+        }}>
+          <div style={{ position:'relative', width:80, height:54 }}>
+            <div style={{
+              position:'absolute', left:0, top:0, width:48, height:48,
+              borderRadius:'50%', background:USER.bg, color:'#fff',
+              fontSize:18, fontWeight:600,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              border:'2.5px solid #fff', boxShadow:MY.shadow1,
+            }}>{USER.initial}</div>
+            <div style={{
+              position:'absolute', right:0, bottom:0, width:48, height:48,
+              borderRadius:'50%', background:PARTNER.bg, color:'#fff',
+              fontSize:18, fontWeight:600,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              border:'2.5px solid #fff', boxShadow:MY.shadow1,
+            }}>{PARTNER.initial}</div>
+          </div>
+          <div>
+            <div style={{ fontSize:15, fontWeight:600, color:'#fff', textShadow:'0 1px 2px rgba(0,0,0,0.18)' }}>
+              女友殿下 ❤︎ 男友先生
+            </div>
+            <div style={{ fontSize:12, color:'rgba(255,255,255,0.92)', marginTop:3 }}>
+              在一起 102 天 · 共同记录 38 篇
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 内容区（白底时间轴）*/}
+      <div style={{
+        position:'absolute', top:210, left:0, right:0, bottom:50,
+        background:MY.surface, overflowY:'auto',
+        padding:'12px 16px 80px',
+      }}>
+        <DiaryFullTimeline/>
+      </div>
+
+      {/* FAB */}
+      <div style={{
+        position:'absolute', bottom:66, right:16,
+        width:48, height:48, borderRadius:'50%',
+        background:MY.brandRed,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        boxShadow:`0 8px 16px rgba(255,77,136,0.38)`,
+        cursor:'pointer', zIndex:5,
+      }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/>
+        </svg>
+      </div>
+
+      <BFTabBarNew active="diary" onChange={onTabChange}/>
+    </Phone>
+  );
+}
+
+
+/* ── 男友主页（新底栏）── */
+function BFHomeNew({ onTabChange }) {
+  return (
+    <Phone bg={MY.bg}>
+      <HomeTopBar/>
+      <div style={{position:'absolute',inset:'44px 0 50px',overflowY:'auto'}}>
+        <div style={{height:8}}/>
+        {/* 密报 hero */}
+        <div style={{
+          margin:'0 16px',borderRadius:MY.rmd,padding:'16px 16px 14px',
+          background:`linear-gradient(120deg,${MY.brandRed} 0%,#ff80aa 55%,#ffafc8 100%)`,
+          color:'#fff',position:'relative',overflow:'hidden',
+          boxShadow:`0 6px 16px rgba(255,77,136,0.28)`,
+        }}>
+          <div style={{fontSize:21,fontWeight:600,lineHeight:'28px'}}>距月经开始还有 3 天</div>
+          <div style={{fontSize:13,opacity:0.9,marginTop:4}}>预测经期开始日 5月30日 ›</div>
+          <div style={{display:'inline-block',marginTop:12,padding:'6px 16px',
+            background:'rgba(255,255,255,0.22)',borderRadius:MY.rpill,fontSize:12,fontWeight:500}}>查看详情</div>
+          <div style={{position:'absolute',right:14,top:12,width:82,height:82}}>
+            <svg width="82" height="82" viewBox="0 0 82 82" style={{position:'absolute',inset:0}}>
+              <defs><radialGradient id="pg3" cx="50%" cy="40%" r="55%">
+                <stop offset="0%" stopColor="#fff"/><stop offset="55%" stopColor="#ffd6e8"/><stop offset="100%" stopColor="#ffafc8"/>
+              </radialGradient></defs>
+              <g transform="translate(41 41)">
+                {[0,72,144,216,288].map(d=>(
+                  <ellipse key={d} cx="0" cy="-20" rx="14" ry="20" fill="url(#pg3)" transform={`rotate(${d})`}/>
+                ))}
+                <circle r="19" fill="#ffe0ec"/>
+              </g>
+            </svg>
+            <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+              <div style={{fontSize:9,color:'#cc0066',fontWeight:600}}>今日怀孕几率</div>
+              <div style={{fontSize:17,color:'#cc0066',fontWeight:600,marginTop:1}}>4.1%</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 恋爱记模块 */}
+        <div style={{margin:'8px 16px 0'}}>
+          <DiaryHomeModule onViewAll={()=>{}} isEmpty={false}/>
+        </div>
+
+        {/* 密报卡透出 */}
+        <div style={{margin:'8px 16px 16px'}}>
+          <SecretCard compact/>
+        </div>
+      </div>
+      <BFTabBarNew active="home" onChange={onTabChange}/>
+    </Phone>
+  );
+}
+
+/* ── 标注层 ── */
+function Label({ children, color='#ff4d88' }) {
+  return (
+    <div style={{
+      display:'inline-flex',alignItems:'center',gap:6,
+      padding:'4px 10px',borderRadius:6,
+      background:color==='#ff4d88'?'rgba(255,77,136,0.1)':'rgba(74,122,175,0.1)',
+      fontSize:12,fontWeight:600,color,
+    }}>{children}</div>
+  );
+}
+
+/* ── 主画布 ── */
+function App() {
+  return (
+    <div style={{width:'100vw',height:'100vh',background:'#EDECEA',
+      display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <BFDiaryTab onTabChange={()=>{}}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -274,25 +274,7 @@ function SecretCard({ compact = false }) {
             </div>
           </div>
 
-          {/* 底部 */}
-          <div style={{
-            marginTop: 16, paddingTop: 12, borderTop: `1px solid ${MY.line}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ fontSize: 12, color: MY.textTer }}>别急，这是在酝酿更好的相遇</div>
-            <button style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              padding: '7px 14px', borderRadius: MY.rpill, border: 'none',
-              background: MY.brandRed, color: '#fff',
-              fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: MY.font,
-              boxShadow: `0 4px 10px rgba(255,77,136,0.30)`,
-            }}>
-              <svg width="12" height="12" viewBox="0 0 24 24">
-                <path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z" fill="#fff"/>
-              </svg>
-              送关心
-            </button>
-          </div>
+          {/* 送关心引导条已移除 */}
         </>
       )}
     </div>
@@ -319,18 +301,13 @@ function BFHome({ onSecretDetail, onDiary, onTabChange, diaryEmpty = false }) {
 
         {/* 模块1：今日密报 hero — 点击进入密报页 */}
         <div onClick={onSecretDetail} style={{
-          margin: '0 16px', borderRadius: MY.rmd, padding: '16px 16px 14px',
+          margin: '0 16px', borderRadius: MY.rmd, padding: '16px 16px 56px',
           background: `linear-gradient(120deg, ${MY.brandRed} 0%, #ff80aa 55%, #ffafc8 100%)`,
           color: '#fff', position: 'relative', overflow: 'hidden', cursor: 'pointer',
           boxShadow: `0 6px 16px rgba(255,77,136,0.28)`,
         }}>
           <div style={{ fontSize: 21, fontWeight: 600, lineHeight: '28px' }}>距月经开始还有 3 天</div>
           <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>预测经期开始日 5月30日 ›</div>
-          <div style={{
-            display: 'inline-block', marginTop: 12, padding: '6px 16px',
-            background: 'rgba(255,255,255,0.22)', borderRadius: MY.rpill,
-            fontSize: 12, fontWeight: 500,
-          }}>查看详情</div>
           {/* 怀孕几率花形 */}
           <div style={{ position: 'absolute', right: 14, top: 12, width: 82, height: 82 }}>
             <svg width="82" height="82" viewBox="0 0 82 82" style={{ position: 'absolute', inset: 0 }}>
@@ -359,17 +336,12 @@ function BFHome({ onSecretDetail, onDiary, onTabChange, diaryEmpty = false }) {
           </div>
         </div>
 
-        {/* 模块2：恋爱日记 */}
-        <div style={{ margin: '8px 16px 0' }}>
-          <DiaryHomeModule onViewAll={onDiary} isEmpty={diaryEmpty}/>
-        </div>
-
-        {/* 模块3：密报详情透出 */}
+        {/* 模块2：密报详情透出 */}
         <div style={{ margin: '8px 16px 16px' }}>
           <SecretCard compact/>
         </div>
       </div>
-      <TabBar active="home" firstLabel="推荐" onChange={onTabChange}/>
+      <BFTabBarNew active="home" onChange={onTabChange}/>
     </Phone>
   );
 }
@@ -515,7 +487,7 @@ function BFSecretDetail({ onBack }) {
   );
 }
 
-// ─── Screen BF3: 恋爱日记（男友视角）— 与女性版 Screen5 结构一致 ──
+// ─── Screen BF3: 恋爱记（男友视角）— 与女性版 Screen5 结构一致 ──
 function BFDiary({ onBack }) {
   const days = [
     {
@@ -780,7 +752,7 @@ function BFRecord({ onTabChange }) {
         </div>
       </div>
 
-      <TabBar active="record" firstLabel="美柚" onChange={onTabChange}/>
+      <BFTabBarNew active="record" onChange={onTabChange}/>
     </Phone>
   );
 }
@@ -888,7 +860,7 @@ function Screen_BFMessages({ onOpenChat, onTabChange }) {
       </div>
 
       {/* 简化 3-tab 底栏 — 与 D 流程一致，使用标准 TabBar */}
-      <TabBar active="msg" firstLabel="推荐" onChange={onTabChange}/>
+      <BFTabBarNew active="msg" onChange={onTabChange}/>
     </Phone>
   );
 }
@@ -970,5 +942,132 @@ function Screen_BFChatDetail({ onBack }) {
   );
 }
 
+/* ── 男友版底栏：「返现」→「日记」(带小红点) ── */
+function BFTabBarNew({ active = 'home', onChange }) {
+  const items = [
+    { id: 'home', label: '推荐', icon: (c, on) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {on
+          ? <g fill={c}><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/><circle cx="12" cy="12" r="3" fill="#fff"/></g>
+          : <g stroke={c} strokeWidth="1.6" fill="none"><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/></g>
+        }
+      </svg>
+    )},
+    { id: 'record', label: '记录', icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="5" width="16" height="16" rx="3" stroke={c} strokeWidth="1.8"/>
+        <rect x="7" y="3" width="2" height="4" rx="1" fill={c}/>
+        <rect x="15" y="3" width="2" height="4" rx="1" fill={c}/>
+        <path d="M8 11h8M8 15h5" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
+      </svg>
+    )},
+    { id: 'diary', label: '恋爱记', badge: true, icon: (c, on) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        {on
+          ? <><path d="M5 3h10l4 4v14H5V3z" fill={c} opacity=".18"/><path d="M5 3h10l4 4v14H5V3z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 9h6M9 13h6M9 17h4" stroke={c} strokeWidth="1.6" strokeLinecap="round"/></>
+          : <><path d="M5 3h10l4 4v14H5V3z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 9h6M9 13h6M9 17h4" stroke={c} strokeWidth="1.6" strokeLinecap="round"/></>
+        }
+      </svg>
+    )},
+    { id: 'msg', label: '消息', icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z"
+          stroke={c} strokeWidth="1.8" strokeLinejoin="round"/>
+      </svg>
+    )},
+    { id: 'me', label: '我', icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke={c} strokeWidth="1.8"/>
+        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke={c} strokeWidth="1.8" strokeLinecap="round"/>
+      </svg>
+    )},
+  ];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      background: MY.surface, borderTop: `1px solid ${MY.line}`,
+      display: 'flex', justifyContent: 'space-around',
+      padding: '6px 4px 20px',
+    }}>
+      {items.map(it => {
+        const on = it.id === active;
+        const c = on ? MY.brandRed : '#7C7479';
+        return (
+          <div key={it.id} onClick={() => onChange && onChange(it.id)} style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+            flex: 1, color: c, fontSize: 10, fontWeight: on ? 600 : 400,
+            cursor: 'pointer', minHeight: 44, justifyContent: 'center',
+            position: 'relative',
+          }}>
+            <div style={{ position: 'relative' }}>
+              {it.icon(c, on)}
+              {it.badge && (
+                <div style={{
+                  position: 'absolute', top: -2, right: -3,
+                  width: 7, height: 7, borderRadius: '50%',
+                  background: MY.danger,
+                  border: '1.5px solid #fff',
+                }}/>
+              )}
+            </div>
+            <span style={{ letterSpacing: 0 }}>{it.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── 日记 Tab 屏（男友视角）── */
+function BFDiaryTab({ onTabChange }) {
+  const [scrolled, setScrolled] = React.useState(false);
+  const TABBAR_H = 50 + 20; // BFTabBarNew height + bottom padding
+  return (
+    <Phone bg={MY.surface} statusDark={scrolled}>
+      {/* DiaryScreenInner 占满，底部为 tabbar 留空 */}
+      <div style={{ position:'absolute', inset:0, bottom: TABBAR_H }}>
+        <DiaryScreenInner onBack={()=>{}} onPublish={()=>{}} onScrollChange={setScrolled}
+          authorKey='M' showFilter={false} hideNav={true}/>
+      </div>
+
+      {/* 透明→白色顶栏（叠在 DiaryScreenInner 上） */}
+      <div style={{
+        position:'absolute', top:0, left:0, right:0, height:80, zIndex:20,
+        pointerEvents:'none',
+      }}>
+        <div style={{ height:36 }}/>
+        <div style={{
+          height:44, display:'flex', alignItems:'center', justifyContent:'space-between',
+          padding:'0 12px',
+          background: scrolled ? '#fff' : 'transparent',
+          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
+          transition:'background 0.2s ease',
+          pointerEvents:'auto',
+        }}>
+          {/* 返回 */}
+          <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <svg width="10" height="18" viewBox="0 0 10 18" fill="none">
+              <path d="M8.5 1L1 9l7.5 8"
+                stroke={scrolled ? '#323232' : 'rgba(255,255,255,0.92)'}
+                strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          {/* 更多 */}
+          <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="5" cy="12" r="1.5" fill={scrolled ? '#323232' : 'rgba(255,255,255,0.92)'}/>
+              <circle cx="12" cy="12" r="1.5" fill={scrolled ? '#323232' : 'rgba(255,255,255,0.92)'}/>
+              <circle cx="19" cy="12" r="1.5" fill={scrolled ? '#323232' : 'rgba(255,255,255,0.92)'}/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* 一级底部导航栏 */}
+      <BFTabBarNew active="diary" onChange={onTabChange}/>
+    </Phone>
+  );
+}
+
 Object.assign(window, { BFHome, BFSecretDetail, BFDiary, BFRecord, CycleRing, SymptomIcon,
-  Screen_BFMessages, Screen_BFChatDetail });
+  Screen_BFMessages, Screen_BFChatDetail, BFTabBarNew, BFDiaryTab });

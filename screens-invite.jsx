@@ -144,12 +144,139 @@ function CommunityFeed() {
 
 }
 
+
+// ─── 天气背景 + 雨动画 ────────────────────────────────────────────
+function WeatherBgLayer() {
+  const canvasRef = React.useRef(null);
+  React.useEffect(() => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = 360, H = 220;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const A = 0.18;
+    const drops = Array.from({ length: 200 }, () => ({
+      x: Math.random() * (W + 80) - 40, y: Math.random() * H,
+      len: 15 + Math.random() * 20, speed: 9 + Math.random() * 7,
+      thick: Math.random() < 0.3 ? 1.1 + Math.random() * 0.8 : 0.45 + Math.random() * 0.55,
+      op: Math.random() < 0.3 ? 0.38 + Math.random() * 0.28 : 0.14 + Math.random() * 0.22,
+    }));
+    let raf;
+    function draw() {
+      ctx.clearRect(0, 0, W, H); ctx.lineCap = 'round';
+      for (const p of drops) {
+        ctx.beginPath(); ctx.strokeStyle = 'rgba(140,170,205,' + p.op + ')';
+        ctx.lineWidth = p.thick; ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - p.len * A, p.y + p.len); ctx.stroke();
+        p.y += p.speed; p.x -= p.speed * A;
+        if (p.y > H + p.len) { p.y = -p.len - Math.random() * 60; p.x = Math.random() * (W + 80) - 40; }
+      }
+      raf = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return (
+    <div style={{ position:'absolute', top:-36, left:0, right:0, height:220, zIndex:0, pointerEvents:'none',
+      background:'linear-gradient(180deg,#7FA8DD 0%,#A8C3E8 28%,#C2D7EF 55%,#DCE6F2 78%,#F2F2F5 100%)' }}>
+      <canvas ref={canvasRef} style={{ position:'absolute', top:0, left:0, pointerEvents:'none' }}/>
+    </div>
+  );
+}
+
+function HomeTopBarWeather() {
+  const wc = 'rgba(255,255,255,0.92)';
+  const shadow = '0 1px 5px rgba(0,0,0,0.18)';
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
+      padding:'8px 16px', position:'relative', minHeight:44, zIndex:2 }}>
+      {/* 左：搜索 */}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        style={{ position:'absolute', left:16, top:'50%', transform:'translateY(-50%)' }}>
+        <circle cx="11" cy="11" r="7" stroke={wc} strokeWidth="1.8" fill="none"/>
+        <path d="M16.5 16.5L21 21" stroke={wc} strokeWidth="1.8" strokeLinecap="round"/>
+      </svg>
+      {/* 中：美柚 */}
+      <span style={{ fontSize:17, fontWeight:500, color:wc, letterSpacing:0.5, textShadow:shadow }}>美柚</span>
+      {/* 右：发帖铅笔 */}
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        style={{ position:'absolute', right:16, top:'50%', transform:'translateY(-50%)' }}>
+        <path d="M12 20h9" stroke={wc} strokeWidth="1.8" strokeLinecap="round"/>
+        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"
+          stroke={wc} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </div>
+  );
+}
+
+function WeatherStrip({ pill }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:10, padding:'2px 16px 10px', position:'relative', zIndex:2 }}>
+      <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+        <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+          <path d="M14 28a8 8 0 01-1-15.9A11 11 0 0135 16.5 7 7 0 0134 30H14z" fill="#fff" fillOpacity=".88"/>
+          <g stroke="#cfe3f5" strokeWidth="2.2" strokeLinecap="round">
+            <line x1="15" y1="33" x2="12" y2="40"/><line x1="23" y1="33" x2="20" y2="40"/><line x1="31" y1="33" x2="28" y2="40"/>
+          </g>
+        </svg>
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', lineHeight:1.3, flex:1 }}>
+        <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+          <span style={{ fontSize:17, fontWeight:500, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>大雨</span>
+          <span style={{ fontSize:17, fontWeight:500, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.14)' }}>20°</span>
+        </div>
+        <span style={{ fontSize:12, color:'rgba(255,255,255,0.72)', marginTop:1 }}>集美区</span>
+      </div>
+      {pill}
+    </div>
+  );
+}
+
+function DiaryPillEntry({ onDiary }) {
+  return (
+    <div onClick={onDiary} style={{
+      display:'inline-flex', alignItems:'center', gap:7,
+      background:'rgba(255,255,255,0.22)',
+      backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
+      borderRadius:999, padding:'5px 12px 5px 6px',
+      border:'1px solid rgba(255,255,255,0.45)', cursor:'pointer', flexShrink:0,
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,0.4),0 2px 8px rgba(0,0,0,0.08)',
+    }}>
+      <div style={{ position:'relative', flexShrink:0 }}>
+        <div style={{ position:'relative', width:32, height:24 }}>
+          <div style={{ position:'absolute', left:0, top:1, width:22, height:22, borderRadius:11,
+            background:USER.bg, border:'1.5px solid rgba(255,255,255,0.8)', overflow:'hidden',
+            zIndex:2, display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
+            <_AvatarSVG isFemale={true} size={22}/>
+          </div>
+          <div style={{ position:'absolute', left:10, top:1, width:22, height:22, borderRadius:11,
+            background:PARTNER.bg, border:'1.5px solid rgba(255,255,255,0.8)', overflow:'hidden',
+            zIndex:1, display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
+            <_AvatarSVG isFemale={false} size={22}/>
+          </div>
+        </div>
+        <div style={{ position:'absolute', top:-2, right:-2, width:7, height:7, borderRadius:3.5,
+          background:'#FF4D4D', border:'1.5px solid rgba(255,255,255,0.5)', zIndex:3 }}/>
+      </div>
+      <span style={{ fontSize:13, fontWeight:500, color:'rgba(255,255,255,0.92)', whiteSpace:'nowrap',
+        textShadow:'0 1px 3px rgba(0,0,0,0.15)' }}>恋爱记</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="2.2" strokeLinecap="round">
+        <path d="M9 6l6 6-6 6"/>
+      </svg>
+    </div>
+  );
+}
+
 // ─── Screen 1: 首页 · 未绑定 ──────────────────────────────────────
 function Screen1Home({ onInviteClick, onDiary, onTabChange }) {
   return (
     <Phone bg={MY.bg}>
-      <HomeTopBar />
-      <div style={{ position: 'absolute', inset: '44px 0 50px', overflowY: 'auto' }}>
+      <WeatherBgLayer/>
+      <HomeTopBarWeather/>
+      <WeatherStrip/>
+      <div style={{ position: 'absolute', inset: '96px 0 50px', overflowY: 'auto' }}>
         <div style={{ height: 8 }} />
         <PeriodHeroCard />
         <PeriodTodayRow />
@@ -206,7 +333,7 @@ function Screen1Home({ onInviteClick, onDiary, onTabChange }) {
                 邀请男友关注你的经期
               </div>
               <div style={{ fontSize: 12, color: MY.textSec, marginTop: 4, lineHeight: '18px' }}>
-                经期预测 · 每日症状 · 恋爱日记
+                经期预测 · 每日症状 · 恋爱记
               </div>
             </div>
           </div>
@@ -258,7 +385,7 @@ function Screen2Invite({ onFaceToFace, onBack, onWeChatInvite }) {
           邀请男友关注你的经期
         </div>
         <div style={{ fontSize: 14, color: MY.textSec, marginTop: 8, lineHeight: '22px', textAlign: 'center' }}>
-          帮助他更了解你<br />共同记录恋爱日记
+          帮助他更了解你<br />共同记录恋爱记
         </div>
       </div>
 
@@ -302,7 +429,7 @@ function Screen2Invite({ onFaceToFace, onBack, onWeChatInvite }) {
           {[
           { t: '经期提醒', s: '下次经期提前知', from: '#ffe0ec', to: '#ffc3d6' },
           { t: '懂你状态', s: '症状提醒不踩雷', from: '#f1e6fb', to: '#ddcaf0' },
-          { t: '恋爱日记', s: '记录甜蜜日常', from: '#e0eeff', to: '#bfd4f5' }].
+          { t: '恋爱记', s: '记录甜蜜日常', from: '#e0eeff', to: '#bfd4f5' }].
           map((c, i) =>
           <div key={i} style={{
             flex: 1, borderRadius: MY.rsm, minWidth: 0,
@@ -427,18 +554,15 @@ function Screen3QR({ onPair, onBack }) {
 function Screen4HomePaired({ onViewAll, onTabChange, diaryEmpty = false }) {
   return (
     <Phone bg={MY.bg}>
-      <HomeTopBar />
-      <div style={{ position: 'absolute', inset: '44px 0 50px', overflowY: 'auto' }}>
+      <WeatherBgLayer/>
+      <HomeTopBarWeather/>
+      <WeatherStrip pill={<DiaryPillEntry onDiary={onViewAll}/>}/>
+      <div style={{ position: 'absolute', inset: '96px 0 50px', overflowY: 'auto' }}>
         <div style={{ height: 8 }} />
         <PeriodHeroCard />
         <PeriodTodayRow />
 
-        {/* 恋爱日记模块 */}
-        {/* 恋爱日记模块 */}
-        <div style={{ margin: '8px 16px 0' }}>
-          <DiaryHomeModule onViewAll={onViewAll} isEmpty={diaryEmpty}/>
-        </div>
-
+        {/* 恋爱记模块 */}
         <CommunityFeed />
       </div>
       <PostFAB />
@@ -609,7 +733,7 @@ function Screen_RecordInvite({ onInviteClick }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: MY.textPri }}>邀请男友关注你的经期</div>
-            <div style={{ fontSize: 11.5, color: MY.textTer, marginTop: 2 }}>经期预测 · 每日症状 · 恋爱日记</div>
+            <div style={{ fontSize: 11.5, color: MY.textTer, marginTop: 2 }}>经期预测 · 每日症状 · 恋爱记</div>
           </div>
           <div style={{
             padding: '6px 12px', borderRadius: MY.rpill, background: MY.brandSoft,

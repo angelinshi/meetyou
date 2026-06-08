@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>恋爱日记探索 · 美柚</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body { font-family: "PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+/* ================================================================
+   DESIGN TOKENS
+================================================================ */
+const T = {
+  brand:    '#ff4d88',
+  bsoft:    'rgba(255,77,136,0.08)',
+  bg:       '#f2f2f5',
+  sur:      '#ffffff',
+  p:        '#323232',
+  s:        '#666666',
+  t:        '#999999',
+  line:     'rgba(0,0,0,0.08)',
+  blue:     '#4f7cae',
+  bluSoft:  'rgba(79,124,174,0.1)',
+  grn:      '#00cc99',
+};
+
+/* ================================================================
+   PRIMITIVES
+================================================================ */
+
+const Phone = ({ children, bg = T.bg }) => (
+  <div style={{
+    width: 390, height: 844, background: bg,
+    display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    fontFamily: '"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif',
+  }}>
+    {/* Status bar */}
+    <div style={{
+      height: 48, background: T.sur, flexShrink: 0,
+      display: 'flex', alignItems: 'flex-end',
+      justifyContent: 'space-between', padding: '0 20px 8px',
+    }}>
+      <span style={{ fontSize: 15, fontWeight: 600, color: T.p }}>9:41</span>
+      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+        <svg width="17" height="11" viewBox="0 0 17 11" fill={T.p}>
+          <rect x="0" y="5" width="3" height="6" rx="0.8" opacity="0.3"/>
+          <rect x="4.5" y="3" width="3" height="8" rx="0.8" opacity="0.5"/>
+          <rect x="9" y="1" width="3" height="10" rx="0.8" opacity="0.7"/>
+          <rect x="13.5" y="0" width="3" height="11" rx="0.8"/>
+        </svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+          <path d="M2 7.5 Q8 3.5 14 7.5" stroke={T.p} strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+          <path d="M0 5 Q8 0 16 5" stroke={T.p} strokeWidth="1.5" strokeLinecap="round" opacity="0.3"/>
+          <circle cx="8" cy="11" r="1.5" fill={T.p}/>
+        </svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none">
+          <rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke={T.p} strokeOpacity="0.35"/>
+          <rect x="2" y="2" width="16" height="8" rx="1.5" fill={T.p}/>
+          <rect x="23" y="3.5" width="2.5" height="5" rx="1" fill={T.p} fillOpacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+    {children}
+  </div>
+);
+
+const Nav = ({ title, sub, left = '‹', right = null, leftColor = T.brand, bg = T.sur }) => (
+  <div style={{
+    height: 44, background: bg, flexShrink: 0,
+    display: 'flex', alignItems: 'center', padding: '0 16px',
+    borderBottom: `1px solid ${T.line}`,
+  }}>
+    <div style={{ width: 44, fontSize: 22, color: leftColor, lineHeight: 1 }}>{left}</div>
+    <div style={{ flex: 1, textAlign: 'center' }}>
+      <div style={{ fontSize: 17, fontWeight: 500, color: T.p, lineHeight: 1.25 }}>{title}</div>
+      {sub && <div style={{ fontSize: 11, color: T.t, marginTop: 1 }}>{sub}</div>}
+    </div>
+    <div style={{ width: 44, display: 'flex', justifyContent: 'flex-end', color: T.s, fontSize: 20 }}>
+      {right}
+    </div>
+  </div>
+);
+
+const TabBar = ({ active = 0 }) => {
+  const tabsData = [
+    { l: '首页', path: 'M3 9.5L11 3l8 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5zM8 21v-7h6v7' },
+    { l: '记录', path: 'M5 3h14a1 1 0 011 1v16a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1zM8 8h8M8 12h8M8 16h4' },
+    { l: '社区', path: 'M4 4h16a1 1 0 011 1v9a1 1 0 01-1 1H7l-4 4V5a1 1 0 011-1z' },
+    { l: '我的', path: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6' },
+  ];
+  return (
+    <div style={{ height: 83, background: T.sur, borderTop: `1px solid ${T.line}`, display: 'flex', flexShrink: 0 }}>
+      {tabsData.map((tab, i) => (
+        <div key={i} style={{
+          flex: 1, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 3, paddingBottom: 16,
+          color: i === active ? T.brand : T.t,
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d={tab.path}/>
+          </svg>
+          <span style={{ fontSize: 10, fontWeight: i === active ? 500 : 400 }}>{tab.l}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const HomeInd = () => (
+  <div style={{ height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', background: T.sur, flexShrink: 0 }}>
+    <div style={{ width: 134, height: 5, borderRadius: 3, background: 'rgba(0,0,0,0.18)' }}/>
+  </div>
+);
+
+const CycleRing = ({ day = 14, total = 28, size = 80 }) => {
+  const r = size * 0.42;
+  const c = 2 * Math.PI * r;
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={T.line} strokeWidth={size * 0.08}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={T.brand} strokeWidth={size * 0.08}
+          strokeDasharray={`${c * day/total} ${c}`} strokeLinecap="round"
+          transform={`rotate(-90 ${size/2} ${size/2})`}/>
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: size * 0.27, fontWeight: 600, color: T.brand, lineHeight: 1 }}>{day}</span>
+        <span style={{ fontSize: size * 0.12, color: T.t, marginTop: 1 }}>天</span>
+      </div>
+    </div>
+  );
+};
+
+const HeartIcon = ({ size = 16, color = T.brand }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill={color}>
+    <path d="M8 14S2 10 2 5.5A3.5 3.5 0 018 3.2 3.5 3.5 0 0114 5.5C14 10 8 14 8 14z"/>
+  </svg>
+);
+
+/* ================================================================
+   SCREEN 1A — 女生首页：轻量爱心入口
+================================================================ */
+const GirlHomeIcon = () => (
+  <Phone>
+    {/* Custom nav with heart quick-entry in top-right */}
+    <div style={{
+      height: 44, background: T.sur, flexShrink: 0,
+      display: 'flex', alignItems: 'center', padding: '0 16px',
+      borderBottom: `1px solid ${T.line}`,
+    }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 7 }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: T.brand, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <HeartIcon size={16} color="white"/>
+        </div>
+        <span style={{ fontSize: 16, fontWeight: 600, color: T.p }}>美柚</span>
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.s} strokeWidth="1.6" strokeLinecap="round">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+          </svg>
+        </div>
+        {/* ❤️ 情侣空间快捷入口 */}
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 16,
+            background: T.bsoft,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <HeartIcon size={17} color={T.brand}/>
+          </div>
+          <div style={{
+            position: 'absolute', top: 3, right: 3,
+            width: 8, height: 8, borderRadius: 4,
+            background: T.brand, border: '1.5px solid white',
+          }}/>
+        </div>
+      </div>
+    </div>
+
+    {/* Cycle card */}
+    <div style={{ background: T.sur, padding: '14px 16px', borderBottom: `1px solid ${T.line}`, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <CycleRing day={14} total={28} size={82}/>
+        <div>
+          <div style={{ fontSize: 14, color: T.s, marginBottom: 6 }}>
+            周期第 <span style={{ color: T.brand, fontWeight: 600 }}>14</span> 天 · 安全期
+          </div>
+          <div style={{ fontSize: 13, color: T.t, lineHeight: 1.75 }}>
+            预计 <span style={{ color: T.p }}>14天后</span> 来月经<br/>
+            距下次排卵约 <span style={{ color: T.p }}>7天</span>
+          </div>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: 'rgba(0,204,153,0.08)', borderRadius: 20, padding: '3px 10px', marginTop: 7,
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: 3, background: T.grn }}/>
+            <span style={{ fontSize: 11, color: T.grn }}>状态良好</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Quick actions */}
+    <div style={{ background: T.sur, padding: '12px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[
+          { l: '记录症状', bg: T.bsoft, c: T.brand },
+          { l: '体重记录', bg: '#f5f5f7', c: T.s },
+          { l: '日历视图', bg: '#f5f5f7', c: T.s },
+          { l: '健康报告', bg: '#f5f5f7', c: T.s },
+        ].map((a, i) => (
+          <div key={i} style={{ flex: 1, background: a.bg, borderRadius: 10, padding: '10px 4px', textAlign: 'center' }}>
+            <div style={{ fontSize: 18, marginBottom: 3 }}>{['🩺','⚖️','📅','📊'][i]}</div>
+            <div style={{ fontSize: 10, color: a.c, lineHeight: 1.3 }}>{a.l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Today tips */}
+    <div style={{ background: T.sur, padding: '14px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ fontSize: 14, fontWeight: 500, color: T.p, marginBottom: 8 }}>今日建议</div>
+      <div style={{ background: '#fff8f0', borderRadius: 10, padding: '12px', fontSize: 13, color: T.s, lineHeight: 1.7 }}>
+        💧 保持充足水分补充，今日适合轻度有氧运动。安全期内体力较好，可考虑外出活动。
+      </div>
+    </div>
+
+    {/* Community hot */}
+    <div style={{ background: T.sur, padding: '14px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, color: T.p }}>社区热帖</div>
+        <span style={{ fontSize: 12, color: T.brand }}>更多 ›</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {[
+          '安全期真的安全吗？妇科医生来解答',
+          '分享我的减脂月经期饮食计划 🥦',
+        ].map((post, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 4, height: 4, borderRadius: 2, background: i === 0 ? T.brand : T.t, flexShrink: 0 }}/>
+            <span style={{ fontSize: 13, color: T.p, lineHeight: 1.5 }}>{post}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Label callout */}
+    <div style={{
+      margin: '8px 16px 0', padding: '10px 12px',
+      background: T.bsoft, borderRadius: 10,
+      display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+    }}>
+      <div style={{ width: 4, height: 4, borderRadius: 2, background: T.brand, flexShrink: 0 }}/>
+      <span style={{ fontSize: 12, color: T.brand }}>导航栏爱心 icon + 红点 · 低侵入，非主路径</span>
+    </div>
+
+    <div style={{ flex: 1 }}/>
+    <TabBar active={0}/>
+  </Phone>
+);
+
+/* ================================================================
+   SCREEN 1B — 女生首页：情侣空间卡片入口
+================================================================ */
+const GirlHomeCard = () => (
+  <Phone>
+    <div style={{
+      height: 44, background: T.sur, flexShrink: 0,
+      display: 'flex', alignItems: 'center', padding: '0 16px',
+      borderBottom: `1px solid ${T.line}`,
+    }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 7 }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: T.brand, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <HeartIcon size={16} color="white"/>
+        </div>
+        <span style={{ fontSize: 16, fontWeight: 600, color: T.p }}>美柚</span>
+      </div>
+      <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.s} strokeWidth="1.6" strokeLinecap="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+      </div>
+    </div>
+
+    {/* Compact cycle */}
+    <div style={{ background: T.sur, padding: '12px 16px', borderBottom: `1px solid ${T.line}`, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <CycleRing day={14} total={28} size={64}/>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, color: T.s }}>
+            周期第 <span style={{ color: T.brand, fontWeight: 600 }}>14</span> 天 · 安全期
+          </div>
+          <div style={{ fontSize: 12, color: T.t, marginTop: 3 }}>预计 14天后来月经</div>
+        </div>
+        <div style={{
+          background: 'rgba(0,204,153,0.08)', borderRadius: 20, padding: '4px 10px',
+          display: 'flex', alignItems: 'center', gap: 4,
+        }}>
+          <div style={{ width: 5, height: 5, borderRadius: 3, background: T.grn }}/>
+          <span style={{ fontSize: 11, color: T.grn }}>状态好</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Quick actions (compact) */}
+    <div style={{ background: T.sur, padding: '10px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[
+          { l: '记录症状', bg: T.bsoft, c: T.brand },
+          { l: '体重记录', bg: '#f5f5f7', c: T.s },
+          { l: '日历视图', bg: '#f5f5f7', c: T.s },
+          { l: '健康报告', bg: '#f5f5f7', c: T.s },
+        ].map((a, i) => (
+          <div key={i} style={{ flex: 1, background: a.bg, borderRadius: 10, padding: '8px 4px', textAlign: 'center' }}>
+            <div style={{ fontSize: 16, marginBottom: 2 }}>{['🩺','⚖️','📅','📊'][i]}</div>
+            <div style={{ fontSize: 10, color: a.c, lineHeight: 1.3 }}>{a.l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* 情侣空间卡片 ← KEY */}
+    <div style={{ background: T.sur, padding: '14px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <HeartIcon size={15} color={T.brand}/>
+          <span style={{ fontSize: 15, fontWeight: 500, color: T.p }}>情侣空间</span>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <span style={{ fontSize: 12, color: T.brand }}>恋爱日记 ›</span>
+          <div style={{ position: 'absolute', top: -3, right: -9, width: 7, height: 7, borderRadius: 4, background: T.brand, border: '1.5px solid white' }}/>
+        </div>
+      </div>
+      <div style={{
+        background: 'linear-gradient(135deg, #fff5f8 0%, #f5f0ff 100%)',
+        borderRadius: 12, padding: '12px',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        {/* Overlapping avatars */}
+        <div style={{ display: 'flex', flexShrink: 0 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 20, background: '#ffb3cc', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🧑‍🦱</div>
+          <div style={{ width: 40, height: 40, borderRadius: 20, background: '#a8c8f0', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginLeft: -14 }}>👦</div>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, color: T.p, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            小明 · 在开会，想你了 ☕
+          </div>
+          <div style={{ fontSize: 11, color: T.t, marginTop: 3 }}>3小时前 · 点击查看恋爱日记</div>
+        </div>
+      </div>
+    </div>
+
+    {/* Tips */}
+    <div style={{ background: T.sur, padding: '12px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ fontSize: 14, fontWeight: 500, color: T.p, marginBottom: 8 }}>今日建议</div>
+      <div style={{ background: '#fff8f0', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: T.s, lineHeight: 1.7 }}>
+        💧 保持充足水分，今日适合轻度有氧运动。安全期内体力较好，可考虑外出活动。
+      </div>
+    </div>
+
+    {/* Label */}
+    <div style={{
+      margin: '8px 16px 0', padding: '10px 12px',
+      background: T.bsoft, borderRadius: 10,
+      display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+    }}>
+      <div style={{ width: 4, height: 4, borderRadius: 2, background: T.brand, flexShrink: 0 }}/>
+      <span style={{ fontSize: 12, color: T.brand }}>卡片模块放在首页 · 含最新动态预览</span>
+    </div>
+
+    <div style={{ flex: 1 }}/>
+    <TabBar active={0}/>
+  </Phone>
+);
+
+/* ================================================================
+   SCREEN 2A — 恋爱日记：便利贴墙
+================================================================ */
+const DiaryWall = () => {
+  const notes = [
+    { bg: '#fff0f5', text: '今天是我们在一起的第 102 天 🩷', author: '晶晶', isMe: true, time: '09:20', r: -1.5 },
+    { bg: '#eef3ff', text: '刚看到这个视频就想到你了哈哈', author: '小明', isMe: false, time: '11:05', r: 1.2 },
+    { bg: '#fffce8', photo: true, label: '拍立得 · 今天的午饭', author: '晶晶', isMe: true, time: '13:30', r: -0.8 },
+    { bg: '#eef3ff', text: '下班了，想吃你做的饭 🥺', author: '小明', isMe: false, time: '18:42', r: 1.8 },
+    { bg: '#fff0f5', text: '第102次想你', author: '晶晶', isMe: true, time: '22:10', r: -1.2 },
+    { bg: '#e8f8f3', text: '晚安 🌙', author: '小明', isMe: false, time: '23:00', r: 0.9 },
+  ];
+
+  return (
+    <Phone bg="#f5f0ec">
+      <Nav title="恋爱日记" left="‹" right="⋯"/>
+
+      {/* Date divider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px 6px', flexShrink: 0 }}>
+        <div style={{ height: 1, flex: 1, background: 'rgba(0,0,0,0.1)' }}/>
+        <span style={{ fontSize: 11, color: T.t }}>2026年6月2日</span>
+        <div style={{ height: 1, flex: 1, background: 'rgba(0,0,0,0.1)' }}/>
+      </div>
+
+      {/* Cork wall + notes grid */}
+      <div style={{
+        flex: 1, padding: '8px 12px',
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignContent: 'start',
+        backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px)',
+        backgroundSize: '22px 22px',
+        backgroundColor: '#f5f0ec',
+      }}>
+        {notes.map((n, i) => (
+          <div key={i} style={{
+            background: n.bg, borderRadius: 10,
+            boxShadow: '0 3px 10px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06)',
+            transform: `rotate(${n.r}deg)`, overflow: 'hidden',
+          }}>
+            {n.photo ? (
+              <>
+                <div style={{
+                  height: 90,
+                  background: 'linear-gradient(135deg, #f5c6d8 0%, #e0c5f5 100%)',
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: 4,
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" strokeLinecap="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5" fill="rgba(255,255,255,0.85)" stroke="none"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                  </svg>
+                </div>
+                <div style={{ padding: '8px 10px 10px' }}>
+                  <div style={{ fontSize: 11, color: T.s }}>{n.label}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
+                    <span style={{ fontSize: 10, color: n.isMe ? T.brand : T.blue, fontWeight: 500 }}>{n.author}</span>
+                    <span style={{ fontSize: 10, color: T.t }}>{n.time}</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: '12px' }}>
+                <div style={{ fontSize: 13, color: T.p, lineHeight: 1.6, marginBottom: 10 }}>{n.text}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 10, color: n.isMe ? T.brand : T.blue, fontWeight: 500 }}>{n.author}</span>
+                  <span style={{ fontSize: 10, color: T.t }}>{n.time}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Paste button */}
+      <div style={{ padding: '10px 16px 14px', display: 'flex', justifyContent: 'center', background: '#f5f0ec', flexShrink: 0 }}>
+        <div style={{
+          background: T.brand, borderRadius: 24, height: 44,
+          display: 'flex', alignItems: 'center', gap: 8, padding: '0 28px',
+          boxShadow: '0 4px 18px rgba(255,77,136,0.38)',
+        }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+            <path d="M7 1v12M1 7h12"/>
+          </svg>
+          <span style={{ fontSize: 15, color: 'white', fontWeight: 500 }}>贴便利贴</span>
+        </div>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ================================================================
+   SCREEN 2B — 恋爱日记：流式 Feed
+================================================================ */
+const DiaryFeed = () => {
+  const Chip = ({ emoji, label, count, active }) => (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 3,
+      background: active ? T.bsoft : 'rgba(0,0,0,0.05)',
+      borderRadius: 20, padding: '4px 10px',
+    }}>
+      <span style={{ fontSize: 13 }}>{emoji}</span>
+      <span style={{ fontSize: 11, color: active ? T.brand : T.s }}>{count || label}</span>
+    </div>
+  );
+
+  const FeedItem = ({ name, avatar, avatarBg, isMe, text, photo, time, tag, reactions }) => (
+    <div style={{ padding: '12px 16px', borderBottom: `1px solid ${T.line}` }}>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{
+          width: 38, height: 38, borderRadius: 19,
+          background: avatarBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0,
+        }}>{avatar}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+            <span style={{ fontSize: 14, fontWeight: 500, color: T.p }}>{name}</span>
+            {tag && (
+              <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: isMe ? T.bsoft : T.bluSoft, color: isMe ? T.brand : T.blue }}>{tag}</span>
+            )}
+            <span style={{ fontSize: 11, color: T.t, marginLeft: 'auto' }}>{time}</span>
+          </div>
+          {text && <div style={{ fontSize: 14, color: T.p, lineHeight: 1.6, marginBottom: 8 }}>{text}</div>}
+          {photo && (
+            <div style={{
+              borderRadius: 10, height: 90,
+              background: 'linear-gradient(135deg, #f5c6d8 0%, #dbd0f5 100%)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 8,
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" strokeLinecap="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5" fill="rgba(255,255,255,0.85)" stroke="none"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)' }}>{photo}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {reactions.map((r, i) => <Chip key={i} {...r}/>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <Phone>
+      <Nav title="恋爱日记" sub="晶晶 & 小明 · 在一起第102天" left="‹" right="⋯"/>
+
+      <div style={{ flex: 1, background: T.sur, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px' }}>
+          <div style={{ height: 1, flex: 1, background: T.line }}/>
+          <span style={{ fontSize: 11, color: T.t }}>今天</span>
+          <div style={{ height: 1, flex: 1, background: T.line }}/>
+        </div>
+
+        <FeedItem name="晶晶" avatar="🧑‍🦱" avatarBg="#ffb3cc" isMe={true} tag="我"
+          text="今天是我们在一起的第 102 天，谢谢你一直在 🩷" time="09:20"
+          reactions={[
+            { emoji:'❤️', label:'比心', count:'1', active:true },
+            { emoji:'💪', label:'加油' },
+            { emoji:'😘', label:'亲一下' },
+          ]}/>
+
+        <FeedItem name="小明" avatar="👦" avatarBg="#a8c8f0" isMe={false}
+          photo="拍立得 · 我买了小蛋糕庆祝一下" time="12:30"
+          reactions={[
+            { emoji:'❤️', label:'比心', count:'2', active:true },
+            { emoji:'💪', label:'加油' },
+            { emoji:'😘', label:'亲一下' },
+          ]}/>
+
+        <FeedItem name="晶晶" avatar="🧑‍🦱" avatarBg="#ffb3cc" isMe={true} tag="我"
+          text="在开会想你了，快下班一起吃饭？" time="16:40"
+          reactions={[
+            { emoji:'❤️', label:'比心' },
+            { emoji:'💪', label:'加油' },
+            { emoji:'😘', label:'亲一下' },
+          ]}/>
+      </div>
+
+      {/* Input bar */}
+      <div style={{
+        background: T.sur, borderTop: `1px solid ${T.line}`,
+        padding: '10px 16px 12px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
+      }}>
+        <div style={{
+          flex: 1, height: 36, borderRadius: 18, background: '#f5f5f7',
+          display: 'flex', alignItems: 'center', padding: '0 14px',
+        }}>
+          <span style={{ fontSize: 13, color: T.t }}>说点什么，或随手贴一张…</span>
+        </div>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={T.s} strokeWidth="1.5" strokeLinecap="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5" fill={T.s} stroke="none"/>
+          <path d="M21 15l-5-5L5 21"/>
+        </svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={T.s} strokeWidth="1.5" strokeLinecap="round">
+          <path d="M12 1a3 3 0 013 3v8a3 3 0 01-6 0V4a3 3 0 013-3z"/>
+          <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+        </svg>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ================================================================
+   SCREEN 3A — 男生首页：今日密报
+================================================================ */
+const BoyHome = () => (
+  <Phone bg="#edf3f8">
+    <div style={{
+      height: 44, background: T.sur, flexShrink: 0,
+      display: 'flex', alignItems: 'center', padding: '0 16px',
+      borderBottom: `1px solid ${T.line}`,
+    }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 7 }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: T.blue, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <HeartIcon size={16} color="white"/>
+        </div>
+        <span style={{ fontSize: 16, fontWeight: 600, color: T.p }}>美柚男友版</span>
+      </div>
+      <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.s} strokeWidth="1.6" strokeLinecap="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+      </div>
+    </div>
+
+    {/* 今日密报 */}
+    <div style={{ background: T.sur, padding: '14px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.blue} strokeWidth="1.8" strokeLinecap="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM8 13h8M8 17h4"/>
+          </svg>
+          <span style={{ fontSize: 15, fontWeight: 500, color: T.p }}>今日密报</span>
+        </div>
+        <span style={{ fontSize: 12, color: T.t }}>晶晶今日</span>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        {[
+          { label: '周期进度', val: '14天', sub: '安全期', bg: '#fff0f6', vc: T.brand },
+          { label: '距月经', val: '14天', sub: '预测时间', bg: '#f0f6ff', vc: T.blue },
+          { label: '今日状态', val: '佳', sub: '精力较好', bg: '#f0fff8', vc: T.grn },
+        ].map((s, i) => (
+          <div key={i} style={{ flex: 1, background: s.bg, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: 11, color: T.t, marginBottom: 4 }}>{s.label}</div>
+            <div style={{ fontSize: 20, fontWeight: 600, color: s.vc, lineHeight: 1 }}>{s.val}</div>
+            <div style={{ fontSize: 11, color: T.s, marginTop: 3 }}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ background: '#f8f9ff', borderRadius: 10, padding: '11px 12px', fontSize: 13, color: T.s, lineHeight: 1.7 }}>
+        💡 她现在精力不错，状态良好。今天可以约她出去走走，或者准备一顿晚饭 🍜
+      </div>
+    </div>
+
+    {/* 恋爱日记入口 */}
+    <div style={{ background: T.sur, padding: '14px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <HeartIcon size={15} color={T.brand}/>
+          <span style={{ fontSize: 15, fontWeight: 500, color: T.p }}>恋爱日记</span>
+        </div>
+        <div style={{ position: 'relative' }}>
+          <span style={{ fontSize: 12, color: T.blue }}>查看全部 ›</span>
+          <div style={{ position: 'absolute', top: -3, right: -9, width: 7, height: 7, borderRadius: 4, background: T.brand, border: '1.5px solid white' }}/>
+        </div>
+      </div>
+      <div style={{
+        background: 'linear-gradient(135deg, #fff5f8 0%, #f0f5ff 100%)',
+        borderRadius: 12, padding: '11px 12px',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <div style={{ width: 38, height: 38, borderRadius: 19, background: '#ffb3cc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🧑‍🦱</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, color: T.p, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>晶晶 · 今天是我们在一起的第102天 🩷</div>
+          <div style={{ fontSize: 11, color: T.t, marginTop: 2 }}>今天 09:20</div>
+        </div>
+      </div>
+    </div>
+
+    {/* 近期注意 */}
+    <div style={{ background: T.sur, padding: '12px 16px', marginTop: 8, flexShrink: 0 }}>
+      <div style={{ fontSize: 14, fontWeight: 500, color: T.p, marginBottom: 10 }}>近期注意</div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[
+          { icon: '😊', label: '情绪', status: '稳定', bg: '#f5fff9' },
+          { icon: '💤', label: '睡眠', status: '良好', bg: '#f0f6ff' },
+          { icon: '🤧', label: '症状', status: '暂无', bg: '#f5f5f7' },
+        ].map((item, i) => (
+          <div key={i} style={{ flex: 1, background: item.bg, borderRadius: 10, padding: '10px 4px', textAlign: 'center' }}>
+            <div style={{ fontSize: 18 }}>{item.icon}</div>
+            <div style={{ fontSize: 10, color: T.s, marginTop: 3 }}>{item.label}</div>
+            <div style={{ fontSize: 11, color: T.p, fontWeight: 500, marginTop: 2 }}>{item.status}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div style={{ flex: 1 }}/>
+    <TabBar active={0}/>
+  </Phone>
+);
+
+/* ================================================================
+   SCREEN 3B — 男生日记（只读）
+================================================================ */
+const BoyDiary = () => {
+  const Chip = ({ emoji, label, count, active }) => (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 3,
+      background: active ? T.bsoft : 'rgba(0,0,0,0.05)',
+      borderRadius: 20, padding: '4px 10px',
+    }}>
+      <span style={{ fontSize: 13 }}>{emoji}</span>
+      <span style={{ fontSize: 11, color: active ? T.brand : T.s }}>{count || label}</span>
+    </div>
+  );
+
+  return (
+    <Phone>
+      <Nav title="恋爱日记" sub="晶晶 & 小明 · 在一起第102天" left="‹" leftColor={T.blue} right="⋯"/>
+
+      {/* Read-only notice */}
+      <div style={{
+        background: T.bluSoft, padding: '8px 16px',
+        display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.blue} strokeWidth="1.8" strokeLinecap="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        <span style={{ fontSize: 12, color: T.blue }}>你可以浏览并回应，日记由晶晶维护</span>
+      </div>
+
+      {/* Feed */}
+      <div style={{ flex: 1, background: T.sur, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px' }}>
+          <div style={{ height: 1, flex: 1, background: T.line }}/>
+          <span style={{ fontSize: 11, color: T.t }}>今天</span>
+          <div style={{ height: 1, flex: 1, background: T.line }}/>
+        </div>
+
+        {/* Post 1: girl */}
+        <div style={{ padding: '10px 16px', borderBottom: `1px solid ${T.line}` }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 19, background: '#ffb3cc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🧑‍🦱</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: T.p }}>晶晶</span>
+                <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: T.bsoft, color: T.brand }}>她</span>
+                <span style={{ fontSize: 11, color: T.t, marginLeft: 'auto' }}>09:20</span>
+              </div>
+              <div style={{ fontSize: 14, color: T.p, lineHeight: 1.6, marginBottom: 8 }}>今天是我们在一起的第 102 天，谢谢你一直在 🩷</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <Chip emoji="❤️" label="比心" count="1" active={true}/>
+                <Chip emoji="💪" label="加油"/>
+                <Chip emoji="😘" label="亲一下"/>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Post 2: boy */}
+        <div style={{ padding: '10px 16px', borderBottom: `1px solid ${T.line}` }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 19, background: '#a8c8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>👦</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: T.p }}>小明</span>
+                <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: T.bluSoft, color: T.blue }}>我</span>
+                <span style={{ fontSize: 11, color: T.t, marginLeft: 'auto' }}>09:35</span>
+              </div>
+              <div style={{
+                borderRadius: 10, height: 84,
+                background: 'linear-gradient(135deg, #d6e8ff 0%, #ccd6f5 100%)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, marginBottom: 8,
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(79,124,174,0.7)" strokeWidth="1.5" strokeLinecap="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5" fill="rgba(79,124,174,0.7)" stroke="none"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+                <span style={{ fontSize: 11, color: '#4f7cae' }}>我买的小蛋糕庆祝一下</span>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <Chip emoji="❤️" label="比心" count="2" active={true}/>
+                <Chip emoji="💪" label="加油"/>
+                <Chip emoji="😘" label="亲一下"/>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Post 3: girl */}
+        <div style={{ padding: '10px 16px' }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 19, background: '#ffb3cc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🧑‍🦱</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: T.p }}>晶晶</span>
+                <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: T.bsoft, color: T.brand }}>她</span>
+                <span style={{ fontSize: 11, color: T.t, marginLeft: 'auto' }}>16:40</span>
+              </div>
+              <div style={{ fontSize: 14, color: T.p, lineHeight: 1.6, marginBottom: 8 }}>在开会想你了，快下班一起吃饭？</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <Chip emoji="❤️" label="比心"/>
+                <Chip emoji="💪" label="加油"/>
+                <Chip emoji="😘" label="亲一下"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Reaction-only bar (no post button) */}
+      <div style={{
+        background: T.sur, borderTop: `1px solid ${T.line}`,
+        padding: '10px 16px 12px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
+      }}>
+        <div style={{
+          flex: 1, height: 36, borderRadius: 18, background: '#f5f5f7',
+          display: 'flex', alignItems: 'center', padding: '0 14px',
+        }}>
+          <span style={{ fontSize: 13, color: T.t }}>回应一下…</span>
+        </div>
+        {['❤️','💪','😘'].map((e, i) => (
+          <div key={i} style={{
+            width: 36, height: 36, borderRadius: 18, background: '#f5f5f7',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+          }}>{e}</div>
+        ))}
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ================================================================
+   MAIN APP
+================================================================ */
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+const App = () => (
+  <DesignCanvas>
+    <DCSection id="home" title="首页入口探索" subtitle="情侣空间的曝光形式权衡 · 女生视角">
+      <DCArtboard id="home-a" label="A · 轻量爱心入口" width={390} height={844}>
+        <GirlHomeIcon/>
+      </DCArtboard>
+      <DCArtboard id="home-b" label="B · 情侣空间卡片" width={390} height={844}>
+        <GirlHomeCard/>
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="diary" title="恋爱日记二级页" subtitle="内容形式探索 · 女生视角">
+      <DCArtboard id="diary-a" label="A · 便利贴墙" width={390} height={844}>
+        <DiaryWall/>
+      </DCArtboard>
+      <DCArtboard id="diary-b" label="B · 流式 Feed" width={390} height={844}>
+        <DiaryFeed/>
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="male" title="男生视角" subtitle="今日密报 + 只读日记">
+      <DCArtboard id="male-home" label="男生首页" width={390} height={844}>
+        <BoyHome/>
+      </DCArtboard>
+      <DCArtboard id="male-diary" label="男生日记（只读）" width={390} height={844}>
+        <BoyDiary/>
+      </DCArtboard>
+    </DCSection>
+  </DesignCanvas>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

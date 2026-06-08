@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>情侣空间探索 · 美柚</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <style>*, *::before, *::after{box-sizing:border-box;margin:0;padding:0;} html,body,#root{height:100%;}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const ff = '"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif';
+
+/* ── 基础 token ── */
+const T = { brand:'#ff4d88', bsoft:'rgba(255,77,136,0.08)', bg:'#f2f2f5', sur:'#fff', p:'#323232', s:'#666', t:'#999', line:'rgba(0,0,0,0.08)', grn:'#00cc99' };
+
+/* ── 情侣空间专属 token：紫→粉渐变，区别于美柚品牌红 ── */
+const CS = {
+  grad:     'linear-gradient(135deg,#bf7af5 0%,#ff72aa 100%)',
+  gradSoft: 'linear-gradient(135deg,rgba(191,122,245,0.09) 0%,rgba(255,114,170,0.09) 100%)',
+  pageBg:   'linear-gradient(160deg,#f8f4ff 0%,#fff6fb 100%)',
+  pp:       '#bf7af5',
+  pps:      'rgba(191,122,245,0.11)',
+  pk:       '#ff72aa',
+  pks:      'rgba(255,114,170,0.1)',
+  glass:    'rgba(255,255,255,0.82)',
+  glassB:   '1px solid rgba(255,255,255,0.9)',
+  glassS:   '0 4px 20px rgba(160,80,220,0.08),0 1px 4px rgba(0,0,0,0.04)',
+};
+
+/* ── 共用原件 ── */
+const SB = ({dark=false}) => {
+  const c = dark ? 'rgba(255,255,255,0.9)' : T.p;
+  return (
+    <div style={{height:48,flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between',padding:'0 20px 8px',background:'transparent'}}>
+      <span style={{fontSize:15,fontWeight:600,color:c}}>9:41</span>
+      <div style={{display:'flex',gap:5,alignItems:'center'}}>
+        <svg width="17" height="11" viewBox="0 0 17 11" fill={c}><rect x="0" y="5" width="3" height="6" rx="0.8" opacity="0.35"/><rect x="4.5" y="3" width="3" height="8" rx="0.8" opacity="0.6"/><rect x="9" y="1" width="3" height="10" rx="0.8" opacity="0.82"/><rect x="13.5" y="0" width="3" height="11" rx="0.8"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke={c} strokeOpacity={dark?0.5:0.35}/><rect x="2" y="2" width="16" height="8" rx="1.5" fill={c}/></svg>
+      </div>
+    </div>
+  );
+};
+
+const HomeInd = ({dark=false}) => (
+  <div style={{height:34,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+    <div style={{width:134,height:5,borderRadius:3,background:dark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.18)'}}/>
+  </div>
+);
+
+const Phone = ({children,bg=T.bg,dark=false}) => (
+  <div style={{width:390,height:844,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',fontFamily:ff}}>
+    <SB dark={dark}/>
+    {children}
+  </div>
+);
+
+const GCard = ({children,style={}}) => (
+  <div style={{background:CS.glass,border:CS.glassB,borderRadius:16,boxShadow:CS.glassS,...style}}>
+    {children}
+  </div>
+);
+
+const RChip = ({emoji,label,count,active}) => (
+  <div style={{display:'flex',alignItems:'center',gap:3,background:active?CS.pps:'rgba(0,0,0,0.04)',borderRadius:20,padding:'3px 10px',border:`1px solid ${active?'rgba(191,122,245,0.2)':'transparent'}`}}>
+    <span style={{fontSize:13}}>{emoji}</span>
+    {(count||label) && <span style={{fontSize:11,color:active?CS.pp:T.t}}>{count||label}</span>}
+  </div>
+);
+
+const Nav = ({title,sub,backColor=CS.pp,dark=false}) => (
+  <div style={{height:44,flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:`1px solid ${dark?'rgba(255,255,255,0.07)':'rgba(191,122,245,0.1)'}`}}>
+    <div style={{width:44,fontSize:22,color:dark?'rgba(255,255,255,0.45)':backColor}}>‹</div>
+    <div style={{flex:1,textAlign:'center'}}>
+      <div style={{fontSize:17,fontWeight:500,color:dark?'rgba(255,255,255,0.92)':T.p}}>{title}</div>
+      {sub && <div style={{fontSize:11,color:dark?'rgba(255,255,255,0.38)':T.t,marginTop:1}}>{sub}</div>}
+    </div>
+    <div style={{width:44,textAlign:'right',fontSize:20,color:dark?'rgba(255,255,255,0.38)':T.t}}>⋯</div>
+  </div>
+);
+
+const Couple = ({size=44}) => (
+  <div style={{display:'flex'}}>
+    <div style={{width:size,height:size,borderRadius:size/2,background:'#ffb3cc',border:'2.5px solid white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.5,zIndex:2}}>🧑‍🦱</div>
+    <div style={{width:size,height:size,borderRadius:size/2,background:'#a8c8f0',border:'2.5px solid white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.5,marginLeft:-(size*0.38),zIndex:1}}>👦</div>
+  </div>
+);
+
+const GradBtn = ({label,icon,style={}}) => (
+  <div style={{height:48,borderRadius:24,background:CS.grad,display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 4px 18px rgba(191,122,245,0.32)',...style}}>
+    {icon && <span style={{fontSize:15}}>{icon}</span>}
+    <span style={{fontSize:15,color:'white',fontWeight:500}}>{label}</span>
+  </div>
+);
+
+/* ================================================================
+   01A: 首页轻入口 · 胶囊通知条
+================================================================ */
+const HomeA = () => (
+  <Phone bg={T.bg}>
+    {/* Meiyou Nav */}
+    <div style={{height:44,background:T.sur,flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:`1px solid ${T.line}`}}>
+      <div style={{flex:1,display:'flex',alignItems:'center',gap:8}}>
+        <div style={{width:28,height:28,borderRadius:8,background:T.brand,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="white"><path d="M8 14S2 10 2 5.5A3.5 3.5 0 018 3.2 3.5 3.5 0 0114 5.5C14 10 8 14 8 14z"/></svg>
+        </div>
+        <span style={{fontSize:16,fontWeight:600,color:T.p}}>美柚</span>
+      </div>
+      <div style={{display:'flex',gap:8}}>
+        <div style={{width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={T.s} strokeWidth="1.6" strokeLinecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+      </div>
+    </div>
+
+    {/* ★ 情侣空间胶囊入口 ★ */}
+    <div style={{background:T.sur,padding:'6px 16px 8px',flexShrink:0,borderBottom:`1px solid ${T.line}`}}>
+      <div style={{
+        height:38,borderRadius:19,
+        background:CS.gradSoft,
+        border:'1px solid rgba(191,122,245,0.16)',
+        display:'flex',alignItems:'center',padding:'0 14px',gap:9,
+      }}>
+        <div style={{width:7,height:7,borderRadius:4,background:CS.grad,flexShrink:0}}/>
+        <span style={{fontSize:13,color:T.p,fontWeight:500}}>情侣空间</span>
+        <span style={{fontSize:12,color:T.t,flex:1}}>小明刚发来一张便利贴</span>
+        <div style={{width:6,height:6,borderRadius:3,background:CS.pk,flexShrink:0}}/>
+        <span style={{fontSize:13,color:CS.pp}}>›</span>
+      </div>
+    </div>
+
+    {/* Cycle card */}
+    <div style={{background:T.sur,padding:'14px 16px',marginTop:8,flexShrink:0}}>
+      <div style={{display:'flex',alignItems:'center',gap:14}}>
+        <div style={{width:68,height:68,borderRadius:34,background:T.bsoft,flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+          <span style={{fontSize:22,fontWeight:700,color:T.brand,lineHeight:1}}>14</span>
+          <span style={{fontSize:10,color:T.t}}>天</span>
+        </div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:14,color:T.s}}>周期第 <span style={{color:T.brand,fontWeight:600}}>14</span> 天 · 安全期</div>
+          <div style={{fontSize:12,color:T.t,marginTop:3}}>预计 14天后来月经</div>
+          <div style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(0,204,153,0.08)',borderRadius:20,padding:'3px 10px',marginTop:5}}>
+            <div style={{width:5,height:5,borderRadius:3,background:T.grn}}/>
+            <span style={{fontSize:11,color:T.grn}}>状态良好</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Quick tools */}
+    <div style={{background:T.sur,padding:'10px 16px',marginTop:8,flexShrink:0}}>
+      <div style={{display:'flex',gap:8}}>
+        {[{l:'记录症状',bg:T.bsoft,c:T.brand,e:'🩺'},{l:'体重',bg:'#f5f5f7',c:T.s,e:'⚖️'},{l:'日历',bg:'#f5f5f7',c:T.s,e:'📅'},{l:'报告',bg:'#f5f5f7',c:T.s,e:'📊'}].map((a,i)=>(
+          <div key={i} style={{flex:1,background:a.bg,borderRadius:10,padding:'10px 4px',textAlign:'center'}}>
+            <div style={{fontSize:17,marginBottom:3}}>{a.e}</div>
+            <div style={{fontSize:10,color:a.c}}>{a.l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Tips */}
+    <div style={{background:T.sur,padding:'12px 16px',marginTop:8,flexShrink:0}}>
+      <div style={{background:'#fff8f0',borderRadius:10,padding:'10px 12px',fontSize:13,color:T.s,lineHeight:1.7}}>
+        💧 安全期内精力较好，今日适合轻度有氧运动。
+      </div>
+    </div>
+
+    {/* Community */}
+    <div style={{background:T.sur,padding:'14px 16px',marginTop:8,flexShrink:0}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}>
+        <span style={{fontSize:14,fontWeight:500,color:T.p}}>社区热帖</span>
+        <span style={{fontSize:12,color:T.brand}}>更多 ›</span>
+      </div>
+      {['安全期真的安全吗？妇科医生解答','减脂月经期饮食计划分享 🥦'].map((post,i)=>(
+        <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:i===0?7:0}}>
+          <div style={{width:4,height:4,borderRadius:2,background:i===0?T.brand:T.t,flexShrink:0}}/>
+          <span style={{fontSize:13,color:T.p,lineHeight:1.5}}>{post}</span>
+        </div>
+      ))}
+    </div>
+
+    <div style={{margin:'8px 16px 0',padding:'8px 12px',background:CS.pps,borderRadius:10,display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
+      <div style={{width:4,height:4,borderRadius:2,background:CS.pp,flexShrink:0}}/>
+      <span style={{fontSize:12,color:CS.pp}}>胶囊通知条 · 最克制，不干扰主流程，按需触达</span>
+    </div>
+
+    <div style={{flex:1}}/>
+    <div style={{height:83,background:T.sur,borderTop:`1px solid ${T.line}`,display:'flex',flexShrink:0}}>
+      {['首页','记录','社区','我的'].map((t,i)=>(
+        <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:3,paddingBottom:16,color:i===0?T.brand:T.t}}>
+          <div style={{fontSize:15}}>{['🏠','📝','💬','👤'][i]}</div>
+          <span style={{fontSize:10,fontWeight:i===0?500:400}}>{t}</span>
+        </div>
+      ))}
+    </div>
+  </Phone>
+);
+
+/* ================================================================
+   01B: 首页轻入口 · 内嵌卡片，含状态预览
+================================================================ */
+const HomeB = () => (
+  <Phone bg={T.bg}>
+    <div style={{height:44,background:T.sur,flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:`1px solid ${T.line}`}}>
+      <div style={{flex:1,display:'flex',alignItems:'center',gap:8}}>
+        <div style={{width:28,height:28,borderRadius:8,background:T.brand,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="white"><path d="M8 14S2 10 2 5.5A3.5 3.5 0 018 3.2 3.5 3.5 0 0114 5.5C14 10 8 14 8 14z"/></svg>
+        </div>
+        <span style={{fontSize:16,fontWeight:600,color:T.p}}>美柚</span>
+      </div>
+    </div>
+
+    {/* Cycle (compact) */}
+    <div style={{background:T.sur,padding:'12px 16px',flexShrink:0,borderBottom:`1px solid ${T.line}`}}>
+      <div style={{display:'flex',alignItems:'center',gap:12}}>
+        <div style={{width:54,height:54,borderRadius:27,background:T.bsoft,flexShrink:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+          <span style={{fontSize:19,fontWeight:700,color:T.brand,lineHeight:1}}>14</span>
+          <span style={{fontSize:9,color:T.t}}>天</span>
+        </div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:13,color:T.s}}>周期第 <span style={{color:T.brand,fontWeight:600}}>14</span> 天 · 安全期</div>
+          <div style={{fontSize:11,color:T.t,marginTop:2}}>预计 14 天后来月经</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:4,background:'rgba(0,204,153,0.08)',borderRadius:20,padding:'3px 10px'}}>
+          <div style={{width:5,height:5,borderRadius:3,background:T.grn}}/>
+          <span style={{fontSize:10,color:T.grn}}>状态好</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Quick tools */}
+    <div style={{background:T.sur,padding:'10px 16px',marginTop:8,flexShrink:0}}>
+      <div style={{display:'flex',gap:8}}>
+        {[{l:'记录症状',bg:T.bsoft,c:T.brand,e:'🩺'},{l:'体重',bg:'#f5f5f7',c:T.s,e:'⚖️'},{l:'日历',bg:'#f5f5f7',c:T.s,e:'📅'},{l:'报告',bg:'#f5f5f7',c:T.s,e:'📊'}].map((a,i)=>(
+          <div key={i} style={{flex:1,background:a.bg,borderRadius:10,padding:'8px 4px',textAlign:'center'}}>
+            <div style={{fontSize:16,marginBottom:2}}>{a.e}</div>
+            <div style={{fontSize:10,color:a.c}}>{a.l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* ★ 情侣空间内嵌卡片 ★ */}
+    <div style={{background:T.sur,padding:'14px 16px',marginTop:8,flexShrink:0}}>
+      <div style={{borderRadius:14,overflow:'hidden',background:CS.gradSoft,border:'1px solid rgba(191,122,245,0.14)'}}>
+        <div style={{height:3,background:CS.grad}}/>
+        <div style={{padding:'12px 14px'}}>
+          {/* Header */}
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+            <Couple size={28}/>
+            <span style={{fontSize:13,fontWeight:500,color:T.p}}>情侣空间</span>
+            <div style={{marginLeft:'auto',background:CS.grad,borderRadius:20,padding:'2px 9px'}}>
+              <span style={{fontSize:10,color:'white',fontWeight:500}}>102天</span>
+            </div>
+          </div>
+          {/* Latest note */}
+          <div style={{background:'rgba(255,255,255,0.75)',borderRadius:10,padding:'10px 12px',marginBottom:10}}>
+            <div style={{fontSize:13,color:T.p,lineHeight:1.55}}>小明 · 在开会，想到你了 ☕</div>
+            <div style={{fontSize:11,color:T.t,marginTop:3}}>今天 14:22</div>
+          </div>
+          {/* Quick reactions + link */}
+          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+            {[{e:'🤗',l:'抱抱'},{e:'🫂',l:'我在'},{e:'❤️',l:'比心'}].map((r,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',gap:3,background:'rgba(0,0,0,0.04)',borderRadius:16,padding:'3px 10px'}}>
+                <span style={{fontSize:12}}>{r.e}</span>
+                <span style={{fontSize:11,color:T.s}}>{r.l}</span>
+              </div>
+            ))}
+            <span style={{fontSize:12,color:CS.pp,marginLeft:'auto'}}>进入 ›</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style={{background:T.sur,padding:'12px 16px',marginTop:8,flexShrink:0}}>
+      <div style={{background:'#fff8f0',borderRadius:10,padding:'10px 12px',fontSize:13,color:T.s,lineHeight:1.7}}>
+        💧 安全期内精力较好，今日适合轻度有氧运动。
+      </div>
+    </div>
+
+    <div style={{margin:'8px 16px 0',padding:'8px 12px',background:CS.pps,borderRadius:10,display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
+      <div style={{width:4,height:4,borderRadius:2,background:CS.pp,flexShrink:0}}/>
+      <span style={{fontSize:12,color:CS.pp}}>内嵌卡片 · 含最新便利贴预览 + 轻互动，更有存在感</span>
+    </div>
+
+    <div style={{flex:1}}/>
+    <div style={{height:83,background:T.sur,borderTop:`1px solid ${T.line}`,display:'flex',flexShrink:0}}>
+      {['首页','记录','社区','我的'].map((t,i)=>(
+        <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:3,paddingBottom:16,color:i===0?T.brand:T.t}}>
+          <div style={{fontSize:15}}>{['🏠','📝','💬','👤'][i]}</div>
+          <span style={{fontSize:10,fontWeight:i===0?500:400}}>{t}</span>
+        </div>
+      ))}
+    </div>
+  </Phone>
+);
+
+/* ================================================================
+   02A: 情侣空间总览 · 分模块布局
+================================================================ */
+const OverviewA = () => (
+  <Phone bg={CS.pageBg}>
+    <Nav title="情侣空间" sub="晶晶 & 小明"/>
+
+    {/* Couple identity */}
+    <div style={{padding:'10px 16px 0',flexShrink:0}}>
+      <GCard style={{padding:'14px 16px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <Couple size={44}/>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,fontWeight:500,color:T.p}}>晶晶 & 小明</div>
+            <div style={{fontSize:12,color:T.t,marginTop:2}}>2025年11月22日 相遇</div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontSize:28,fontWeight:700,lineHeight:1,background:CS.grad,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>102</div>
+            <div style={{fontSize:10,color:T.t,marginTop:1}}>天在一起</div>
+          </div>
+        </div>
+      </GCard>
+    </div>
+
+    <div style={{flex:1,overflow:'hidden',padding:'10px 16px',display:'flex',flexDirection:'column',gap:10}}>
+      {/* Today entry */}
+      <GCard style={{padding:'14px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+          <div style={{width:6,height:6,borderRadius:3,background:CS.grad,flexShrink:0}}/>
+          <span style={{fontSize:14,fontWeight:500,color:T.p}}>今天</span>
+          <span style={{fontSize:12,color:T.t,marginLeft:'auto'}}>还没人贴便利贴</span>
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          {[{e:'✏️',l:'写一句',primary:true},{e:'📷',l:'发照片'},{e:'🔗',l:'分享时刻'}].map((a,i)=>(
+            <div key={i} style={{flex:1,height:42,borderRadius:10,background:a.primary?CS.grad:'rgba(0,0,0,0.04)',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+              <span style={{fontSize:14}}>{a.e}</span>
+              <span style={{fontSize:12,color:a.primary?'white':T.s,fontWeight:a.primary?500:400}}>{a.l}</span>
+            </div>
+          ))}
+        </div>
+      </GCard>
+
+      {/* 今日关怀 — 最差异化的模块：经期状态→关怀建议 */}
+      <GCard style={{padding:'14px',border:'1px solid rgba(191,122,245,0.2)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:9}}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={CS.pp} strokeWidth="1.8" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <span style={{fontSize:14,fontWeight:500,color:T.p}}>今日关怀</span>
+          <div style={{marginLeft:'auto',background:CS.pps,borderRadius:10,padding:'2px 8px'}}>
+            <span style={{fontSize:11,color:CS.pp}}>经期第14天</span>
+          </div>
+        </div>
+        <div style={{background:'rgba(191,122,245,0.05)',borderRadius:10,padding:'10px 12px',fontSize:13,color:T.s,lineHeight:1.75}}>
+          她今天精力较好，状态稳定。适合约出去走走，或者准备一顿晚饭 🍜
+        </div>
+        <div style={{marginTop:8,display:'flex',alignItems:'center',gap:4}}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={CS.pp} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span style={{fontSize:11,color:CS.pp}}>基于周期状态生成 · 仅对TA可见</span>
+        </div>
+      </GCard>
+
+      {/* Recent records */}
+      <GCard style={{padding:'14px'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+          <span style={{fontSize:14,fontWeight:500,color:T.p}}>最近便利贴</span>
+          <span style={{fontSize:12,color:CS.pp}}>查看全部 ›</span>
+        </div>
+        {[
+          {from:'小明',bg:'#a8c8f0',text:'在开会，想到你了 ☕',time:'14:22',me:false},
+          {from:'晶晶',bg:'#ffb3cc',text:'今天是我们第102天 🩷',time:'09:20',me:true},
+        ].map((rec,i)=>(
+          <div key={i} style={{display:'flex',gap:8,paddingBottom:i===0?9:0,borderBottom:i===0?`1px solid rgba(0,0,0,0.04)`:'none',marginBottom:i===0?9:0}}>
+            <div style={{width:30,height:30,borderRadius:15,background:rec.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,flexShrink:0}}>{rec.me?'🧑‍🦱':'👦'}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:13,color:T.p,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{rec.text}</div>
+              <div style={{fontSize:11,color:T.t,marginTop:1}}>{rec.from} · {rec.time}</div>
+            </div>
+          </div>
+        ))}
+      </GCard>
+
+      {/* Milestone */}
+      <GCard style={{padding:'12px 14px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:11,color:T.t,marginBottom:3}}>下一个纪念日</div>
+            <div style={{fontSize:14,fontWeight:500,color:T.p}}>在一起 200 天</div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <span style={{fontSize:20,fontWeight:700,color:CS.pp}}>98</span>
+            <span style={{fontSize:11,color:T.t}}> 天后</span>
+          </div>
+        </div>
+        <div style={{height:4,borderRadius:2,background:'rgba(0,0,0,0.05)',marginTop:8,overflow:'hidden'}}>
+          <div style={{width:'51%',height:'100%',borderRadius:2,background:CS.grad}}/>
+        </div>
+        <div style={{fontSize:10,color:T.t,marginTop:4,textAlign:'right'}}>102 / 200</div>
+      </GCard>
+    </div>
+
+    {/* Bottom input */}
+    <div style={{padding:'10px 16px 14px',background:'rgba(255,255,255,0.5)',borderTop:'1px solid rgba(191,122,245,0.09)',flexShrink:0}}>
+      <div style={{height:44,borderRadius:22,background:'rgba(255,255,255,0.88)',border:'1px solid rgba(191,122,245,0.18)',display:'flex',alignItems:'center',padding:'0 16px',gap:8,boxShadow:'0 2px 10px rgba(191,122,245,0.09)'}}>
+        <div style={{width:6,height:6,borderRadius:3,background:CS.grad,flexShrink:0}}/>
+        <span style={{fontSize:13,color:T.t,flex:1}}>写一句给 TA，不要求秒回</span>
+        <div style={{width:28,height:28,borderRadius:14,background:CS.grad,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+    </div>
+    <HomeInd/>
+  </Phone>
+);
+
+/* ================================================================
+   02B: 情侣空间总览 · Hero 渐变头部
+================================================================ */
+const OverviewB = () => (
+  <div style={{width:390,height:844,fontFamily:ff,display:'flex',flexDirection:'column',overflow:'hidden',background:CS.pageBg}}>
+    {/* Gradient hero */}
+    <div style={{background:CS.grad,flexShrink:0,paddingBottom:24}}>
+      <SB dark/>
+      <div style={{display:'flex',alignItems:'center',padding:'0 16px',marginBottom:18}}>
+        <div style={{width:44,fontSize:22,color:'rgba(255,255,255,0.45)'}}>‹</div>
+        <div style={{flex:1,textAlign:'center',fontSize:17,fontWeight:500,color:'white'}}>情侣空间</div>
+        <div style={{width:44,textAlign:'right',color:'rgba(255,255,255,0.45)',fontSize:20}}>⋯</div>
+      </div>
+      {/* Couple */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+        <div style={{display:'flex',alignItems:'center',gap:-8}}>
+          <div style={{width:56,height:56,borderRadius:28,background:'#ffb3cc',border:'3px solid rgba(255,255,255,0.55)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,zIndex:2}}>🧑‍🦱</div>
+          <div style={{width:30,height:30,borderRadius:15,background:'rgba(255,255,255,0.9)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,zIndex:3,margin:'0 -9px',boxShadow:'0 2px 8px rgba(0,0,0,0.1)'}}>💕</div>
+          <div style={{width:56,height:56,borderRadius:28,background:'#a8c8f0',border:'3px solid rgba(255,255,255,0.55)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,zIndex:2}}>👦</div>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <div style={{fontSize:16,fontWeight:500,color:'white'}}>晶晶 & 小明</div>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.6)',marginTop:2}}>在一起 <span style={{fontWeight:700,color:'white'}}>102</span> 天</div>
+        </div>
+      </div>
+    </div>
+
+    {/* Feature tiles */}
+    <div style={{padding:'14px 16px 0',flexShrink:0}}>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+        {[
+          {e:'📝',l:'便利贴',sub:'今天1条新记录',dot:true},
+          {e:'🤗',l:'今日关怀',sub:'精力较好，适合出去'},
+          {e:'📍',l:'纪念日',sub:'200天 · 还差98天'},
+          {e:'📊',l:'关系档案',sub:'亲密度 Lv.8'},
+        ].map((item,i)=>(
+          <GCard key={i} style={{padding:'12px',position:'relative'}}>
+            {item.dot && <div style={{position:'absolute',top:10,right:12,width:8,height:8,borderRadius:4,background:CS.pk,boxShadow:`0 0 0 2px ${CS.pks}`}}/>}
+            <div style={{fontSize:22,marginBottom:6}}>{item.e}</div>
+            <div style={{fontSize:13,fontWeight:500,color:T.p}}>{item.l}</div>
+            <div style={{fontSize:11,color:T.t,marginTop:2,lineHeight:1.4}}>{item.sub}</div>
+          </GCard>
+        ))}
+      </div>
+    </div>
+
+    {/* Recent */}
+    <div style={{padding:'10px 16px',flex:1,overflow:'hidden'}}>
+      <GCard style={{padding:'14px'}}>
+        <div style={{fontSize:13,fontWeight:500,color:T.p,marginBottom:10}}>最近动态</div>
+        {[
+          {from:'小明',bg:'#a8c8f0',text:'在开会，想到你了 ☕',time:'14:22',reactions:[{e:'🤗',active:true}]},
+          {from:'晶晶',bg:'#ffb3cc',text:'今天是我们的第102天 🩷',time:'09:20',reactions:[{e:'❤️',active:true},{e:'😘'}]},
+        ].map((item,i)=>(
+          <div key={i} style={{display:'flex',gap:8,paddingBottom:i===0?10:0,borderBottom:i===0?`1px solid rgba(0,0,0,0.04)`:'none',marginBottom:i===0?10:0}}>
+            <div style={{width:32,height:32,borderRadius:16,background:item.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,flexShrink:0}}>{item.from==='小明'?'👦':'🧑‍🦱'}</div>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
+                <span style={{fontSize:13,fontWeight:500,color:T.p}}>{item.from}</span>
+                <span style={{fontSize:11,color:T.t}}>{item.time}</span>
+              </div>
+              <div style={{fontSize:13,color:T.s,marginBottom:6}}>{item.text}</div>
+              <div style={{display:'flex',gap:5}}>{item.reactions.map((r,j)=>(<RChip key={j} emoji={r.e} active={r.active}/>))}</div>
+            </div>
+          </div>
+        ))}
+      </GCard>
+    </div>
+
+    <div style={{padding:'10px 16px 14px',flexShrink:0}}>
+      <GradBtn label="写一句给 TA" icon="✏️"/>
+    </div>
+    <HomeInd/>
+  </div>
+);
+
+/* ================================================================
+   03: 记录流 · 轻卡片 + 轻互动
+================================================================ */
+const RecordFeed = () => (
+  <Phone bg={CS.pageBg}>
+    <Nav title="便利贴" sub="晶晶 & 小明 · 127条"/>
+    <div style={{flex:1,padding:'10px 16px',overflow:'hidden',display:'flex',flexDirection:'column',gap:10}}>
+      <div style={{display:'flex',alignItems:'center',gap:8}}>
+        <div style={{height:1,flex:1,background:'rgba(191,122,245,0.14)'}}/>
+        <span style={{fontSize:11,color:T.t}}>今天</span>
+        <div style={{height:1,flex:1,background:'rgba(191,122,245,0.14)'}}/>
+      </div>
+
+      {/* Note card */}
+      <GCard style={{padding:'12px 14px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+          <div style={{width:32,height:32,borderRadius:16,background:'#a8c8f0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,flexShrink:0}}>👦</div>
+          <span style={{fontSize:13,fontWeight:500,color:T.p}}>小明</span>
+          <div style={{background:CS.pps,borderRadius:6,padding:'1px 6px'}}>
+            <span style={{fontSize:10,color:CS.pp}}>他</span>
+          </div>
+          <span style={{fontSize:11,color:T.t,marginLeft:'auto'}}>14:22</span>
+        </div>
+        <div style={{fontSize:14,color:T.p,lineHeight:1.65,marginBottom:10}}>在开会，想到你了 ☕ 下班一起吃饭吗？</div>
+        <div style={{display:'flex',gap:6}}>
+          <RChip emoji="🤗" label="抱抱" count="1" active={true}/>
+          <RChip emoji="🫂" label="我在"/>
+          <RChip emoji="❤️" label="比心"/>
+          <RChip emoji="😘" label="已看到"/>
+        </div>
+      </GCard>
+
+      {/* Photo card */}
+      <GCard style={{padding:'12px 14px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+          <div style={{width:32,height:32,borderRadius:16,background:'#ffb3cc',display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,flexShrink:0}}>🧑‍🦱</div>
+          <span style={{fontSize:13,fontWeight:500,color:T.p}}>晶晶</span>
+          <div style={{background:CS.pks,borderRadius:6,padding:'1px 6px'}}>
+            <span style={{fontSize:10,color:CS.pk}}>我</span>
+          </div>
+          <div style={{marginLeft:'auto',background:CS.pps,borderRadius:10,padding:'2px 7px'}}>
+            <span style={{fontSize:10,color:CS.pp}}>不需要回复</span>
+          </div>
+          <span style={{fontSize:11,color:T.t,marginLeft:6}}>12:05</span>
+        </div>
+        <div style={{borderRadius:10,overflow:'hidden',marginBottom:10}}>
+          <div style={{height:120,background:'linear-gradient(135deg,#fde0ec,#e8d0f8)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="rgba(255,255,255,0.5)" stroke="none"/><path d="M21 15l-5-5L5 21"/></svg>
+          </div>
+        </div>
+        <div style={{fontSize:12,color:T.t,marginBottom:8}}>拍立得 · 今天的午饭 🍜</div>
+        <div style={{display:'flex',gap:6}}>
+          <RChip emoji="🤗" label="抱抱" count="2" active={true}/>
+          <RChip emoji="😂" label="哈哈哈"/>
+          <RChip emoji="❤️" label="比心"/>
+        </div>
+      </GCard>
+
+      {/* Note card 2 */}
+      <GCard style={{padding:'12px 14px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+          <div style={{width:32,height:32,borderRadius:16,background:'#ffb3cc',display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,flexShrink:0}}>🧑‍🦱</div>
+          <span style={{fontSize:13,fontWeight:500,color:T.p}}>晶晶</span>
+          <div style={{background:CS.pks,borderRadius:6,padding:'1px 6px'}}>
+            <span style={{fontSize:10,color:CS.pk}}>我</span>
+          </div>
+          <span style={{fontSize:11,color:T.t,marginLeft:'auto'}}>09:20</span>
+        </div>
+        <div style={{fontSize:14,color:T.p,lineHeight:1.65,marginBottom:10}}>今天是我们在一起的第 102 天，谢谢你一直在 🩷</div>
+        <div style={{display:'flex',gap:6}}>
+          <RChip emoji="🤗" label="抱抱"/>
+          <RChip emoji="❤️" label="比心" count="1" active={true}/>
+          <RChip emoji="😘" label="已看到"/>
+        </div>
+      </GCard>
+    </div>
+
+    <div style={{padding:'10px 16px 14px',background:'rgba(255,255,255,0.55)',borderTop:'1px solid rgba(191,122,245,0.1)',flexShrink:0,display:'flex',gap:8,alignItems:'center'}}>
+      <div style={{flex:1,height:40,borderRadius:20,background:'rgba(255,255,255,0.88)',border:'1px solid rgba(191,122,245,0.14)',display:'flex',alignItems:'center',padding:'0 14px'}}>
+        <span style={{fontSize:13,color:T.t}}>随手留下点什么…</span>
+      </div>
+      {['📷','🔗'].map((e,i)=>(<div key={i} style={{width:36,height:36,borderRadius:18,background:'rgba(0,0,0,0.05)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16}}>{e}</div>))}
+    </div>
+    <HomeInd/>
+  </Phone>
+);
+
+/* ================================================================
+   04: 轻发布器 · 底部半屏 + 元信息减压设计
+================================================================ */
+const Publisher = () => {
+  const [type, setType] = React.useState(0);
+  const [meta, setMeta] = React.useState(0);
+  const types = [{e:'📝',l:'爱的便利贴'},{e:'📷',l:'拍立得'},{e:'🔗',l:'分享时刻'}];
+  const metas = ['不需要回复','有空再看','收到抱抱就好'];
+  return (
+    <div style={{width:390,height:844,fontFamily:ff,display:'flex',flexDirection:'column',overflow:'hidden',background:CS.pageBg}}>
+      {/* Dimmed BG hint */}
+      <SB/>
+      <div style={{flex:1,opacity:0.35,padding:'10px 16px',display:'flex',flexDirection:'column',gap:10,pointerEvents:'none'}}>
+        <div style={{height:44,background:'rgba(255,255,255,0.7)',borderRadius:22,display:'flex',alignItems:'center',padding:'0 16px'}}>
+          <span style={{fontSize:13,color:T.t}}>写一句给 TA...</span>
+        </div>
+        <div style={{height:80,background:'rgba(255,255,255,0.7)',borderRadius:16}}/>
+        <div style={{height:60,background:'rgba(255,255,255,0.7)',borderRadius:16}}/>
+      </div>
+
+      {/* Bottom sheet */}
+      <div style={{background:'rgba(255,255,255,0.97)',borderRadius:'20px 20px 0 0',boxShadow:'0 -4px 30px rgba(191,122,245,0.14)',display:'flex',flexDirection:'column',overflow:'hidden',flexShrink:0}}>
+        <div style={{height:20,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{width:36,height:4,borderRadius:2,background:'rgba(0,0,0,0.12)'}}/>
+        </div>
+
+        {/* Type selector */}
+        <div style={{display:'flex',padding:'0 16px',gap:8,marginBottom:14}}>
+          {types.map((tab,i)=>(
+            <div key={i} onClick={()=>setType(i)} style={{
+              flex:1,height:48,borderRadius:12,cursor:'pointer',
+              background: type===i ? CS.gradSoft : 'rgba(0,0,0,0.04)',
+              border:`1px solid ${type===i?'rgba(191,122,245,0.22)':'transparent'}`,
+              display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2,
+            }}>
+              <span style={{fontSize:17}}>{tab.e}</span>
+              <span style={{fontSize:10,color:type===i?CS.pp:T.t,fontWeight:type===i?500:400}}>{tab.l}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div style={{padding:'0 16px 12px'}}>
+          <div style={{background:'rgba(0,0,0,0.02)',borderRadius:14,padding:'14px',border:'1px solid rgba(191,122,245,0.1)',minHeight:90}}>
+            <span style={{fontSize:14,color:'rgba(0,0,0,0.25)',lineHeight:1.7}}>说点什么，就算不知道说什么，也可以只发一个字…</span>
+          </div>
+        </div>
+
+        {/* ★ 元信息减压选项 ★ */}
+        <div style={{padding:'0 16px 12px'}}>
+          <div style={{fontSize:12,color:T.t,marginBottom:8}}>告诉 TA 怎么回应你</div>
+          <div style={{display:'flex',gap:8}}>
+            {metas.map((opt,i)=>(
+              <div key={i} onClick={()=>setMeta(i)} style={{
+                height:32,borderRadius:16,padding:'0 12px',
+                display:'flex',alignItems:'center',gap:5,cursor:'pointer',
+                background: meta===i ? CS.gradSoft : 'rgba(0,0,0,0.04)',
+                border:`1px solid ${meta===i?'rgba(191,122,245,0.22)':'rgba(0,0,0,0.06)'}`,
+              }}>
+                {meta===i && <div style={{width:5,height:5,borderRadius:3,background:CS.grad}}/>}
+                <span style={{fontSize:12,color:meta===i?CS.pp:T.s,fontWeight:meta===i?500:400}}>{opt}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Privacy + send */}
+        <div style={{padding:'4px 16px 16px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={CS.pp} strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <span style={{fontSize:11,color:CS.pp}}>仅对方可见</span>
+            <div style={{width:1,height:12,background:T.line}}/>
+            <span style={{fontSize:11,color:T.t}}>确认后推送给小明</span>
+          </div>
+          <GradBtn label="贴上去 💕"/>
+        </div>
+        <HomeInd/>
+      </div>
+    </div>
+  );
+};
+
+/* ================================================================
+   05: 解绑与数据处理
+================================================================ */
+const Unbind = () => {
+  const [sel, setSel] = React.useState(0);
+  const opts = [
+    {icon:'📦',title:'归档这段关系',desc:'内容保留，对方不可再查看。你随时可以自己回看。',recommend:true},
+    {icon:'🔒',title:'删除对方查看权限',desc:'对方立刻失去访问，记录仍在你的空间里保留。'},
+    {icon:'🗑️',title:'彻底清空全部记录',desc:'双方所有便利贴、照片将被永久删除，无法恢复。',danger:true},
+  ];
+  return (
+    <Phone bg={T.bg}>
+      <div style={{height:44,background:T.sur,flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:`1px solid ${T.line}`}}>
+        <div style={{width:44,fontSize:22,color:T.s}}>‹</div>
+        <div style={{flex:1,textAlign:'center',fontSize:17,fontWeight:500,color:T.p}}>解除绑定</div>
+        <div style={{width:44}}/>
+      </div>
+
+      <div style={{flex:1,padding:'16px',overflow:'hidden',display:'flex',flexDirection:'column',gap:12}}>
+        {/* Health data - immediate, no choice */}
+        <div style={{background:T.sur,borderRadius:14,overflow:'hidden',boxShadow:'0 2px 10px rgba(0,0,0,0.05)'}}>
+          <div style={{background:'rgba(255,77,77,0.05)',padding:'12px 14px',borderBottom:'1px solid rgba(255,77,77,0.1)',display:'flex',alignItems:'center',gap:8}}>
+            <div style={{width:6,height:6,borderRadius:3,background:'#ff4d4d',flexShrink:0}}/>
+            <span style={{fontSize:14,fontWeight:500,color:T.p}}>健康数据</span>
+            <div style={{marginLeft:'auto',background:'rgba(255,77,77,0.1)',borderRadius:10,padding:'2px 8px'}}>
+              <span style={{fontSize:11,color:'#ff4d4d'}}>立即生效</span>
+            </div>
+          </div>
+          <div style={{padding:'12px 14px',fontSize:13,color:T.s,lineHeight:1.75}}>
+            解绑后，对方将<span style={{color:'#ff4d4d',fontWeight:500}}>立即停止</span>接收你的经期、症状、体重等所有健康信息，且不可恢复。
+          </div>
+        </div>
+
+        {/* Couple content - 3 layered choices */}
+        <div style={{background:T.sur,borderRadius:14,overflow:'hidden',boxShadow:'0 2px 10px rgba(0,0,0,0.05)'}}>
+          <div style={{padding:'12px 14px',borderBottom:`1px solid ${T.line}`,display:'flex',alignItems:'center',gap:8}}>
+            <div style={{width:6,height:6,borderRadius:3,background:CS.pp,flexShrink:0}}/>
+            <span style={{fontSize:14,fontWeight:500,color:T.p}}>情侣空间内容</span>
+            <span style={{fontSize:12,color:T.t,marginLeft:'auto'}}>选择处理方式</span>
+          </div>
+          <div style={{padding:'10px 14px',display:'flex',flexDirection:'column',gap:8}}>
+            {opts.map((opt,i)=>(
+              <div key={i} onClick={()=>setSel(i)} style={{
+                borderRadius:12,padding:'12px 14px',cursor:'pointer',
+                background: sel===i ? (opt.danger?'rgba(255,77,77,0.05)':CS.gradSoft) : (opt.danger?'rgba(255,77,77,0.02)':'rgba(0,0,0,0.02)'),
+                border:`1.5px solid ${sel===i?(opt.danger?'rgba(255,77,77,0.3)':'rgba(191,122,245,0.3)'):(opt.danger?'rgba(255,77,77,0.1)':'rgba(0,0,0,0.06)')}`,
+                position:'relative',
+              }}>
+                {opt.recommend && (
+                  <div style={{position:'absolute',top:-1,right:12,background:CS.grad,borderRadius:'0 0 6px 6px',padding:'2px 8px'}}>
+                    <span style={{fontSize:9,color:'white',fontWeight:600}}>推荐</span>
+                  </div>
+                )}
+                <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
+                  <div style={{width:34,height:34,borderRadius:10,background:opt.danger?'rgba(255,77,77,0.08)':CS.gradSoft,display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,flexShrink:0,marginTop:1}}>{opt.icon}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:14,fontWeight:500,color:opt.danger?'#ff4d4d':T.p,marginBottom:3}}>{opt.title}</div>
+                    <div style={{fontSize:12,color:T.t,lineHeight:1.55}}>{opt.desc}</div>
+                  </div>
+                  <div style={{width:18,height:18,borderRadius:9,border:`2px solid ${sel===i?(opt.danger?'#ff4d4d':CS.pp):'rgba(0,0,0,0.14)'}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:7}}>
+                    {sel===i && <div style={{width:8,height:8,borderRadius:4,background:opt.danger?'#ff4d4d':CS.pp}}/>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{padding:'10px 16px 14px',background:T.sur,borderTop:`1px solid ${T.line}`,flexShrink:0}}>
+        <div style={{height:48,borderRadius:24,background:'#ff4d4d',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 14px rgba(255,77,77,0.28)'}}>
+          <span style={{fontSize:15,color:'white',fontWeight:500}}>确认解除绑定</span>
+        </div>
+        <div style={{textAlign:'center',marginTop:9,fontSize:12,color:T.t}}>操作无法撤销，请谨慎确认</div>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ================================================================
+   06A: 男友版行动页 · 三行动建议
+================================================================ */
+const BoyActionA = () => (
+  <Phone bg="linear-gradient(160deg,#f0f4ff 0%,#f8f0ff 100%)">
+    <div style={{height:44,flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1px solid rgba(191,122,245,0.1)'}}>
+      <div style={{width:44,fontSize:22,color:'rgba(79,124,174,0.5)'}}>‹</div>
+      <div style={{flex:1,textAlign:'center'}}>
+        <div style={{fontSize:17,fontWeight:500,color:T.p}}>今天，你可以这样做</div>
+        <div style={{fontSize:11,color:T.t,marginTop:1}}>根据晶晶今天的状态</div>
+      </div>
+      <div style={{width:44}}/>
+    </div>
+
+    <div style={{flex:1,padding:'10px 16px',overflow:'hidden',display:'flex',flexDirection:'column',gap:10}}>
+      {/* State insight */}
+      <GCard style={{padding:'14px',background:'rgba(255,255,255,0.92)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div style={{width:44,height:44,borderRadius:22,background:'#ffb3cc',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>🧑‍🦱</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:500,color:T.p,marginBottom:2}}>她今天精力较好</div>
+            <div style={{fontSize:12,color:T.t}}>经期第 14 天 · 安全期 · 状态稳定</div>
+          </div>
+          <div style={{background:'rgba(0,204,153,0.1)',borderRadius:20,padding:'4px 10px',display:'flex',alignItems:'center',gap:4}}>
+            <div style={{width:5,height:5,borderRadius:3,background:T.grn}}/>
+            <span style={{fontSize:11,color:T.grn}}>状态好</span>
+          </div>
+        </div>
+      </GCard>
+
+      <div style={{fontSize:12,color:T.t,paddingLeft:2}}>建议做这些</div>
+
+      {/* Action cards */}
+      {[
+        {e:'💬',title:'回应昨晚那条便利贴',sub:'"今天好累" · 还没有回应',cta:'去回应',c:CS.pp},
+        {e:'🍜',title:'今晚提议一起吃饭',sub:'状态好的时候适合约出去',cta:'发便利贴',c:CS.pk},
+        {e:'🤗',title:'先送一个抱抱',sub:'低成本，但她会记住',cta:'发抱抱',c:'#60a8f0'},
+      ].map((a,i)=>(
+        <GCard key={i} style={{padding:'12px 14px',background:'rgba(255,255,255,0.92)'}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div style={{width:40,height:40,borderRadius:12,background:a.c+'18',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{a.e}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:13,fontWeight:500,color:T.p,marginBottom:2}}>{a.title}</div>
+              <div style={{fontSize:11,color:T.t}}>{a.sub}</div>
+            </div>
+            <div style={{height:32,borderRadius:16,background:a.c,padding:'0 12px',display:'flex',alignItems:'center',flexShrink:0,boxShadow:`0 2px 8px ${a.c}44`}}>
+              <span style={{fontSize:12,color:'white',fontWeight:500}}>{a.cta}</span>
+            </div>
+          </div>
+        </GCard>
+      ))}
+
+      {/* Quick reactions */}
+      <GCard style={{padding:'14px',background:'rgba(255,255,255,0.88)'}}>
+        <div style={{fontSize:13,fontWeight:500,color:T.p,marginBottom:10}}>或者发一个轻回应</div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          {[{e:'🤗',l:'抱抱你'},{e:'💪',l:'辛苦啦'},{e:'🫂',l:'我在呢'},{e:'🌙',l:'早点休息'}].map((r,i)=>(
+            <div key={i} style={{
+              height:40,borderRadius:10,
+              background:i===0?CS.gradSoft:'rgba(0,0,0,0.03)',
+              border:`1px solid ${i===0?'rgba(191,122,245,0.2)':'rgba(0,0,0,0.06)'}`,
+              display:'flex',alignItems:'center',justifyContent:'center',gap:6,
+            }}>
+              <span style={{fontSize:16}}>{r.e}</span>
+              <span style={{fontSize:12,color:i===0?CS.pp:T.s}}>{r.l}</span>
+            </div>
+          ))}
+        </div>
+      </GCard>
+    </div>
+    <HomeInd/>
+  </Phone>
+);
+
+/* ================================================================
+   06B: 男友版 · 看最新便利贴 + 即时回应
+================================================================ */
+const BoyActionB = () => (
+  <Phone bg={CS.pageBg}>
+    <Nav title="情侣空间" sub="小明的视角"/>
+
+    <div style={{flex:1,padding:'10px 16px',overflow:'hidden',display:'flex',flexDirection:'column',gap:10}}>
+      {/* Status strip */}
+      <GCard style={{padding:'10px 14px'}}>
+        <div style={{display:'flex',gap:0}}>
+          {[{label:'今日状态',val:'良好',vc:T.grn},{label:'周期第',val:'14天',vc:CS.pk},{label:'距经期',val:'14天',vc:CS.pp}].map((s,i)=>(
+            <div key={i} style={{flex:1,textAlign:'center',borderRight:i<2?`1px solid ${T.line}`:'none'}}>
+              <div style={{fontSize:11,color:T.t,marginBottom:2}}>{s.label}</div>
+              <div style={{fontSize:15,fontWeight:600,color:s.vc}}>{s.val}</div>
+            </div>
+          ))}
+        </div>
+      </GCard>
+
+      {/* Her latest note - FEATURED */}
+      <GCard style={{padding:'14px',background:'rgba(255,255,255,0.94)',border:'1px solid rgba(191,122,245,0.18)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+          <div style={{width:6,height:6,borderRadius:3,background:CS.grad,flexShrink:0}}/>
+          <span style={{fontSize:13,fontWeight:500,color:T.p}}>她刚刚贴了</span>
+          <span style={{fontSize:11,color:T.t,marginLeft:'auto'}}>今天 09:20</span>
+        </div>
+        <div style={{background:'linear-gradient(135deg,rgba(191,122,245,0.06),rgba(255,114,170,0.06))',borderRadius:12,padding:'14px',border:'1px solid rgba(191,122,245,0.08)',marginBottom:12}}>
+          <div style={{display:'flex',gap:8}}>
+            <div style={{width:32,height:32,borderRadius:16,background:'#ffb3cc',display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,flexShrink:0}}>🧑‍🦱</div>
+            <div style={{fontSize:14,color:T.p,lineHeight:1.65}}>今天是我们在一起的第 102 天，谢谢你一直在 🩷</div>
+          </div>
+        </div>
+        <div style={{fontSize:12,color:T.t,marginBottom:8}}>你可以这样回应</div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          {[{e:'🤗',l:'抱抱'},{e:'❤️',l:'比心'},{e:'😘',l:'已看到'},{e:'🫂',l:'我在'}].map((r,i)=>(
+            <RChip key={i} emoji={r.e} label={r.l} active={i===0}/>
+          ))}
+        </div>
+      </GCard>
+
+      {/* Or write something */}
+      <GCard style={{padding:'14px',background:'rgba(255,255,255,0.86)'}}>
+        <div style={{fontSize:13,fontWeight:500,color:T.p,marginBottom:8}}>也可以写一句给她</div>
+        <div style={{height:44,borderRadius:22,background:CS.gradSoft,border:'1px solid rgba(191,122,245,0.14)',display:'flex',alignItems:'center',padding:'0 16px',gap:8}}>
+          <span style={{fontSize:13,color:T.t,flex:1}}>你想说什么…</span>
+          <div style={{width:28,height:28,borderRadius:14,background:CS.grad,display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </GCard>
+
+      {/* Today's suggestions compact */}
+      <GCard style={{padding:'12px 14px',background:'rgba(255,255,255,0.82)'}}>
+        <div style={{fontSize:12,color:T.t,marginBottom:8}}>今天还可以做的事</div>
+        {['今晚约她一起吃饭 🍜','问问她今天好不好 💬','送一个抱抱 🤗'].map((a,i)=>(
+          <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 0',borderTop:i>0?`1px solid rgba(0,0,0,0.04)`:'none'}}>
+            <div style={{width:4,height:4,borderRadius:2,background:CS.pp,flexShrink:0}}/>
+            <span style={{fontSize:13,color:T.p,flex:1}}>{a}</span>
+            <span style={{fontSize:12,color:CS.pp}}>›</span>
+          </div>
+        ))}
+      </GCard>
+    </div>
+    <HomeInd/>
+  </Phone>
+);
+
+/* ================================================================
+   MAIN
+================================================================ */
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+const App = () => (
+  <DesignCanvas>
+    <DCSection id="s1" title="① 首页轻入口" subtitle="如何在主流程中自然、克制地曝光情侣空间">
+      <DCArtboard id="ha" label="A · 胶囊通知条" width={390} height={844}><HomeA/></DCArtboard>
+      <DCArtboard id="hb" label="B · 内嵌 mini 卡片" width={390} height={844}><HomeB/></DCArtboard>
+    </DCSection>
+
+    <DCSection id="s2" title="② 情侣空间总览" subtitle="进入空间后的主承接页 — 今日入口 / 关怀 / 便利贴 / 纪念日">
+      <DCArtboard id="oa" label="A · 分模块布局" width={390} height={844}><OverviewA/></DCArtboard>
+      <DCArtboard id="ob" label="B · Hero 渐变头部" width={390} height={844}><OverviewB/></DCArtboard>
+    </DCSection>
+
+    <DCSection id="s3" title="③ 记录流" subtitle="便利贴 · 拍立得 · 分享时刻混合 + 轻互动（抱抱/我在/比心/已看到）">
+      <DCArtboard id="rf" label="轻卡片 Feed" width={390} height={844}><RecordFeed/></DCArtboard>
+    </DCSection>
+
+    <DCSection id="s4" title="④ 轻发布器" subtitle="不逼创作 · 元信息减压设计（不需要回复 / 有空再看 / 收到抱抱就好）">
+      <DCArtboard id="pub" label="底部半屏发布器" width={390} height={844}><Publisher/></DCArtboard>
+    </DCSection>
+
+    <DCSection id="s5" title="⑤ 解绑与数据处理" subtitle="健康数据立即停止 · 情侣内容三选项（归档 / 删除权限 / 清空）">
+      <DCArtboard id="ub" label="解绑页" width={390} height={844}><Unbind/></DCArtboard>
+    </DCSection>
+
+    <DCSection id="s6" title="⑥ 男友版行动页" subtitle="把状态翻译成立即可执行的行动 — 最有美柚差异化的部分">
+      <DCArtboard id="ba" label="A · 三行动建议卡" width={390} height={844}><BoyActionA/></DCArtboard>
+      <DCArtboard id="bb" label="B · 看最新便利贴 + 即时回应" width={390} height={844}><BoyActionB/></DCArtboard>
+    </DCSection>
+  </DesignCanvas>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

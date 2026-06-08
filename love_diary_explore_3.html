@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>恋爱日记探索 Vol.3 · 美柚</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html,body,#root{height:100%;}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const ff = '"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif';
+const T = { brand:'#ff4d88', bsoft:'rgba(255,77,136,0.08)', bg:'#f2f2f5', sur:'#fff', p:'#323232', s:'#666', t:'#999', line:'rgba(0,0,0,0.08)', blue:'#4f7cae', grn:'#00cc99' };
+
+const Phone = ({children, bg=T.bg, statusBg=T.sur, dark=false}) => {
+  const sc = dark ? 'rgba(255,255,255,0.88)' : T.p;
+  return (
+    <div style={{width:390,height:844,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',fontFamily:ff}}>
+      <div style={{height:48,background:statusBg,flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between',padding:'0 20px 8px'}}>
+        <span style={{fontSize:15,fontWeight:600,color:sc}}>9:41</span>
+        <div style={{display:'flex',gap:5,alignItems:'center'}}>
+          <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="5" width="3" height="6" rx="0.8" fill={sc} opacity="0.35"/><rect x="4.5" y="3" width="3" height="8" rx="0.8" fill={sc} opacity="0.6"/><rect x="9" y="1" width="3" height="10" rx="0.8" fill={sc} opacity="0.82"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" fill={sc}/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke={sc} strokeOpacity="0.35"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill={sc}/></svg>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+};
+
+const LNav = ({title, sub}) => (
+  <div style={{height:44,background:T.sur,flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:`1px solid ${T.line}`}}>
+    <div style={{width:44,fontSize:22,color:T.brand}}>‹</div>
+    <div style={{flex:1,textAlign:'center'}}>
+      <div style={{fontSize:17,fontWeight:500,color:T.p}}>{title}</div>
+      {sub && <div style={{fontSize:11,color:T.t,marginTop:1}}>{sub}</div>}
+    </div>
+    <div style={{width:44,textAlign:'right',fontSize:20,color:T.s}}>⋯</div>
+  </div>
+);
+
+const DNav = ({title, sub}) => (
+  <div style={{height:44,background:'transparent',flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1px solid rgba(255,255,255,0.07)'}}>
+    <div style={{width:44,fontSize:22,color:'rgba(255,255,255,0.45)'}}>‹</div>
+    <div style={{flex:1,textAlign:'center'}}>
+      <div style={{fontSize:17,fontWeight:500,color:'rgba(255,255,255,0.92)'}}>{title}</div>
+      {sub && <div style={{fontSize:11,color:'rgba(255,255,255,0.38)',marginTop:1}}>{sub}</div>}
+    </div>
+    <div style={{width:44,textAlign:'right',color:'rgba(255,255,255,0.45)',fontSize:20}}>⋯</div>
+  </div>
+);
+
+const HomeInd = ({dark=false}) => (
+  <div style={{height:34,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+    <div style={{width:134,height:5,borderRadius:3,background:dark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.18)'}}/>
+  </div>
+);
+
+const Btn = ({label, icon, dark=false}) => (
+  <div style={{height:44,borderRadius:22,background: dark?'rgba(255,255,255,0.1)':T.brand,display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow: dark?'none':'0 4px 16px rgba(255,77,136,0.32)'}}>
+    {icon && <span style={{fontSize:16,color:'white'}}>{icon}</span>}
+    <span style={{fontSize:15,color:'white',fontWeight:500}}>{label}</span>
+  </div>
+);
+
+/* ============================================================
+   A: 电影胶片
+============================================================ */
+const FilmStrip = () => (
+  <Phone bg="#0e0c08" statusBg="#0e0c08" dark>
+    <DNav title="胶片时光机" sub="第 038 帧 · 共 127 帧"/>
+    <div style={{flex:1,position:'relative',overflow:'hidden',display:'flex',flexDirection:'column',justifyContent:'center'}}>
+      {/* Sprocket top */}
+      <div style={{position:'absolute',top:0,left:0,right:0,height:34,background:'#1c1912',display:'flex',alignItems:'center',padding:'0 8px',gap:0,zIndex:2}}>
+        {Array.from({length:17}).map((_,i)=>(<div key={i} style={{width:14,height:10,borderRadius:2,background:'#080806',margin:'0 4.5px',flexShrink:0}}/>))}
+      </div>
+      {/* Sprocket bottom */}
+      <div style={{position:'absolute',bottom:0,left:0,right:0,height:34,background:'#1c1912',display:'flex',alignItems:'center',padding:'0 8px',gap:0,zIndex:2}}>
+        {Array.from({length:17}).map((_,i)=>(<div key={i} style={{width:14,height:10,borderRadius:2,background:'#080806',margin:'0 4.5px',flexShrink:0}}/>))}
+      </div>
+      {/* Frames row */}
+      <div style={{display:'flex',alignItems:'center',gap:8,padding:'0 8px'}}>
+        {/* Left dim */}
+        <div style={{width:78,height:106,background:'#1a1814',borderRadius:2,flexShrink:0,opacity:0.5,overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#2a2030,#18202a)'}}/>
+        </div>
+        {/* Main frame */}
+        <div style={{flex:1,height:264,background:'#1a1814',borderRadius:2,overflow:'hidden',boxShadow:'0 0 50px rgba(255,77,136,0.18)',position:'relative'}}>
+          <div style={{height:205,background:'linear-gradient(135deg,#f5cede 0%,#dcc8f0 100%)',display:'flex',alignItems:'center',justifyContent:'center',position:'relative'}}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="rgba(255,255,255,0.35)" stroke="none"/><path d="M21 15l-5-5L5 21"/></svg>
+            <div style={{position:'absolute',top:8,left:8,fontSize:10,color:'rgba(255,255,255,0.45)',fontFamily:'monospace'}}>FRAME 038</div>
+          </div>
+          <div style={{background:'#120f0a',padding:'10px 14px',height:59}}>
+            <div style={{fontSize:13,fontWeight:500,color:'rgba(255,255,255,0.88)'}}>第一次牵手</div>
+            <div style={{fontSize:11,color:'rgba(255,255,255,0.38)',marginTop:3}}>2025年11月28日 · 晴天</div>
+          </div>
+        </div>
+        {/* Right dim */}
+        <div style={{width:78,height:106,background:'#1a1814',borderRadius:2,flexShrink:0,opacity:0.5,overflow:'hidden'}}>
+          <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#1a2420,#141820)'}}/>
+        </div>
+      </div>
+      <div style={{position:'absolute',bottom:42,left:0,right:0,textAlign:'center'}}>
+        <span style={{fontSize:11,color:'rgba(255,255,255,0.25)',fontFamily:'monospace',letterSpacing:2}}>◁  038 / 127  ▷</span>
+      </div>
+    </div>
+    <div style={{padding:'12px 16px 14px',background:'#1c1912',borderTop:'1px solid rgba(255,255,255,0.05)',display:'flex',gap:10,flexShrink:0}}>
+      <div style={{width:44,height:44,borderRadius:22,background:'rgba(255,255,255,0.07)',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.5)',fontSize:20}}>‹</div>
+      <div style={{flex:1}}><Btn label="拍一张新胶片"/></div>
+      <div style={{width:44,height:44,borderRadius:22,background:'rgba(255,255,255,0.07)',display:'flex',alignItems:'center',justifyContent:'center',color:'rgba(255,255,255,0.5)',fontSize:20}}>›</div>
+    </div>
+    <HomeInd dark/>
+  </Phone>
+);
+
+/* ============================================================
+   B: 情绪星球
+============================================================ */
+const EmotionPlanets = () => {
+  const planets = [
+    {x:90,  y:160, r:68, label:'幸福', cnt:'38次', g:'radial-gradient(circle at 35% 35%,#ff8ab8,#ff4d88,#cc2060)'},
+    {x:278, y:195, r:50, label:'温暖', cnt:'31次', g:'radial-gradient(circle at 35% 35%,#ffcc80,#ff9500,#e07800)'},
+    {x:155, y:330, r:42, label:'想念', cnt:'27次', g:'radial-gradient(circle at 35% 35%,#90c8ff,#4f7cae,#2a5888)'},
+    {x:315, y:360, r:32, label:'心动', cnt:'18次', g:'radial-gradient(circle at 35% 35%,#d090ff,#9855ee,#6628cc)'},
+    {x:60,  y:370, r:28, label:'依赖', cnt:'14次', g:'radial-gradient(circle at 35% 35%,#80f0cc,#00cc99,#008866)'},
+    {x:220, y:460, r:22, label:'开心', cnt:'11次', g:'radial-gradient(circle at 35% 35%,#ffe080,#ffc800,#e0a000)'},
+  ];
+  return (
+    <Phone bg="#08090f" statusBg="#08090f" dark>
+      <DNav title="情绪星球" sub="共记录 139 次情绪 · 过去30天"/>
+      <div style={{flex:1,position:'relative',overflow:'hidden'}}>
+        {/* Space bg */}
+        <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 70% 50% at 40% 30%,rgba(60,20,100,0.4),transparent 70%)'}}/>
+        {Array.from({length:60}).map((_,i)=>(
+          <div key={i} style={{position:'absolute',left:`${(i*43+7)%96}%`,top:`${(i*61+13)%94}%`,width:1.5,height:1.5,borderRadius:'50%',background:'rgba(255,255,255,0.3)'}}/>
+        ))}
+        {planets.map((p,i)=>(
+          <div key={i} style={{position:'absolute',left:p.x-p.r,top:p.y-p.r,width:p.r*2,height:p.r*2,borderRadius:'50%',
+            background:p.g, boxShadow:`0 0 ${p.r}px ${p.r*0.4}px ${p.g.includes('ff4d88')?'rgba(255,77,136,0.3)':p.g.includes('ff9500')?'rgba(255,149,0,0.25)':p.g.includes('4f7cae')?'rgba(79,124,174,0.25)':p.g.includes('9855ee')?'rgba(152,85,238,0.25)':'rgba(0,204,153,0.2)'}`,
+            display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+          }}>
+            <div style={{fontSize: p.r>50?14:p.r>35?12:11,fontWeight:600,color:'rgba(255,255,255,0.95)'}}>{p.label}</div>
+            <div style={{fontSize: p.r>50?12:10,color:'rgba(255,255,255,0.65)',marginTop:1}}>{p.cnt}</div>
+          </div>
+        ))}
+        <div style={{position:'absolute',bottom:14,left:0,right:0,textAlign:'center',fontSize:12,color:'rgba(255,255,255,0.25)'}}>星球越大代表情绪越频繁</div>
+      </div>
+      <div style={{padding:'12px 16px 14px',background:'#0f1018',borderTop:'1px solid rgba(255,255,255,0.06)',flexShrink:0}}>
+        <Btn label="记录今日情绪" icon="✦"/>
+      </div>
+      <HomeInd dark/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   C: 时光邮箱
+============================================================ */
+const TimeMailbox = () => {
+  const letters = [
+    {to:'写给1年后的我们',from:'晶晶写于2026.6.2',opens:'2027年6月2日打开',status:'sealed',c:'#fff5f8',bc:T.brand},
+    {to:'写给结婚那天的我们',from:'晶晶写于2026.3.7',opens:'待定',status:'sealed',c:'#f5f0ff',bc:'#9855ee'},
+    {to:'写给你的第一封信',from:'小明写于2025.12.25',opens:'已于2026.1.1打开',status:'opened',c:'#f5f9ff',bc:T.blue},
+  ];
+  return (
+    <Phone bg="#f8f5f0">
+      <div style={{height:44,background:'#f0e8d8',flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1.5px solid #d8c8a8'}}>
+        <div style={{width:44,fontSize:22,color:'#6a5040'}}>‹</div>
+        <div style={{flex:1,textAlign:'center',fontSize:17,fontWeight:500,color:'#3a2818'}}>时光邮箱</div>
+        <div style={{width:44,textAlign:'right',fontSize:20,color:'#8a7060'}}>⋯</div>
+      </div>
+      <div style={{flex:1,overflow:'hidden',background:'#f8f5f0',padding:'16px'}}>
+        <div style={{fontSize:12,color:T.t,marginBottom:12,textAlign:'center'}}>写下的信，在约定的时间才能打开</div>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          {letters.map((l,i)=>(
+            <div key={i} style={{background:l.c,borderRadius:12,overflow:'hidden',boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
+              {/* Envelope flap */}
+              <div style={{height:36,background:l.bc,opacity:0.15,position:'relative'}}>
+                <svg style={{position:'absolute',top:0,left:0,width:'100%',height:36}} viewBox="0 0 358 36" preserveAspectRatio="none">
+                  <path d="M0 0 L179 28 L358 0 L358 36 L0 36 Z" fill={l.bc} opacity="0.6"/>
+                </svg>
+                {l.status==='opened' && (
+                  <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:1}}>
+                    <span style={{fontSize:10,color:l.bc,fontWeight:600,opacity:1}}>已开启</span>
+                  </div>
+                )}
+              </div>
+              <div style={{padding:'12px 14px 14px'}}>
+                <div style={{fontSize:15,fontWeight:500,color:T.p,marginBottom:4}}>{l.to}</div>
+                <div style={{fontSize:12,color:T.t,marginBottom:8}}>{l.from}</div>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                  {l.status==='sealed' ? (
+                    <>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={l.bc} strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                      <span style={{fontSize:12,color:l.bc,fontWeight:500}}>{l.opens}</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={T.grn} strokeWidth="2.2" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      <span style={{fontSize:12,color:T.grn}}>{l.opens}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{padding:'10px 16px 14px',background:'#f0e8d8',borderTop:'1.5px solid #d8c8a8',flexShrink:0}}>
+        <Btn label="写一封信给未来" icon="✉️"/>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   D: 情侣地图
+============================================================ */
+const CoupleMap = () => {
+  const pins = [
+    {x:95,  y:145, label:'第一次约会餐厅', mem:'小确幸咖啡馆', hot:true},
+    {x:210, y:120, label:'一起看日落', mem:'外滩3号'},
+    {x:290, y:200, label:'第一次牵手', mem:'南京东路'},
+    {x:145, y:255, label:'生日晚餐', mem:'泰式餐厅'},
+    {x:310, y:330, label:'逛街', mem:'徐家汇'},
+    {x:80,  y:340, label:'看电影', mem:'万达影城'},
+    {x:220, y:390, label:'元旦跨年', mem:'人民广场'},
+  ];
+  return (
+    <Phone bg="#e8e4da">
+      <LNav title="我们去过的地方" sub="共 18 个地点"/>
+      <div style={{flex:1,position:'relative',overflow:'hidden'}}>
+        {/* Map bg */}
+        <div style={{position:'absolute',inset:0,background:'#ede9e0'}}/>
+        {/* City blocks */}
+        {[[20,60,130,80],[180,40,150,70],[20,180,100,60],[160,160,120,80],[300,100,70,90],[20,320,120,70],[180,300,140,60],[350,260,30,120]].map(([x,y,w,h],i)=>(
+          <div key={i} style={{position:'absolute',left:x,top:y,width:w,height:h,background:'#ddd8ca',borderRadius:4}}/>
+        ))}
+        {/* Roads */}
+        <div style={{position:'absolute',top:0,bottom:0,left:160,width:12,background:'#ccc8bc'}}/>
+        <div style={{position:'absolute',left:0,right:0,top:148,height:12,background:'#ccc8bc'}}/>
+        <div style={{position:'absolute',left:0,right:0,top:290,height:8,background:'#ccc8bc'}}/>
+        <div style={{position:'absolute',top:0,bottom:0,left:300,width:8,background:'#ccc8bc'}}/>
+        {/* Green spaces */}
+        <div style={{position:'absolute',left:180,top:200,width:100,height:70,background:'#d4e8c8',borderRadius:8}}/>
+        <div style={{position:'absolute',left:22,top:60,width:50,height:90,background:'#d8ecc8',borderRadius:6}}/>
+        {/* Pins */}
+        {pins.map((pin,i)=>(
+          <div key={i} style={{position:'absolute',left:pin.x-12,top:pin.y-32}}>
+            <div style={{
+              width:24,height:24,borderRadius:'50% 50% 50% 0',
+              background: pin.hot ? T.brand : '#4f7cae',
+              transform:'rotate(-45deg)',
+              boxShadow:`0 2px 8px ${pin.hot?'rgba(255,77,136,0.4)':'rgba(79,124,174,0.35)'}`,
+            }}/>
+            {pin.hot && (
+              <div style={{
+                position:'absolute',top:-44,left:'50%',transform:'translateX(-50%)',
+                background:'white',borderRadius:8,padding:'4px 10px',
+                boxShadow:'0 2px 10px rgba(0,0,0,0.12)',whiteSpace:'nowrap',
+              }}>
+                <div style={{fontSize:11,fontWeight:500,color:T.p}}>{pin.label}</div>
+                <div style={{fontSize:10,color:T.t}}>{pin.mem}</div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {/* Bottom card */}
+      <div style={{background:T.sur,padding:'12px 16px',borderTop:`1px solid ${T.line}`,flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+          <div style={{width:38,height:38,borderRadius:19,background:'#fff0f5',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>📍</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:500,color:T.p}}>小确幸咖啡馆</div>
+            <div style={{fontSize:12,color:T.t}}>第一次约会 · 2025年11月15日</div>
+          </div>
+        </div>
+        <Btn label="记录新地点"/>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   E: 打卡热力图
+============================================================ */
+const ActivityHeatmap = () => {
+  const seed = (n) => (n*1234567+89)%17;
+  const months = ['11月','12月','1月','2月','3月','4月','5月','6月'];
+  const weeks = 34;
+  const data = Array.from({length:weeks}, (_,w) =>
+    Array.from({length:7}, (_,d) => {
+      const s = seed(w*7+d);
+      const recency = w/weeks;
+      return s < (3+recency*8) ? Math.min(4,Math.floor(s/2)+1) : 0;
+    })
+  );
+  const colors = ['#f0f0f0','rgba(255,77,136,0.2)','rgba(255,77,136,0.45)','rgba(255,77,136,0.72)',T.brand];
+  return (
+    <Phone>
+      <LNav title="打卡热力图" sub="2025年11月 — 2026年6月"/>
+      <div style={{flex:1,overflow:'hidden',background:T.bg}}>
+        <div style={{background:T.sur,padding:'16px',marginBottom:8}}>
+          {/* Month labels */}
+          <div style={{display:'flex',marginBottom:6,paddingLeft:14}}>
+            {months.map((m,i)=>(
+              <div key={i} style={{width:`${100/months.length}%`,fontSize:10,color:T.t}}>{m}</div>
+            ))}
+          </div>
+          {/* Grid */}
+          <div style={{display:'flex',gap:3}}>
+            {/* Day labels */}
+            <div style={{display:'flex',flexDirection:'column',gap:3,marginRight:2}}>
+              {['一','','三','','五','','日'].map((d,i)=>(
+                <div key={i} style={{height:10,width:10,fontSize:9,color:T.t,display:'flex',alignItems:'center',justifyContent:'center'}}>{d}</div>
+              ))}
+            </div>
+            {data.map((week,wi)=>(
+              <div key={wi} style={{display:'flex',flexDirection:'column',gap:3}}>
+                {week.map((val,di)=>(
+                  <div key={di} style={{width:9,height:10,borderRadius:2,background:colors[val]}}/>
+                ))}
+              </div>
+            ))}
+          </div>
+          {/* Legend */}
+          <div style={{display:'flex',alignItems:'center',gap:4,marginTop:10,justifyContent:'flex-end'}}>
+            <span style={{fontSize:10,color:T.t}}>少</span>
+            {colors.map((c,i)=>(<div key={i} style={{width:9,height:10,borderRadius:2,background:c}}/>))}
+            <span style={{fontSize:10,color:T.t}}>多</span>
+          </div>
+        </div>
+        {/* Stats */}
+        <div style={{background:T.sur,padding:'14px 16px',marginBottom:8}}>
+          <div style={{fontSize:14,fontWeight:500,color:T.p,marginBottom:10}}>记录统计</div>
+          <div style={{display:'flex',gap:8}}>
+            {[{v:'127',l:'总记录条数'},{v:'23',l:'最长连续天'},{v:'76%',l:'有效打卡率'}].map((s,i)=>(
+              <div key={i} style={{flex:1,background:T.bg,borderRadius:10,padding:'10px',textAlign:'center'}}>
+                <div style={{fontSize:20,fontWeight:700,color:T.brand}}>{s.v}</div>
+                <div style={{fontSize:11,color:T.t,marginTop:2}}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Today prompt */}
+        <div style={{background:T.sur,padding:'14px 16px'}}>
+          <div style={{background:T.bsoft,borderRadius:10,padding:'12px',display:'flex',gap:10,alignItems:'center'}}>
+            <div style={{width:36,height:36,borderRadius:18,background:T.brand,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <div>
+              <div style={{fontSize:13,fontWeight:500,color:T.p}}>今天还没有记录</div>
+              <div style={{fontSize:12,color:T.t,marginTop:1}}>写点什么，让今天有颜色</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   F: 音乐记忆
+============================================================ */
+const MusicMemory = () => (
+  <Phone bg="#0e0a14" statusBg="#0e0a14" dark>
+    <DNav title="音乐记忆" sub="第 12 首 · 共 38 首"/>
+    <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',overflow:'hidden'}}>
+      {/* Vinyl record */}
+      <div style={{marginTop:32,marginBottom:20,flexShrink:0}}>
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle cx="110" cy="110" r="108" fill="#1a1520"/>
+          {[92,76,60,44,28].map((r,i)=>(
+            <circle key={i} cx="110" cy="110" r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="2.5"/>
+          ))}
+          <circle cx="110" cy="110" r="32" fill={T.brand}/>
+          <circle cx="110" cy="110" r="5" fill="rgba(0,0,0,0.4)"/>
+          <text x="110" y="105" textAnchor="middle" fontSize="8.5" fill="rgba(255,255,255,0.9)" fontWeight="600" fontFamily={ff}>美柚 Records</text>
+          <text x="110" y="116" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.65)" fontFamily={ff}>我们的歌</text>
+          <ellipse cx="85" cy="74" rx="22" ry="12" fill="rgba(255,255,255,0.04)" transform="rotate(-30 85 74)"/>
+        </svg>
+      </div>
+      {/* Song info */}
+      <div style={{textAlign:'center',padding:'0 32px',flexShrink:0}}>
+        <div style={{fontSize:20,fontWeight:600,color:'rgba(255,255,255,0.92)',marginBottom:4}}>Wildflower</div>
+        <div style={{fontSize:14,color:'rgba(255,255,255,0.45)',marginBottom:16}}>The Japanese House</div>
+        <div style={{fontSize:13,color:'rgba(255,255,255,0.6)',lineHeight:1.65,background:'rgba(255,255,255,0.05)',borderRadius:12,padding:'12px 16px'}}>
+          第一次约会回家路上，他放了这首歌。窗外下着小雨，我假装没注意其实记了很久。
+        </div>
+      </div>
+      {/* Progress bar */}
+      <div style={{width:'80%',marginTop:20,flexShrink:0}}>
+        <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,0.1)',overflow:'hidden'}}>
+          <div style={{width:'38%',height:'100%',borderRadius:2,background:T.brand}}/>
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+          <span style={{fontSize:11,color:'rgba(255,255,255,0.3)'}}>1:24</span>
+          <span style={{fontSize:11,color:'rgba(255,255,255,0.3)'}}>3:41</span>
+        </div>
+      </div>
+      {/* Controls */}
+      <div style={{display:'flex',alignItems:'center',gap:24,marginTop:16,flexShrink:0}}>
+        {['‹‹','▶','››'].map((c,i)=>(
+          <div key={i} style={{
+            width: i===1?52:36, height: i===1?52:36, borderRadius:'50%',
+            background: i===1?T.brand:'rgba(255,255,255,0.07)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            fontSize: i===1?20:16, color:'rgba(255,255,255,0.8)',
+            boxShadow: i===1?'0 4px 18px rgba(255,77,136,0.4)':'none',
+          }}>{c}</div>
+        ))}
+      </div>
+    </div>
+    <div style={{padding:'12px 16px 14px',background:'rgba(255,255,255,0.04)',borderTop:'1px solid rgba(255,255,255,0.06)',flexShrink:0}}>
+      <Btn label="把这首歌绑定一段记忆"/>
+    </div>
+    <HomeInd dark/>
+  </Phone>
+);
+
+/* ============================================================
+   G: 情侣拼贴
+============================================================ */
+const Scrapbook = () => {
+  const elements = [
+    {type:'photo', left:18,top:30, w:158,h:128, r:-3, bg:'linear-gradient(135deg,#fde0ec,#f0d0f8)', label:'拍立得 · 第一次约会'},
+    {type:'note',  left:174,top:18,w:130,h:80,  r:2.5,bg:'#fffce8', text:'你比我想象的更好笑 🤣'},
+    {type:'ticket',left:188,top:118,w:148,h:58, r:-1.5,bg:'#fff'},
+    {type:'photo', left:24,top:200,w:120,h:140, r:1.5, bg:'linear-gradient(135deg,#d0e8ff,#c8d8f8)'},
+    {type:'stamp', left:164,top:210,w:80,h:80,  r:3},
+    {type:'note',  left:240,top:200,w:118,h:90, r:-2, bg:'#f0fff8', text:'在一起 102 天啦 🩷'},
+    {type:'washi', left:-10,top:160,w:200,h:18, r:-2},
+    {type:'washi', left:200,top:310,w:180,h:14, r:1.5,c:'rgba(180,140,255,0.4)'},
+  ];
+  return (
+    <Phone bg="#f9f5ee">
+      <div style={{height:44,background:'#f0e8d8',flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1.5px solid #d0c0a0'}}>
+        <div style={{width:44,fontSize:22,color:'#6a5040'}}>‹</div>
+        <div style={{flex:1,textAlign:'center',fontSize:17,fontWeight:500,color:'#3a2818'}}>情侣拼贴</div>
+        <div style={{width:44,textAlign:'right',fontSize:20,color:'#8a7060'}}>⋯</div>
+      </div>
+      <div style={{flex:1,position:'relative',overflow:'hidden',background:'#f5f0e6',
+        backgroundImage:'radial-gradient(circle,rgba(0,0,0,0.025) 1px,transparent 1px)',
+        backgroundSize:'18px 18px'}}>
+        {elements.map((el,i)=>{
+          if(el.type==='washi') return (
+            <div key={i} style={{position:'absolute',left:el.left,top:el.top,width:el.w,height:el.h,
+              background:el.c||'rgba(255,200,80,0.35)',transform:`rotate(${el.r||0}deg)`,borderRadius:2}}/>
+          );
+          if(el.type==='stamp') return (
+            <div key={i} style={{position:'absolute',left:el.left,top:el.top,width:el.w,height:el.h,
+              transform:`rotate(${el.r}deg)`,border:'2.5px solid rgba(255,77,136,0.5)',
+              borderRadius:4,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2}}>
+              <div style={{fontSize:22}}>🩷</div>
+              <div style={{fontSize:9,color:T.brand,fontWeight:600,letterSpacing:1.5}}>LOVE</div>
+              <div style={{fontSize:8,color:T.t}}>2025-2026</div>
+            </div>
+          );
+          if(el.type==='ticket') return (
+            <div key={i} style={{position:'absolute',left:el.left,top:el.top,width:el.w,height:el.h,
+              background:el.bg,transform:`rotate(${el.r}deg)`,borderRadius:4,
+              boxShadow:'0 2px 8px rgba(0,0,0,0.1)',overflow:'hidden',
+              display:'flex',borderLeft:`4px solid ${T.blue}`}}>
+              <div style={{flex:1,padding:'8px 10px'}}>
+                <div style={{fontSize:11,fontWeight:600,color:T.p}}>浦东美术馆</div>
+                <div style={{fontSize:10,color:T.t,marginTop:2}}>2025.12.20 · 双人票</div>
+              </div>
+              <div style={{width:1,background:'repeating-linear-gradient(to bottom,transparent,transparent 4px,#f0f0f0 4px,#f0f0f0 8px)',margin:'6px 0'}}/>
+              <div style={{width:36,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <div style={{fontSize:9,color:T.t,writingMode:'vertical-rl'}}>存根</div>
+              </div>
+            </div>
+          );
+          return (
+            <div key={i} style={{position:'absolute',left:el.left,top:el.top,width:el.w,height:el.h,
+              background:el.bg,transform:`rotate(${el.r}deg)`,borderRadius: el.type==='photo'?3:8,
+              boxShadow:'0 3px 12px rgba(0,0,0,0.12),0 1px 3px rgba(0,0,0,0.06)',overflow:'hidden'}}>
+              {el.type==='photo' ? (
+                <>
+                  <div style={{height:el.h-36,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="rgba(255,255,255,0.4)" stroke="none"/><path d="M21 15l-5-5L5 21"/></svg>
+                  </div>
+                  <div style={{height:36,background:'white',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <div style={{fontSize:10,color:T.t}}>{el.label}</div>
+                  </div>
+                </>
+              ) : (
+                <div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center',padding:12}}>
+                  <div style={{fontSize:12,color:T.p,lineHeight:1.6,textAlign:'center'}}>{el.text}</div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {/* Stickers */}
+        <div style={{position:'absolute',right:20,bottom:60,fontSize:28,transform:'rotate(15deg)'}}>⭐</div>
+        <div style={{position:'absolute',left:150,bottom:40,fontSize:22,transform:'rotate(-10deg)'}}>🌸</div>
+      </div>
+      <div style={{padding:'10px 16px 14px',background:'#f0e8d8',borderTop:'1.5px solid #d0c0a0',flexShrink:0}}>
+        <Btn label="往墙上贴点什么" icon="📌"/>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   H: 成长树
+============================================================ */
+const CoupleTree = () => {
+  const leaves = [
+    [130,420],[115,395],[145,400],[108,372],[138,368],[125,345],[155,350],[112,328],[148,325],[133,305],
+    [160,310],[118,292],[145,282],[168,295],[125,268],[152,260],[178,272],[138,248],[165,242],[190,255],
+    [146,228],[172,222],[198,238],[158,208],[182,202],[206,218],[165,188],[188,182],[212,196],[175,168],
+    [196,162],[220,178],[183,148],[205,142],[228,158],[190,130],[214,124],[236,140],[198,112],[220,108],
+    [242,124],[205,96],[226,92],[248,108],[212,80],[233,76],[253,92],[218,65],[238,62],[258,78],
+    [224,52],[243,50],[262,65],[85,380],[72,358],[95,365],[68,338],[90,332],[78,312],[98,308],
+    [72,290],[96,285],[84,268],[108,264],[76,248],[100,244],[118,258],[85,228],[108,224],[128,238],
+  ];
+  const flowers = [{x:130,y:305,c:T.brand},{x:220,y:178,c:'#ff8ab8'},{x:258,y:78,c:T.brand},{x:84,y:268,c:'#ff8ab8'}];
+
+  return (
+    <Phone>
+      <LNav title="成长树" sub="共 102 片叶子 · 第102天"/>
+      <div style={{flex:1,position:'relative',overflow:'hidden',background:'linear-gradient(180deg,#f0f8f0 0%,#e8f4e8 100%)'}}>
+        {/* Ground */}
+        <div style={{position:'absolute',bottom:0,left:0,right:0,height:40,background:'linear-gradient(180deg,#c8e8a8,#b0d490)',borderRadius:'50% 50% 0 0 / 20px 20px 0 0'}}/>
+        {/* SVG tree */}
+        <svg style={{position:'absolute',inset:0,width:'100%',height:'100%'}} viewBox="0 0 390 750" preserveAspectRatio="xMidYMax meet">
+          {/* Trunk */}
+          <path d="M195 740 C192 700,188 660,190 620 C192 580,196 540,194 500 C192 460,188 430,192 400" stroke="#8b5e3c" strokeWidth="14" fill="none" strokeLinecap="round"/>
+          {/* Main branches */}
+          <path d="M192 500 C170 480,148 462,132 440" stroke="#8b5e3c" strokeWidth="8" fill="none" strokeLinecap="round"/>
+          <path d="M192 460 C214 440,236 424,252 405" stroke="#8b5e3c" strokeWidth="7" fill="none" strokeLinecap="round"/>
+          <path d="M192 400 C172 380,154 362,140 340" stroke="#7a5232" strokeWidth="6" fill="none" strokeLinecap="round"/>
+          <path d="M192 400 C210 382,228 364,242 344" stroke="#7a5232" strokeWidth="5.5" fill="none" strokeLinecap="round"/>
+          <path d="M192 350 C175 330,160 310,150 285" stroke="#6a4828" strokeWidth="4.5" fill="none" strokeLinecap="round"/>
+          <path d="M192 350 C208 332,222 312,232 290" stroke="#6a4828" strokeWidth="4" fill="none" strokeLinecap="round"/>
+          <path d="M192 310 C178 290,165 268,156 244" stroke="#5a3a20" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+          <path d="M192 310 C205 292,216 270,224 248" stroke="#5a3a20" strokeWidth="3" fill="none" strokeLinecap="round"/>
+          {/* Leaves */}
+          {leaves.map(([x,y],i)=>(
+            <circle key={i} cx={x} cy={y} r={i<30?8:6} fill={i%5===0?'#68c040':i%5===1?'#80d050':i%5===2?'#58b030':'#70cc44'} opacity="0.88"/>
+          ))}
+          {/* Flowers */}
+          {flowers.map((f,i)=>(
+            <g key={i}>
+              <circle cx={f.x} cy={f.y} r={11} fill={f.c} opacity="0.9"/>
+              <circle cx={f.x} cy={f.y} r={5} fill="rgba(255,255,255,0.7)"/>
+            </g>
+          ))}
+        </svg>
+        {/* Counter badge */}
+        <div style={{position:'absolute',bottom:50,left:16,right:16,background:'rgba(255,255,255,0.85)',borderRadius:12,padding:'10px 14px',display:'flex',justifyContent:'space-around',backdropFilter:'blur(4px)'}}>
+          {[{v:'102',l:'片叶子'},{v:'4',l:'朵花'},{v:'23',l:'天连续'},{v:'第3',l:'次开花'}].map((s,i)=>(
+            <div key={i} style={{textAlign:'center'}}>
+              <div style={{fontSize:16,fontWeight:700,color:T.brand}}>{s.v}</div>
+              <div style={{fontSize:10,color:T.t}}>{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{padding:'10px 16px 14px',background:T.sur,borderTop:`1px solid ${T.line}`,flexShrink:0}}>
+        <Btn label="今天让树长一片新叶"/>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   I: 情书信箱
+============================================================ */
+const LoveLetters = () => {
+  const letters = [
+    {from:'小明', to:'晶晶', date:'2026.6.2', preview:'第102天，我想告诉你……', color:'#fff5f8', accent:T.brand, status:'new'},
+    {from:'晶晶', to:'小明', date:'2026.5.20', preview:'谢谢你在那天没有走……', color:'#f5f0ff', accent:'#9855ee', status:'read'},
+    {from:'小明', to:'晶晶', date:'2026.4.7', preview:'春天来了，你也来了……', color:'#f0f8ff', accent:T.blue, status:'read'},
+  ];
+  return (
+    <Phone bg="#f8f4ee">
+      <div style={{height:44,background:'#eee8dc',flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1.5px solid #d8c8a8'}}>
+        <div style={{width:44,fontSize:22,color:'#6a5040'}}>‹</div>
+        <div style={{flex:1,textAlign:'center',fontSize:17,fontWeight:500,color:'#3a2818'}}>情书信箱</div>
+        <div style={{width:44,textAlign:'right',fontSize:20,color:'#8a7060'}}>⋯</div>
+      </div>
+      {/* Letters count */}
+      <div style={{background:'#eee8dc',padding:'10px 16px',display:'flex',alignItems:'center',gap:6,borderBottom:'1px solid #d8c8a8',flexShrink:0}}>
+        <div style={{flex:1,fontSize:13,color:'#6a5040'}}>共 28 封信 · 1 封未读</div>
+        <div style={{fontSize:12,color:T.brand}}>最新 ›</div>
+      </div>
+      <div style={{flex:1,overflow:'hidden',padding:'16px',display:'flex',flexDirection:'column',gap:12}}>
+        {letters.map((l,i)=>(
+          <div key={i} style={{background:l.color,borderRadius:12,overflow:'hidden',boxShadow:'0 2px 12px rgba(0,0,0,0.07)',position:'relative'}}>
+            {/* Envelope V */}
+            <svg width="100%" height="40" viewBox="0 0 358 40" preserveAspectRatio="none" style={{display:'block'}}>
+              <rect width="358" height="40" fill={l.accent} fillOpacity="0.12"/>
+              <path d="M0 0 L179 30 L358 0" stroke={l.accent} strokeOpacity="0.3" strokeWidth="1" fill="none"/>
+            </svg>
+            {/* New badge */}
+            {l.status==='new' && (
+              <div style={{position:'absolute',top:10,right:14,background:l.accent,borderRadius:10,padding:'2px 8px'}}>
+                <span style={{fontSize:10,color:'white',fontWeight:600}}>新</span>
+              </div>
+            )}
+            <div style={{padding:'10px 14px 14px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}>
+                <span style={{fontSize:11,color:l.accent,fontWeight:500}}>{l.from}</span>
+                <span style={{fontSize:11,color:T.t}}>→</span>
+                <span style={{fontSize:11,color:T.s}}>{l.to}</span>
+                <span style={{fontSize:11,color:T.t,marginLeft:'auto'}}>{l.date}</span>
+              </div>
+              <div style={{fontSize:13,color:T.p,lineHeight:1.6}}>{l.preview}</div>
+            </div>
+          </div>
+        ))}
+        <div style={{textAlign:'center',padding:'4px 0'}}>
+          <span style={{fontSize:12,color:T.t}}>— 还有 25 封信 —</span>
+        </div>
+      </div>
+      <div style={{padding:'10px 16px 14px',background:'#eee8dc',borderTop:'1.5px solid #d8c8a8',flexShrink:0}}>
+        <Btn label="写一封情书" icon="✍️"/>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   J: 月相日历
+============================================================ */
+const MoonCalendar = () => {
+  const phases = [0,0.08,0.17,0.25,0.33,0.42,0.5,0.58,0.67,0.75,0.83,0.92,1,0.92,0.83,0.75,0.67,0.58,0.5,0.42,0.33,0.25,0.17,0.08,0,0.08,0.17,0.25,0.33,0.42,0.5];
+  const events = {6:T.brand,7:T.brand,8:T.brand,9:T.brand,10:T.brand,21:'rgba(255,77,136,0.3)',25:'rgba(79,124,174,0.3)'};
+  const MoonSVG = ({phase, size=24, light='rgba(255,255,255,0.92)', dark='#1a1a2e'}) => {
+    const r = size/2, cx = r, cy = r;
+    const x = r + r*(1-2*phase)*0.95;
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={cx} cy={cy} r={r-0.5} fill={dark}/>
+        <clipPath id={`mc${Math.round(phase*100)}`}><circle cx={cx} cy={cy} r={r-0.5}/></clipPath>
+        <ellipse cx={x} cy={cy} rx={r-0.5} ry={r-0.5} fill={light} clipPath={`url(#mc${Math.round(phase*100)})`}/>
+      </svg>
+    );
+  };
+  return (
+    <Phone bg="#0a0a18" statusBg="#0a0a18" dark>
+      <DNav title="月相日历" sub="2026年6月 · 晶晶 & 小明"/>
+      {/* Month header */}
+      <div style={{background:'rgba(255,255,255,0.04)',padding:'10px 16px',borderBottom:'1px solid rgba(255,255,255,0.06)',flexShrink:0}}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+          <span style={{fontSize:14,color:'rgba(255,255,255,0.5)'}}>‹</span>
+          <span style={{fontSize:15,fontWeight:500,color:'rgba(255,255,255,0.88)'}}>2026年 6月</span>
+          <span style={{fontSize:14,color:'rgba(255,255,255,0.5)'}}>›</span>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2}}>
+          {['日','一','二','三','四','五','六'].map((d,i)=>(
+            <div key={i} style={{textAlign:'center',fontSize:10,color:'rgba(255,255,255,0.3)',paddingBottom:4}}>{d}</div>
+          ))}
+        </div>
+      </div>
+      {/* Calendar grid */}
+      <div style={{padding:'8px 12px',flexShrink:0}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}}>
+          {/* Empty cells for Mon offset */}
+          {[0,1].map(i=>(<div key={`e${i}`}/>))}
+          {phases.map((p,i)=>{
+            const day = i+1;
+            const isEvent = events[day];
+            const isToday = day===2;
+            return (
+              <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,padding:'4px 2px',
+                borderRadius:8,background: isToday?'rgba(255,255,255,0.08)':isEvent||'transparent'}}>
+                <MoonSVG phase={p} size={28}/>
+                <span style={{fontSize:10,color: isToday?T.brand:isEvent?'rgba(255,77,136,0.7)':'rgba(255,255,255,0.4)',fontWeight: isToday?600:400}}>{day}</span>
+                {isEvent && day<=10 && day>=6 && <div style={{width:4,height:4,borderRadius:2,background:T.brand,marginTop:-2}}/>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {/* Events */}
+      <div style={{padding:'0 16px 8px',flexShrink:0}}>
+        <div style={{display:'flex',gap:12,marginBottom:8}}>
+          {[{c:T.brand,l:'经期'},{c:'rgba(255,77,136,0.5)',l:'日记'},{c:'rgba(79,124,174,0.6)',l:'约会'}].map((e,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:4}}>
+              <div style={{width:8,height:8,borderRadius:4,background:e.c}}/>
+              <span style={{fontSize:11,color:'rgba(255,255,255,0.45)'}}>{e.l}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{background:'rgba(255,255,255,0.05)',borderRadius:10,padding:'10px 12px'}}>
+          <div style={{fontSize:13,color:'rgba(255,255,255,0.75)'}}>今天 · 蛾眉月 🌙</div>
+          <div style={{fontSize:12,color:'rgba(255,255,255,0.38)',marginTop:3}}>在一起第102天，月亮和你一样让我心动</div>
+        </div>
+      </div>
+      <div style={{flex:1}}/>
+      <div style={{padding:'10px 16px 14px',background:'rgba(255,255,255,0.04)',borderTop:'1px solid rgba(255,255,255,0.06)',flexShrink:0}}>
+        <Btn label="记录今天的心情"/>
+      </div>
+      <HomeInd dark/>
+    </Phone>
+  );
+};
+
+/* ================================================================
+   MAIN APP
+================================================================ */
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+const App = () => (
+  <DesignCanvas>
+    <DCSection id="vol3" title="恋爱日记探索 Vol.3" subtitle="10种差异化玩法">
+      <DCArtboard id="film" label="A · 电影胶片" width={390} height={844}><FilmStrip/></DCArtboard>
+      <DCArtboard id="planets" label="B · 情绪星球" width={390} height={844}><EmotionPlanets/></DCArtboard>
+      <DCArtboard id="mailbox" label="C · 时光邮箱" width={390} height={844}><TimeMailbox/></DCArtboard>
+      <DCArtboard id="map" label="D · 情侣地图" width={390} height={844}><CoupleMap/></DCArtboard>
+      <DCArtboard id="heatmap" label="E · 打卡热力图" width={390} height={844}><ActivityHeatmap/></DCArtboard>
+      <DCArtboard id="music" label="F · 音乐记忆" width={390} height={844}><MusicMemory/></DCArtboard>
+      <DCArtboard id="scrap" label="G · 情侣拼贴" width={390} height={844}><Scrapbook/></DCArtboard>
+      <DCArtboard id="tree" label="H · 成长树" width={390} height={844}><CoupleTree/></DCArtboard>
+      <DCArtboard id="letters" label="I · 情书信箱" width={390} height={844}><LoveLetters/></DCArtboard>
+      <DCArtboard id="moon" label="J · 月相日历" width={390} height={844}><MoonCalendar/></DCArtboard>
+    </DCSection>
+  </DesignCanvas>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

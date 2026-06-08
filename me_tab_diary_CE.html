@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>「我」Tab 恋爱日记入口 · 方案C vs E</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{background:#DCDCDC;font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;
+      height:100%;overflow:hidden;}
+    #root{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;}
+    ::-webkit-scrollbar{display:none;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const MY = {
+  brandRed:'#ff4d88', brandSoft:'rgba(255,77,136,0.08)', brandSoft2:'rgba(255,77,136,0.14)',
+  bg:'#f2f2f5', surface:'#ffffff',
+  textPri:'#323232', textSec:'#666666', textTer:'#999999',
+  line:'rgba(0,0,0,0.08)', shadow1:'0 2px 10px rgba(50,50,50,0.08)',
+  rxs:4, rsm:8, rmd:12, rpill:999,
+  font:'"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif',
+};
+const USER    = { name:'女友殿下', initial:'女', bg:'#FFB5C8' };
+const PARTNER = { name:'男友先生', initial:'男', bg:'#A8C5E0' };
+
+function AvatarSVG({ isFemale, size }) {
+  const w=size*0.72, h=size*0.82;
+  if(isFemale) return (
+    <svg width={w} height={h} viewBox="0 0 36 41" fill="none">
+      <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+      <path d="M11 10 Q11 2 18 2 Q25 2 25 10" fill="rgba(255,255,255,0.92)"/>
+      <path d="M11 8 Q9 12 10 16" stroke="rgba(255,255,255,0.92)" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M25 8 Q27 12 26 16" stroke="rgba(255,255,255,0.92)" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M10 22 Q10 18 18 18 Q26 18 26 22 L29 41 H7 Z" fill="rgba(255,255,255,0.92)"/>
+    </svg>
+  );
+  return (
+    <svg width={w} height={h} viewBox="0 0 36 41" fill="none">
+      <ellipse cx="18" cy="10" rx="7" ry="7.5" fill="rgba(255,255,255,0.92)"/>
+      <path d="M11 10 Q11 3 18 3 Q25 3 25 10 L25 8 Q18 5 11 8 Z" fill="rgba(255,255,255,0.92)"/>
+      <path d="M8 22 Q8 18 18 18 Q28 18 28 22 L27 41 H9 Z" fill="rgba(255,255,255,0.92)"/>
+    </svg>
+  );
+}
+function Avatar({ size=36, bg='#FFB5C8', initial='女' }) {
+  return (
+    <div style={{ width:size, height:size, borderRadius:'50%', background:bg,
+      display:'inline-flex', alignItems:'flex-end', justifyContent:'center',
+      flexShrink:0, overflow:'hidden' }}>
+      <AvatarSVG isFemale={initial==='女'} size={size}/>
+    </div>
+  );
+}
+function StatusBar() {
+  return (
+    <div style={{ height:36, flexShrink:0, display:'flex', alignItems:'flex-end',
+      justifyContent:'space-between', padding:'0 20px 6px' }}>
+      <span style={{ fontSize:14, fontWeight:600, color:MY.textPri }}>9:41</span>
+      <div style={{ display:'flex', gap:5, alignItems:'center' }}>
+        <svg width="17" height="11" viewBox="0 0 17 11" fill={MY.textPri}>
+          <rect x="0" y="7" width="3" height="4" rx=".5"/><rect x="4.5" y="4.5" width="3" height="6.5" rx=".5"/>
+          <rect x="9" y="2" width="3" height="9" rx=".5"/><rect x="13.5" y="0" width="3" height="11" rx=".5"/>
+        </svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+          <rect x=".5" y=".5" width="21" height="11" rx="2.5" stroke={MY.textPri} opacity=".5"/>
+          <rect x="2" y="2" width="18" height="8" rx="1" fill={MY.textPri}/>
+          <rect x="22.5" y="4" width="2" height="4" rx="1" fill={MY.textPri}/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+function Phone({ children }) {
+  return (
+    <div style={{ width:360, height:780, borderRadius:36, overflow:'hidden', position:'relative',
+      background:MY.bg, boxShadow:'0 24px 56px rgba(50,50,50,0.18), 0 0 0 1px rgba(0,0,0,0.08)',
+      fontFamily:MY.font, color:MY.textPri }}>
+      <div style={{ position:'absolute', inset:'36px 0 24px' }}>
+        {children}
+      </div>
+      <div style={{ position:'absolute', top:0, left:0, right:0, pointerEvents:'none', zIndex:20 }}>
+        <StatusBar/>
+      </div>
+      <div style={{ position:'absolute', bottom:6, left:0, right:0, display:'flex',
+        alignItems:'center', justifyContent:'center', pointerEvents:'none', zIndex:20 }}>
+        <div style={{ width:120, height:4, borderRadius:2, background:'rgba(0,0,0,0.18)' }}/>
+      </div>
+    </div>
+  );
+}
+
+/* ── TabBar（与原项目一致）── */
+function TabBar({ active='me', onChange }) {
+  const items = [
+    { id:'home', label:'美柚', icon:(c,on) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        {on ? <g fill={c}><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/><circle cx="12" cy="12" r="3" fill="#fff"/></g>
+          : <g stroke={c} strokeWidth="1.6" fill="none"><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/></g>}
+      </svg>
+    )},
+    { id:'record', label:'记录', icon:(c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="5" width="16" height="16" rx="3" stroke={c} strokeWidth="1.8"/>
+        <rect x="7" y="3" width="2" height="4" rx="1" fill={c}/><rect x="15" y="3" width="2" height="4" rx="1" fill={c}/>
+        <path d="M8 11h8M8 15h5" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
+      </svg>
+    )},
+    { id:'shop', label:'返现', icon:(c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke={c} strokeWidth="1.8"/>
+        <path d="M8.5 14.5c0 1.4 1.6 2.5 3.5 2.5s3.5-1.1 3.5-2.5c0-1.8-3.5-2.5-3.5-4C12 8.6 13.6 7.5 15.5 7.5" stroke={c} strokeWidth="1.6" strokeLinecap="round" fill="none"/>
+        <path d="M12 6v12" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
+      </svg>
+    )},
+    { id:'msg', label:'消息', icon:(c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 4v-4H6a2 2 0 0 1-2-2V6z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/>
+      </svg>
+    )},
+    { id:'me', label:'我', icon:(c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke={c} strokeWidth="1.8"/>
+        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke={c} strokeWidth="1.8" strokeLinecap="round"/>
+      </svg>
+    )},
+  ];
+  return (
+    <div style={{ position:'absolute', bottom:0, left:0, right:0, background:MY.surface,
+      borderTop:`1px solid ${MY.line}`, display:'flex', justifyContent:'space-around',
+      padding:'6px 4px 20px' }}>
+      {items.map(it => {
+        const on = it.id===active;
+        const c = on ? MY.brandRed : '#7C7479';
+        return (
+          <div key={it.id} onClick={()=>onChange&&onChange(it.id)}
+            style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2,
+              flex:1, color:c, fontSize:10, fontWeight:on?600:400, cursor:'pointer',
+              minHeight:44, justifyContent:'center' }}>
+            {it.icon(c,on)}
+            <span>{it.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const Arr = () => (
+  <svg width="8" height="13" viewBox="0 0 8 14" style={{ flexShrink:0 }}>
+    <path d="M1 1l6 6-6 6" stroke={MY.textTer} strokeWidth="1.6" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+
+/* ── 「我」页面主体（提取自 screens-me.jsx）── */
+function MePageContent({ variant='C', onDiary }) {
+  const [tab,setTab] = useState('me');
+  return (
+    <Phone>
+      <div style={{ position:'absolute', inset:'0 0 50px', overflowY:'auto' }}>
+        {/* 顶部行 */}
+        <div style={{ display:'flex', alignItems:'center', padding:'8px 16px', background:MY.surface, gap:8, minHeight:50 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, flex:1 }}>
+            <div style={{ position:'relative', width:52, height:30 }}>
+              <div style={{ position:'absolute', left:0, top:0, width:30, height:30, borderRadius:'50%', border:'2px solid #fff', overflow:'hidden' }}>
+                <Avatar size={26} bg={USER.bg} initial={USER.initial}/>
+              </div>
+              <div style={{ position:'absolute', right:0, top:0, width:30, height:30, borderRadius:'50%', border:'2px solid #fff', overflow:'hidden', zIndex:2 }}>
+                <Avatar size={26} bg={PARTNER.bg} initial={PARTNER.initial}/>
+              </div>
+              <div style={{ position:'absolute', right:0, bottom:-1, width:8, height:8, borderRadius:'50%', background:MY.brandRed, border:'1.5px solid #fff', zIndex:3 }}/>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:3, fontSize:15, fontWeight:500, color:MY.textPri }}>
+              女友殿下
+              <svg width="12" height="12" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke={MY.textSec} strokeWidth="2" strokeLinecap="round" fill="none"/></svg>
+            </div>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:16, color:MY.textPri }}>
+            {[
+              <svg key="a" width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="3" rx="1" stroke="currentColor" strokeWidth="1.6"/><path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9" stroke="currentColor" strokeWidth="1.6"/></svg>,
+              <svg key="b" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 8h16v3H4z" stroke="currentColor" strokeWidth="1.6"/><path d="M5 11v9h14v-9M12 8v12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>,
+              <div key="c" style={{ position:'relative' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="1.6"/><path d="M8 7l2-3h4l2 3" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><circle cx="12" cy="13.5" r="3.5" stroke="currentColor" strokeWidth="1.6"/></svg>
+                <div style={{ position:'absolute', top:-2, right:-2, width:7, height:7, borderRadius:'50%', background:MY.brandRed, border:'1.5px solid #fff' }}/>
+              </div>
+            ].map((ic,i)=><div key={i}>{ic}</div>)}
+          </div>
+        </div>
+
+        {/* 会员卡 */}
+        <div style={{ margin:'8px 16px 0', borderRadius:MY.rmd, background:'linear-gradient(180deg,#ffe2d6 0%,#ffc8b5 100%)', overflow:'hidden' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px 8px' }}>
+            <div>
+              <div style={{ fontSize:15, fontWeight:600, color:'#7A3B1C' }}>美柚会员</div>
+              <div style={{ fontSize:12, color:'#A86541', marginTop:1 }}>开通享 12 项权益</div>
+            </div>
+            <div style={{ position:'relative' }}>
+              <div style={{ position:'absolute', top:-10, right:6, padding:'1px 5px', background:MY.brandRed, color:'#fff', fontSize:9, fontWeight:600, borderRadius:`${MY.rxs}px ${MY.rxs}px ${MY.rxs}px 0` }}>限时首月9元</div>
+              <button style={{ padding:'0 14px', height:32, borderRadius:MY.rpill, border:'none', background:'#fff', color:'#9C4519', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:MY.font }}>立即开通</button>
+            </div>
+          </div>
+          <div style={{ display:'flex', gap:6, padding:'2px 10px 10px' }}>
+            {[{t:'月经推迟分析',s:'你的专属分析已更新',link:'立即查看 ›'},{t:'买年卡送好礼',s:'免费送价值 500 元爱康体检'}].map((c,i)=>(
+              <div key={i} style={{ flex:1, background:'rgba(255,255,255,0.55)', borderRadius:MY.rsm, padding:'8px 10px' }}>
+                <div style={{ fontSize:13, fontWeight:600, color:'#7A3B1C' }}>{c.t}</div>
+                <div style={{ fontSize:11, color:'#A86541', marginTop:2 }}>{c.s}{c.link&&<span style={{ color:MY.brandRed }}> {c.link}</span>}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 学生特惠 */}
+        <div style={{ margin:'8px 16px 0', padding:'0 14px', background:MY.surface, borderRadius:MY.rsm, display:'flex', alignItems:'center', gap:8, height:44 }}>
+          <span style={{ padding:'2px 6px', background:MY.brandSoft, color:MY.brandRed, borderRadius:MY.rxs, fontSize:11, fontWeight:600 }}>学生特惠</span>
+          <span style={{ flex:1, fontSize:13, color:MY.textPri }}>前 6 个月 <b style={{ color:MY.brandRed }}>6.8 元/月</b></span>
+          <span style={{ fontSize:12, color:MY.textTer, display:'flex', alignItems:'center', gap:2 }}>去看看<Arr/></span>
+        </div>
+
+        {/* 4模式 */}
+        <div style={{ margin:'8px 16px 0', padding:'12px 4px 4px', background:MY.surface, borderRadius:MY.rmd }}>
+          <div style={{ display:'flex' }}>
+            {[{t:'经期模式',active:true,grad:'linear-gradient(180deg,rgba(255,77,136,0.15),rgba(255,77,136,0.08))'},{t:'备孕模式',active:false,grad:`linear-gradient(180deg,${MY.bg},#e5e3e5)`},{t:'怀孕模式',active:false,grad:`linear-gradient(180deg,${MY.bg},#e5e3e5)`},{t:'育儿模式',active:false,grad:`linear-gradient(180deg,${MY.bg},#e5e3e5)`}].map((m,i)=>(
+              <div key={i} style={{ flex:1, padding:'0 4px 10px', textAlign:'center' }}>
+                <div style={{ width:'100%', aspectRatio:'1/1', borderRadius:MY.rsm, background:m.grad,
+                  marginBottom:4, display:'flex', alignItems:'center', justifyContent:'center',
+                  border:m.active?`1.5px solid ${MY.brandRed}`:'none' }}>
+                  <div style={{ width:20, height:20, borderRadius:'50%', background:m.active?MY.brandRed:'rgba(0,0,0,0.15)' }}/>
+                </div>
+                <div style={{ fontSize:11, fontWeight:m.active?600:400, color:m.active?MY.brandRed:MY.textSec }}>{m.t}</div>
+                {m.active&&<div style={{ fontSize:10, color:MY.brandRed, fontWeight:500 }}>当前</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 经期设置 */}
+        <div style={{ margin:'8px 16px 0', padding:'0 14px', background:MY.surface, borderRadius:MY.rsm, display:'flex', alignItems:'center', gap:10, height:56 }}>
+          <div style={{ width:28, height:28, borderRadius:MY.rxs, background:MY.brandSoft, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2c3.5 4 6 7.2 6 11a6 6 0 1 1-12 0c0-3.8 2.5-7 6-11z" fill={MY.brandRed}/></svg>
+          </div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:14, fontWeight:500, color:MY.textPri }}>经期设置</div>
+            <div style={{ fontSize:12, color:MY.textTer, marginTop:1 }}>周期 28 天，经期 5 天</div>
+          </div>
+          <Arr/>
+        </div>
+
+        {/* 列表 — 方案C：恋爱日记作为一行 */}
+        {variant==='C' ? (
+          <div style={{ margin:'8px 16px 0', background:MY.surface, borderRadius:MY.rsm, overflow:'hidden' }}>
+            {/* 个人主页 */}
+            <div style={{ display:'flex', alignItems:'center', padding:'0 14px', height:52, borderBottom:`1px solid ${MY.line}` }}>
+              <div style={{ width:26, height:26, borderRadius:MY.rxs, background:MY.brandSoft, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, marginRight:10 }}>🏠</div>
+              <div style={{ flex:1, fontSize:14, color:MY.textPri }}>个人主页</div><Arr/>
+            </div>
+            {/* ★ 恋爱日记行 */}
+            <div onClick={onDiary} style={{ display:'flex', alignItems:'center', padding:'0 14px', height:52,
+              borderBottom:`1px solid ${MY.line}`, cursor:'pointer', background:'rgba(255,77,136,0.02)' }}>
+              <div style={{ width:26, height:26, borderRadius:MY.rxs, background:MY.brandSoft,
+                display:'flex', alignItems:'center', justifyContent:'center', marginRight:10 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill={MY.brandRed}>
+                  <path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/>
+                </svg>
+              </div>
+              <div style={{ flex:1, fontSize:14, fontWeight:500, color:MY.brandRed }}>恋爱日记</div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <span style={{ fontSize:11, color:MY.brandRed, background:MY.brandSoft, padding:'1px 7px', borderRadius:20 }}>第 102 天</span>
+                <div style={{ width:6, height:6, borderRadius:3, background:'#FF4D4D' }}/>
+                <Arr/>
+              </div>
+            </div>
+            {/* 钱包 */}
+            <div style={{ display:'flex', alignItems:'center', padding:'0 14px', height:52, borderBottom:`1px solid ${MY.line}` }}>
+              <div style={{ width:26, height:26, borderRadius:MY.rxs, background:MY.brandSoft, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, marginRight:10 }}>💰</div>
+              <div style={{ flex:1, fontSize:14, color:MY.textPri }}>钱包</div><Arr/>
+            </div>
+            {/* 订单 */}
+            <div style={{ display:'flex', alignItems:'center', padding:'0 14px', height:52 }}>
+              <div style={{ width:26, height:26, borderRadius:MY.rxs, background:MY.brandSoft, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, marginRight:10 }}>📦</div>
+              <div style={{ flex:1, fontSize:14, color:MY.textPri }}>订单</div><Arr/>
+            </div>
+          </div>
+        ) : (
+          /* 列表 — 方案E：正常列表 */
+          <div style={{ margin:'8px 16px 0', background:MY.surface, borderRadius:MY.rsm, overflow:'hidden' }}>
+            {[{i:'🏠',t:'个人主页'},{i:'💰',t:'钱包'},{i:'📦',t:'订单'}].map((r,i,a)=>(
+              <div key={i} style={{ display:'flex', alignItems:'center', padding:'0 14px', height:52, borderBottom:i<a.length-1?`1px solid ${MY.line}`:'none' }}>
+                <div style={{ width:26, height:26, borderRadius:MY.rxs, background:MY.brandSoft, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, marginRight:10 }}>{r.i}</div>
+                <div style={{ flex:1, fontSize:14, color:MY.textPri }}>{r.t}</div><Arr/>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 圈子 */}
+        <div style={{ margin:'8px 16px 0', background:MY.surface, borderRadius:MY.rsm, padding:'12px 8px', display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:4 }}>
+          {[{t:'26年6月\n预产圈',bg:'#ffd3c4'},{t:'26年8月\n预产圈',bg:'#ffe8b5'},{t:'26年3月\n预产圈',bg:'#ffc3ce'},{t:'孕中期\n妈咪',bg:'#d6bef0'},{t:'更多\n圈子',bg:'#ffd3e2'}].map((c,i)=>(
+            <div key={i} style={{ textAlign:'center' }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:c.bg, margin:'0 auto 4px', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <div style={{ width:14, height:14, borderRadius:'50%', background:'rgba(255,255,255,0.7)' }}/>
+              </div>
+              <div style={{ fontSize:10, color:MY.textPri, lineHeight:'13px', whiteSpace:'pre-line' }}>{c.t}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* 服务 grid — 方案E：恋爱日记放首位 */}
+        <div style={{ margin:'8px 16px 0', background:MY.surface, borderRadius:MY.rsm, padding:'12px 8px', display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:4 }}>
+          {variant==='E' ? (
+            /* ★ 恋爱日记首位 */
+            <div onClick={onDiary} style={{ textAlign:'center', cursor:'pointer', position:'relative' }}>
+              <div style={{ width:34, height:34, borderRadius:MY.rsm, background:MY.brandSoft,
+                display:'inline-flex', alignItems:'center', justifyContent:'center',
+                border:`1px solid rgba(255,77,136,0.2)` }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={MY.brandRed}>
+                  <path d="M12 21S3 15 3 8.5A4.5 4.5 0 0112 5.8 4.5 4.5 0 0121 8.5C21 15 12 21 12 21z"/>
+                </svg>
+              </div>
+              <div style={{ position:'absolute', top:0, right:'14%', width:7, height:7, borderRadius:3.5, background:'#FF4D4D', border:'1.5px solid #fff' }}/>
+              <div style={{ fontSize:10, marginTop:4, color:MY.brandRed, fontWeight:500 }}>日记</div>
+            </div>
+          ) : (
+            <div style={{ textAlign:'center' }}>
+              <div style={{ width:34, height:34, borderRadius:MY.rsm, background:MY.brandSoft, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🍊</div>
+              <div style={{ fontSize:10, marginTop:4, color:MY.textPri }}>柚子街</div>
+            </div>
+          )}
+          {[{i:'🍊',t:'柚子街'},{i:'🩺',t:'问医生'},{i:'📲',t:'小组件'},{i:'🍵',t:'调养室'}].slice(variant==='E'?0:1).filter(it=>!(variant==='E'&&it.t==='调养室')).map((it,i)=>(
+            <div key={i} style={{ textAlign:'center' }}>
+              <div style={{ width:34, height:34, borderRadius:MY.rsm, background:MY.brandSoft, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>{it.i}</div>
+              <div style={{ fontSize:10, marginTop:4, color:MY.textPri }}>{it.t}</div>
+            </div>
+          ))}
+          {variant==='E' && (
+            <div style={{ textAlign:'center' }}>
+              <div style={{ width:34, height:34, borderRadius:MY.rsm, background:MY.brandSoft, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>✨</div>
+              <div style={{ fontSize:10, marginTop:4, color:MY.textPri }}>更多</div>
+            </div>
+          )}
+        </div>
+
+        {/* 底部双卡 */}
+        <div style={{ margin:'8px 16px 12px', display:'flex', gap:8 }}>
+          {[{i:'🧪',t:'柚子试用',s:'新奇好物先先试',bg:'#ffe0cc'},{i:'☕',t:'经期活动',s:'姐妹支招提不…',bg:'#ffe0ea'}].map((c,i)=>(
+            <div key={i} style={{ flex:1, background:MY.surface, borderRadius:MY.rsm, padding:'10px 12px', display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:26, height:26, borderRadius:'50%', background:c.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13 }}>{c.i}</div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:500, color:MY.textPri }}>{c.t}</div>
+                <div style={{ fontSize:11, color:MY.textTer, marginTop:1 }}>{c.s}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <TabBar active={tab} onChange={setTab}/>
+    </Phone>
+  );
+}
+
+function App() {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const compute = () => {
+      const s = Math.min(1,
+        (window.innerHeight - 60) / 780,
+        (window.innerWidth - 60) / (360*2 + 48)
+      );
+      setScale(s);
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, []);
+  return (
+    <div style={{ transform:`scale(${scale})`, transformOrigin:'center center',
+      display:'flex', flexDirection:'column', alignItems:'center', gap:0 }}>
+      <div style={{ display:'flex', gap:48, alignItems:'flex-start' }}>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+          <MePageContent variant="C"/>
+          <div style={{ fontSize:12, fontWeight:500, color:'rgba(0,0,0,0.38)',
+            fontFamily:'"PingFang SC",sans-serif', letterSpacing:'.4px' }}>
+            方案C · 列表中加一行
+          </div>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+          <MePageContent variant="E"/>
+          <div style={{ fontSize:12, fontWeight:500, color:'rgba(0,0,0,0.38)',
+            fontFamily:'"PingFang SC",sans-serif', letterSpacing:'.4px' }}>
+            方案E · 服务 grid 首位
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

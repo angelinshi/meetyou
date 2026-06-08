@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>恋爱日记探索 Vol.2 · 美柚</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <style>*, *::before, *::after{box-sizing:border-box;margin:0;padding:0;} html,body,#root{height:100%;}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const ff = '"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif';
+const T = {
+  brand:'#ff4d88', bsoft:'rgba(255,77,136,0.08)',
+  bg:'#f2f2f5', sur:'#fff',
+  p:'#323232', s:'#666', t:'#999',
+  line:'rgba(0,0,0,0.08)',
+  blue:'#4f7cae', grn:'#00cc99',
+};
+
+/* shared Phone */
+const Phone = ({children, bg=T.bg, statusBg=T.sur}) => (
+  <div style={{width:390,height:844,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',fontFamily:ff}}>
+    <div style={{height:48,background:statusBg,flexShrink:0,display:'flex',alignItems:'flex-end',justifyContent:'space-between',padding:'0 20px 8px'}}>
+      <span style={{fontSize:15,fontWeight:600,color: statusBg==='#0d0f1e'?'rgba(255,255,255,0.9)':T.p}}>9:41</span>
+      <div style={{display:'flex',gap:5,alignItems:'center'}}>
+        <svg width="17" height="11" viewBox="0 0 17 11">
+          <rect x="0" y="5" width="3" height="6" rx="0.8" fill={statusBg==='#0d0f1e'?'white':T.p} opacity="0.4"/>
+          <rect x="4.5" y="3" width="3" height="8" rx="0.8" fill={statusBg==='#0d0f1e'?'white':T.p} opacity="0.65"/>
+          <rect x="9" y="1" width="3" height="10" rx="0.8" fill={statusBg==='#0d0f1e'?'white':T.p} opacity="0.85"/>
+          <rect x="13.5" y="0" width="3" height="11" rx="0.8" fill={statusBg==='#0d0f1e'?'white':T.p}/>
+        </svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none">
+          <rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke={statusBg==='#0d0f1e'?'white':T.p} strokeOpacity="0.35"/>
+          <rect x="2" y="2" width="16" height="8" rx="1.5" fill={statusBg==='#0d0f1e'?'white':T.p}/>
+        </svg>
+      </div>
+    </div>
+    {children}
+  </div>
+);
+
+const HomeInd = ({dark=false}) => (
+  <div style={{height:34,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+    <div style={{width:134,height:5,borderRadius:3,background: dark?'rgba(255,255,255,0.2)':'rgba(0,0,0,0.18)'}}/>
+  </div>
+);
+
+/* ============================================================
+   A: 晒衣绳 Clothesline
+============================================================ */
+const Clothesline = () => {
+  const items = [
+    {left:12,  top:40, rotate:-3, w:118, h:138, type:'photo', caption:'第一次约会 📷', gradFrom:'#fde8ef', gradTo:'#f5e0fd'},
+    {left:136, top:20, rotate:2,  w:102, h:102, type:'note',  text:'你笑起来\n真好看', color:'#fffae8'},
+    {left:244, top:35, rotate:-2, w:114, h:132, type:'photo', caption:'生日快乐 🎂',  gradFrom:'#e0edff', gradTo:'#d8f5ec'},
+    {left:12,  top:230,rotate:3,  w:108, h:108, type:'note',  text:'第102次想你 🩷', color:'#fff0f5'},
+    {left:136, top:240,rotate:-1, w:116, h:128, type:'photo', caption:'一起看海 🌊',  gradFrom:'#d8eeff', gradTo:'#e8f0ff'},
+    {left:260, top:222,rotate:2,  w:106, h:106, type:'note',  text:'在开会，\n想你了 ☕', color:'#f0fff8'},
+  ];
+
+  return (
+    <Phone bg="#faf6f0">
+      <div style={{height:44,background:'#f0e8d8',flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1.5px solid #d4c4aa'}}>
+        <div style={{width:44,fontSize:22,color:'#8a6050'}}>‹</div>
+        <div style={{flex:1,textAlign:'center',fontSize:17,fontWeight:500,color:'#4a3020'}}>回忆晒衣绳</div>
+        <div style={{width:44,textAlign:'right',fontSize:20,color:'#8a6050'}}>⋯</div>
+      </div>
+      {/* Month strip */}
+      <div style={{display:'flex',background:'#f5efe5',borderBottom:'1px solid #e0d0c0',flexShrink:0}}>
+        {['11月','12月','1月','2月','3月','4月','5月','6月'].map((m,i)=>(
+          <div key={i} style={{flex:1,padding:'7px 0',textAlign:'center',fontSize:11,
+            color: i===7?T.brand:T.t,
+            borderBottom: i===7?`2px solid ${T.brand}`:'2px solid transparent',
+            fontWeight: i===7?500:400,
+          }}>{m}</div>
+        ))}
+      </div>
+
+      {/* Cork board + rope */}
+      <div style={{flex:1,position:'relative',overflow:'hidden',background:'#f5ede0',
+        backgroundImage:'radial-gradient(circle,rgba(0,0,0,0.04) 1px,transparent 1px)',
+        backgroundSize:'22px 22px',
+      }}>
+        {/* Rope 1 */}
+        <div style={{position:'absolute',top:78,left:-8,right:-8,height:3,
+          background:'linear-gradient(90deg,#c8a870,#a88050,#c8a870)',
+          borderRadius:2,boxShadow:'0 1px 5px rgba(0,0,0,0.18)',
+        }}/>
+        {/* Rope 2 */}
+        <div style={{position:'absolute',top:268,left:-8,right:-8,height:3,
+          background:'linear-gradient(90deg,#c8a870,#a88050,#c8a870)',
+          borderRadius:2,boxShadow:'0 1px 5px rgba(0,0,0,0.18)',
+        }}/>
+
+        {items.map((item,i)=>{
+          const ropeY = i < 3 ? 78 : 268;
+          return (
+            <div key={i} style={{position:'absolute',left:item.left,top:ropeY-8,display:'flex',flexDirection:'column',alignItems:'center'}}>
+              {/* Pin */}
+              <div style={{width:13,height:22,background:'linear-gradient(180deg,#d4a040,#a87020)',borderRadius:'4px 4px 6px 6px',boxShadow:'0 1px 4px rgba(0,0,0,0.25)'}}/>
+              {/* String */}
+              <div style={{width:1,height:item.top - 5,background:'rgba(0,0,0,0.2)'}}/>
+              {/* Card */}
+              <div style={{
+                width:item.w, height:item.h, borderRadius:4,
+                transform:`rotate(${item.rotate}deg)`,
+                boxShadow:'0 4px 14px rgba(0,0,0,0.14),0 1px 4px rgba(0,0,0,0.08)',
+                overflow:'hidden', background: item.type==='note'?item.color:'white',
+                display:'flex', flexDirection:'column',
+              }}>
+                {item.type==='photo' ? (
+                  <>
+                    <div style={{flex:1,background:`linear-gradient(135deg,${item.gradFrom},${item.gradTo})`,
+                      display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5" fill="rgba(255,255,255,0.7)" stroke="none"/>
+                        <path d="M21 15l-5-5L5 21"/>
+                      </svg>
+                    </div>
+                    <div style={{background:'white',padding:'6px 8px',fontSize:10,color:T.s,textAlign:'center'}}>{item.caption}</div>
+                  </>
+                ) : (
+                  <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:12}}>
+                    <div style={{fontSize:13,color:T.p,lineHeight:1.6,textAlign:'center',whiteSpace:'pre-line'}}>{item.text}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        <div style={{position:'absolute',bottom:14,left:0,right:0,textAlign:'center',fontSize:12,color:'rgba(139,100,60,0.5)'}}>
+          一起晒过 38 张回忆 · 左滑看更早的
+        </div>
+      </div>
+
+      <div style={{padding:'10px 16px 14px',background:'#f0e8d8',borderTop:'1.5px solid #d4c4aa',flexShrink:0}}>
+        <div style={{height:44,borderRadius:22,background:T.brand,display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 4px 16px rgba(255,77,136,0.35)'}}>
+          <span style={{fontSize:14,color:'white'}}>📌</span>
+          <span style={{fontSize:15,color:'white',fontWeight:500}}>挂上新回忆</span>
+        </div>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   B: 星图 Star Map
+============================================================ */
+const StarMap = () => {
+  const stars = [
+    {x:65,  y:125, r:6, label:'第一次约会', date:'11.15', c:T.brand},
+    {x:195, y:88,  r:4, label:'', c:'#90b0ff'},
+    {x:300, y:155, r:7, label:'第一次牵手', date:'11.28', c:'#ffd060'},
+    {x:130, y:210, r:3, label:'', c:'#90b0ff'},
+    {x:250, y:238, r:4, label:'', c:'#90ffcc'},
+    {x:75,  y:285, r:5, label:'一起看电影', date:'12.14', c:T.brand},
+    {x:330, y:298, r:3, label:'', c:'#90b0ff'},
+    {x:175, y:330, r:8, label:'第一次说爱你', date:'12.25', c:'#ffd060'},
+    {x:285, y:388, r:4, label:'元旦跨年', date:'1.1', c:'#90ffcc'},
+    {x:90,  y:400, r:3, label:'', c:'#90b0ff'},
+    {x:205, y:438, r:5, label:'', c:T.brand},
+    {x:340, y:462, r:4, label:'春节', date:'2.3', c:'#ffaa70'},
+    {x:130, y:498, r:3, label:'', c:'#90b0ff'},
+    {x:258, y:526, r:7, label:'100天纪念日', date:'3.7', c:'#ffd060'},
+  ];
+  const lines = [[0,2],[2,5],[5,7],[7,8],[0,3],[3,5],[7,13]];
+
+  return (
+    <Phone bg="#0d0f1e" statusBg="#0d0f1e">
+      <div style={{height:44,background:'#0d0f1e',flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+        <div style={{width:44,fontSize:22,color:'rgba(255,255,255,0.4)'}}>‹</div>
+        <div style={{flex:1,textAlign:'center'}}>
+          <div style={{fontSize:17,fontWeight:500,color:'rgba(255,255,255,0.92)'}}>我们的星图</div>
+          <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',marginTop:1}}>38颗星 · 相识第102天</div>
+        </div>
+        <div style={{width:44,textAlign:'right',color:'rgba(255,255,255,0.35)',fontSize:20}}>⋯</div>
+      </div>
+
+      <div style={{flex:1,position:'relative',overflow:'hidden'}}>
+        {/* Nebula */}
+        <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 60% 40% at 45% 30%,rgba(80,40,160,0.28) 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 70% 65%,rgba(255,77,136,0.1) 0%,transparent 60%)'}}/>
+        {/* Tiny bg stars */}
+        {Array.from({length:55}).map((_,i)=>(
+          <div key={i} style={{position:'absolute',
+            left:`${(i*41+17)%93+2}%`, top:`${(i*59+11)%90+2}%`,
+            width:1.5, height:1.5, borderRadius:'50%', background:'rgba(255,255,255,0.25)',
+          }}/>
+        ))}
+        {/* Constellation lines */}
+        <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',overflow:'visible'}}>
+          {lines.map(([a,b],i)=>(
+            <line key={i} x1={stars[a].x} y1={stars[a].y} x2={stars[b].x} y2={stars[b].y}
+              stroke="rgba(255,255,255,0.1)" strokeWidth="1" strokeDasharray="4 5"/>
+          ))}
+        </svg>
+        {/* Stars */}
+        {stars.map((s,i)=>(
+          <div key={i} style={{position:'absolute',left:s.x-s.r,top:s.y-s.r,width:s.r*2,height:s.r*2,borderRadius:'50%',
+            background:s.c, boxShadow:`0 0 ${s.r*3}px ${s.r}px ${s.c}55,0 0 ${s.r*7}px ${s.c}20`}}>
+            {s.label && (
+              <div style={{position:'absolute',left:s.r*2+5,top:'50%',transform:'translateY(-50%)',whiteSpace:'nowrap'}}>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.85)',textShadow:'0 1px 4px rgba(0,0,0,0.8)'}}>{s.label}</div>
+                {s.date && <div style={{fontSize:10,color:'rgba(255,255,255,0.38)',marginTop:1}}>{s.date}</div>}
+              </div>
+            )}
+          </div>
+        ))}
+        <div style={{position:'absolute',bottom:16,left:0,right:0,textAlign:'center',fontSize:12,color:'rgba(255,255,255,0.3)'}}>
+          点击星星，查看那天的记忆 ✦
+        </div>
+      </div>
+
+      <div style={{padding:'10px 16px 14px',background:'#13162a',borderTop:'1px solid rgba(255,255,255,0.07)',flexShrink:0}}>
+        <div style={{height:44,borderRadius:22,background:'rgba(255,77,136,0.85)',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+          <span style={{fontSize:15,color:'white',fontWeight:500}}>✦ 记录新星星</span>
+        </div>
+      </div>
+      <HomeInd dark={true}/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   C: 情侣任务 Missions
+============================================================ */
+const CoupleMissions = () => {
+  const daily = [
+    {emoji:'💬', title:'今天跟她说句甜话', pts:10, done:true},
+    {emoji:'📷', title:'发一张今天看到的有趣图', pts:5, done:false},
+    {emoji:'🍜', title:'问问她今天吃了什么', pts:5, done:false},
+  ];
+  const weekly = [
+    {title:'一起视频通话', pts:30, prog:0, total:1},
+    {title:'本周互发3次便利贴', pts:20, prog:1, total:3},
+  ];
+
+  return (
+    <Phone>
+      <div style={{height:44,background:T.sur,flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:`1px solid ${T.line}`}}>
+        <div style={{width:44,fontSize:22,color:T.brand}}>‹</div>
+        <div style={{flex:1,textAlign:'center'}}>
+          <div style={{fontSize:17,fontWeight:500,color:T.p}}>情侣任务</div>
+          <div style={{fontSize:11,color:T.t,marginTop:1}}>今日 +15 ❤️ · 累计 2840</div>
+        </div>
+        <div style={{width:44,textAlign:'right',fontSize:20,color:T.s}}>⋯</div>
+      </div>
+      {/* XP bar */}
+      <div style={{background:T.sur,padding:'12px 16px',borderBottom:`1px solid ${T.line}`,flexShrink:0}}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+          <span style={{fontSize:12,color:T.s}}>亲密度 Lv.8</span>
+          <span style={{fontSize:12,color:T.brand}}>2840 / 3000 ❤️</span>
+        </div>
+        <div style={{height:8,borderRadius:4,background:'#f5f5f7',overflow:'hidden'}}>
+          <div style={{width:'94.7%',height:'100%',borderRadius:4,background:`linear-gradient(90deg,${T.brand},#ff90bf)`}}/>
+        </div>
+        <div style={{fontSize:11,color:T.t,marginTop:5}}>再完成 2 个任务即可升级 🎉</div>
+      </div>
+
+      <div style={{flex:1,overflow:'hidden',background:T.bg}}>
+        {/* Daily */}
+        <div style={{background:T.sur,padding:'14px 16px',marginBottom:8}}>
+          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:12}}>
+            <span style={{fontSize:16}}>☀️</span>
+            <span style={{fontSize:15,fontWeight:500,color:T.p}}>每日任务</span>
+            <span style={{fontSize:12,color:T.t,marginLeft:'auto'}}>1 / 3 完成</span>
+          </div>
+          {daily.map((task,i)=>(
+            <div key={i} style={{
+              display:'flex',alignItems:'center',gap:12,padding:'10px 0',
+              borderBottom: i<daily.length-1?`1px solid ${T.line}`:'none',
+              opacity: task.done ? 0.5 : 1,
+            }}>
+              <div style={{width:36,height:36,borderRadius:10,background: task.done?'#f0f0f0':T.bsoft,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{task.emoji}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,color:T.p,textDecoration: task.done?'line-through':'none'}}>{task.title}</div>
+                <div style={{fontSize:11,color:T.t,marginTop:2}}>+{task.pts} ❤️</div>
+              </div>
+              {task.done ? (
+                <div style={{width:28,height:28,borderRadius:14,background:'#f0f0f0',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={T.grn} strokeWidth="2.2" strokeLinecap="round"><path d="M2.5 7l3 3 6-6"/></svg>
+                </div>
+              ) : (
+                <div style={{height:28,borderRadius:14,background:T.brand,padding:'0 12px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <span style={{fontSize:12,color:'white',fontWeight:500}}>完成</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {/* Weekly */}
+        <div style={{background:T.sur,padding:'14px 16px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:14}}>
+            <span style={{fontSize:16}}>🏆</span>
+            <span style={{fontSize:15,fontWeight:500,color:T.p}}>本周挑战</span>
+          </div>
+          {weekly.map((task,i)=>(
+            <div key={i} style={{marginBottom: i<weekly.length-1?16:0}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                <span style={{fontSize:13,color:T.p}}>{task.title}</span>
+                <span style={{fontSize:12,color:T.brand}}>+{task.pts} ❤️</span>
+              </div>
+              <div style={{height:6,borderRadius:3,background:'#f5f5f7',overflow:'hidden'}}>
+                <div style={{width:`${(task.prog/task.total)*100}%`,height:'100%',borderRadius:3,background:`linear-gradient(90deg,${T.brand},#ff90bf)`}}/>
+              </div>
+              <div style={{fontSize:11,color:T.t,marginTop:4}}>{task.prog} / {task.total} 次完成</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ============================================================
+   D: 手账本 Handbook
+============================================================ */
+const Handbook = () => (
+  <Phone bg="#f5f0e6">
+    <div style={{height:44,background:'#e8ddd0',flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'2px solid #c8b898'}}>
+      <div style={{width:44,fontSize:22,color:'#8a7060'}}>‹</div>
+      <div style={{flex:1,textAlign:'center',fontSize:17,fontWeight:600,color:'#3e2a18',letterSpacing:1}}>我们的手账</div>
+      <div style={{width:44,textAlign:'right',fontSize:20,color:'#8a7060'}}>⋯</div>
+    </div>
+
+    <div style={{flex:1,position:'relative',overflow:'hidden',background:'#f9f5ee'}}>
+      {/* Ruled lines */}
+      {Array.from({length:30}).map((_,i)=>(
+        <div key={i} style={{position:'absolute',left:0,right:0,top:50+i*27,height:1,background:'rgba(140,110,80,0.11)'}}/>
+      ))}
+      {/* Left margin */}
+      <div style={{position:'absolute',left:46,top:0,bottom:0,width:1,background:'rgba(255,80,60,0.18)'}}/>
+
+      {/* Page number */}
+      <div style={{position:'absolute',top:14,right:18,fontSize:11,color:'rgba(139,100,70,0.45)',fontStyle:'italic'}}>p. 38</div>
+      {/* Date stamp */}
+      <div style={{position:'absolute',top:16,left:58,border:`1.5px solid rgba(255,77,136,0.45)`,borderRadius:3,padding:'2px 8px'}}>
+        <div style={{fontSize:10,color:T.brand,fontWeight:600,letterSpacing:1}}>2026.06.02</div>
+      </div>
+
+      {/* Written content */}
+      <div style={{position:'absolute',top:54,left:60,right:18,fontSize:14,color:'#3e2a18',lineHeight:'27px'}}>
+        <div>今天是我们在一起的</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:3}}>
+          第<span style={{fontSize:26,fontWeight:700,color:T.brand,lineHeight:'27px',margin:'0 2px'}}>102</span>天 🩷
+        </div>
+        <div style={{lineHeight:'27px'}}>&nbsp;</div>
+        <div>早上他发来消息说"在开会</div>
+        <div>想你了"，突然很幸福。☕</div>
+        <div style={{lineHeight:'27px'}}>&nbsp;</div>
+
+        {/* Polaroid sticker */}
+        <div style={{
+          width:116,height:106,background:'white',borderRadius:3,padding:'7px 7px 22px',
+          boxShadow:'2px 3px 12px rgba(0,0,0,0.13)',
+          transform:'rotate(-2.5deg)', display:'inline-block', marginBottom:4,
+        }}>
+          <div style={{width:'100%',height:72,background:'linear-gradient(135deg,#fde0ec,#e8d0f8)',borderRadius:2,
+            display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(180,120,160,0.5)" strokeWidth="1.5" strokeLinecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5" fill="rgba(180,120,160,0.5)" stroke="none"/>
+              <path d="M21 15l-5-5L5 21"/>
+            </svg>
+          </div>
+          <div style={{fontSize:9,color:T.t,textAlign:'center',marginTop:4}}>拍立得 · 今天</div>
+        </div>
+
+        {/* Washi tape */}
+        <div style={{
+          position:'absolute', top:58, right:-4,
+          width:38, height:140, borderRadius:3,
+          background:'rgba(255,200,100,0.32)', transform:'rotate(1deg)',
+        }}/>
+        {/* Star sticker */}
+        <div style={{position:'absolute',right:28,top:130,fontSize:24,transform:'rotate(12deg)',filter:'drop-shadow(1px 1px 2px rgba(0,0,0,0.1))'}}>⭐</div>
+        {/* Heart sticker */}
+        <div style={{position:'absolute',right:14,top:200,fontSize:20,transform:'rotate(-8deg)'}}>🩷</div>
+      </div>
+    </div>
+
+    <div style={{padding:'10px 16px 14px',background:'#e8ddd0',borderTop:'2px solid #c8b898',flexShrink:0}}>
+      <div style={{height:44,borderRadius:8,background:T.brand,display:'flex',alignItems:'center',justifyContent:'center',gap:8,boxShadow:'0 4px 14px rgba(255,77,136,0.3)'}}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        <span style={{fontSize:15,color:'white',fontWeight:500}}>继续写今天</span>
+      </div>
+    </div>
+    <HomeInd/>
+  </Phone>
+);
+
+/* ============================================================
+   E: 关系档案 Relationship Stats
+============================================================ */
+const RelationStats = () => {
+  const dims = [
+    {label:'浪漫', val:85},
+    {label:'沟通', val:72},
+    {label:'陪伴', val:90},
+    {label:'趣味', val:68},
+    {label:'贴心', val:88},
+  ];
+  const n = dims.length, cx=130, cy=130, r=88;
+  const pt = (i, v) => {
+    const a = (i*2*Math.PI/n) - Math.PI/2;
+    const rr = (v/100)*r;
+    return [cx + rr*Math.cos(a), cy + rr*Math.sin(a)];
+  };
+  const ax = (i) => {
+    const a = (i*2*Math.PI/n) - Math.PI/2;
+    return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+  };
+  const lx = (i) => {
+    const a = (i*2*Math.PI/n) - Math.PI/2;
+    return [cx + (r+22)*Math.cos(a), cy + (r+22)*Math.sin(a)];
+  };
+
+  return (
+    <Phone>
+      <div style={{height:44,background:T.sur,flexShrink:0,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:`1px solid ${T.line}`}}>
+        <div style={{width:44,fontSize:22,color:T.brand}}>‹</div>
+        <div style={{flex:1,textAlign:'center',fontSize:17,fontWeight:500,color:T.p}}>关系档案</div>
+        <div style={{width:44,textAlign:'right',fontSize:20,color:T.s}}>⋯</div>
+      </div>
+      {/* Couple header */}
+      <div style={{background:T.sur,padding:'14px 16px',borderBottom:`1px solid ${T.line}`,flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{display:'flex'}}>
+            <div style={{width:44,height:44,borderRadius:22,background:'#ffb3cc',border:'2.5px solid white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>🧑‍🦱</div>
+            <div style={{width:44,height:44,borderRadius:22,background:'#a8c8f0',border:'2.5px solid white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,marginLeft:-16}}>👦</div>
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,fontWeight:500,color:T.p}}>晶晶 & 小明</div>
+            <div style={{fontSize:12,color:T.t,marginTop:2}}>相识于 2025年11月22日</div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontSize:24,fontWeight:700,color:T.brand,lineHeight:1}}>102</div>
+            <div style={{fontSize:11,color:T.t}}>天在一起</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{flex:1,overflow:'hidden',background:T.bg}}>
+        {/* Radar */}
+        <div style={{background:T.sur,padding:'14px 16px',marginBottom:8}}>
+          <div style={{fontSize:14,fontWeight:500,color:T.p,marginBottom:8}}>亲密雷达</div>
+          <div style={{display:'flex',justifyContent:'center'}}>
+            <svg width="260" height="260" viewBox="0 0 260 260">
+              {[0.25,0.5,0.75,1].map((s,i)=>(
+                <polygon key={i}
+                  points={dims.map((_,j)=>{const [x,y]=ax(j); const a=(j*2*Math.PI/n)-Math.PI/2; return [cx+(r*s)*Math.cos(a),cy+(r*s)*Math.sin(a)].join(',')}).join(' ')}
+                  fill="none" stroke={T.line} strokeWidth="1"/>
+              ))}
+              {dims.map((_,i)=>{const[x,y]=ax(i); return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke={T.line} strokeWidth="1"/>;  })}
+              <polygon points={dims.map(({val},i)=>pt(i,val).join(',')).join(' ')} fill="rgba(255,77,136,0.12)" stroke={T.brand} strokeWidth="2"/>
+              {dims.map(({val},i)=>{const[x,y]=pt(i,val); return <circle key={i} cx={x} cy={y} r="4" fill={T.brand}/>;  })}
+              {dims.map(({label},i)=>{const[x,y]=lx(i); return <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="12" fill={T.s}>{label}</text>;  })}
+            </svg>
+          </div>
+        </div>
+
+        {/* Stats grid */}
+        <div style={{background:T.sur,padding:'14px 16px'}}>
+          <div style={{fontSize:14,fontWeight:500,color:T.p,marginBottom:10}}>关系数据</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+            {[
+              {label:'共同记录',val:'127条',icon:'📝'},
+              {label:'互相回应',val:'284次',icon:'❤️'},
+              {label:'一起打卡',val:'18次',icon:'📍'},
+              {label:'连续记录',val:'23天',icon:'🔥'},
+            ].map((s,i)=>(
+              <div key={i} style={{background:T.bg,borderRadius:10,padding:'10px 12px',display:'flex',gap:8,alignItems:'center'}}>
+                <span style={{fontSize:18}}>{s.icon}</span>
+                <div>
+                  <div style={{fontSize:16,fontWeight:600,color:T.p}}>{s.val}</div>
+                  <div style={{fontSize:11,color:T.t}}>{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <HomeInd/>
+    </Phone>
+  );
+};
+
+/* ================================================================
+   MAIN APP
+================================================================ */
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+const App = () => (
+  <DesignCanvas>
+    <DCSection id="vol2" title="恋爱日记探索 Vol.2" subtitle="5种差异化玩法">
+      <DCArtboard id="clothesline" label="A · 晒衣绳" width={390} height={844}>
+        <Clothesline/>
+      </DCArtboard>
+      <DCArtboard id="starmap" label="B · 星图" width={390} height={844}>
+        <StarMap/>
+      </DCArtboard>
+      <DCArtboard id="missions" label="C · 情侣任务" width={390} height={844}>
+        <CoupleMissions/>
+      </DCArtboard>
+      <DCArtboard id="handbook" label="D · 手账本" width={390} height={844}>
+        <Handbook/>
+      </DCArtboard>
+      <DCArtboard id="relstats" label="E · 关系档案" width={390} height={844}>
+        <RelationStats/>
+      </DCArtboard>
+    </DCSection>
+  </DesignCanvas>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

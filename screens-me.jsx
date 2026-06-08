@@ -1,7 +1,7 @@
 // screens-me.jsx — Screen 5-9
 // 美柚设计规范：8dp 网格，触控 ≥44px，字阶按规范
 
-// ─── Screen 5: 恋爱日记 · 全部记录 ──────────────────────────────
+// ─── Screen 5: 恋爱记 · 全部记录 ──────────────────────────────
 function Screen5DiaryAll({ onPublish }) {
   const days = [
     {
@@ -191,11 +191,11 @@ function Screen6Me({ onAvatarClick, onProfileClick, onTabChange }) {
         <div style={{ display: 'flex', alignItems: 'center', padding: '8px 16px 8px', background: MY.surface }}>
           <div onClick={onAvatarClick} style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, cursor: 'pointer', minHeight: 44 }}>
             <div style={{ position: 'relative', width: 52, height: 30 }}>
-              <div style={{ position: 'absolute', left: 0, top: 0, width: 30, height: 30, borderRadius: '50%', border: '2px solid #fff', overflow: 'hidden' }}>
-                <Avatar size={26} bg={USER.bg} initial={USER.initial}/>
-              </div>
-              <div style={{ position: 'absolute', right: 0, top: 0, width: 30, height: 30, borderRadius: '50%', border: '2px solid #fff', overflow: 'hidden', zIndex: 2 }}>
+              <div style={{ position: 'absolute', right: 0, top: 0, width: 30, height: 30, borderRadius: '50%', border: '2px solid #fff', overflow: 'hidden' }}>
                 <Avatar size={26} bg={PARTNER.bg} initial={PARTNER.initial}/>
+              </div>
+              <div style={{ position: 'absolute', left: 0, top: 0, width: 30, height: 30, borderRadius: '50%', border: '2px solid #fff', overflow: 'hidden', zIndex: 2 }}>
+                <Avatar size={26} bg={USER.bg} initial={USER.initial}/>
               </div>
               <div style={{
                 position: 'absolute', right: 0, bottom: -1, width: 8, height: 8,
@@ -577,7 +577,7 @@ function Screen8Partner({ onBack, onConfirmBreak }) {
               确定要解除关系吗？
             </div>
             <div style={{ textAlign: 'center', fontSize: 13.5, color: MY.textSec, marginTop: 10, padding: '0 24px', lineHeight: '20px' }}>
-              将无法再查看伴侣的经期等信息
+              伴侣将无法查看你的经期等信息，恋爱记的 {typeof DIARY_POSTS_V2 !== 'undefined' ? DIARY_POSTS_V2.length : 8} 条记录将被清除。
             </div>
             <div style={{
               display: 'flex', borderTop: `1px solid ${MY.line}`, marginTop: 22,
@@ -599,7 +599,7 @@ function Screen8Partner({ onBack, onConfirmBreak }) {
   );
 }
 
-// ─── Screen 9: 恋爱日记 · 发布 ────────────────────────────────────
+// ─── Screen 9: 恋爱记 · 发布 ────────────────────────────────────
 function Screen9DiaryPublish({ onCancel, onSave }) {
   return (
     <Phone bg={MY.surface}>

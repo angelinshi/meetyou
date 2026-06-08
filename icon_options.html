@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>模板切换 Icon 选项</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#f2f2f5;font-family:"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    display:flex;align-items:center;justify-content:center;min-height:100vh;padding:32px;}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:600px;width:100%;}
+  .card{background:#fff;border-radius:14px;padding:20px 16px;display:flex;flex-direction:column;
+    align-items:center;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,0.07);cursor:pointer;
+    transition:box-shadow 0.15s;}
+  .card:hover{box-shadow:0 4px 18px rgba(255,77,136,0.16);}
+  .icon-wrap{width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+    color:#999;transition:color 0.15s;}
+  .card:hover .icon-wrap{color:#FF4D88;}
+  .label{font-size:12px;color:#999;text-align:center;line-height:1.4;}
+  .badge{font-size:10px;background:rgba(255,77,136,0.1);color:#FF4D88;
+    padding:2px 7px;border-radius:20px;margin-top:2px;}
+  h2{font-size:13px;font-weight:500;color:#aaa;margin-bottom:8px;grid-column:1/-1;padding-left:2px;}
+</style>
+</head>
+<body>
+<div class="grid">
+
+  <h2>① 布局类</h2>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="1" y="1" width="6" height="6" rx="1.2"/>
+        <rect x="11" y="1" width="6" height="6" rx="1.2"/>
+        <rect x="1" y="11" width="6" height="6" rx="1.2"/>
+        <rect x="11" y="11" width="6" height="6" rx="1.2"/>
+      </svg>
+    </div>
+    <div class="label">四格网格</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="1" y="1" width="16" height="5" rx="1.2"/>
+        <rect x="1" y="7" width="7" height="5" rx="1.2"/>
+        <rect x="10" y="7" width="7" height="5" rx="1.2"/>
+        <rect x="1" y="13" width="16" height="4" rx="1.2"/>
+      </svg>
+    </div>
+    <div class="label">布局拼</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="1" y="3" width="16" height="4" rx="1.2"/>
+        <rect x="1" y="9" width="16" height="4" rx="1.2"/>
+        <rect x="1" y="15" width="10" height="2" rx="1"/>
+      </svg>
+    </div>
+    <div class="label">三横线</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="1" y="1" width="7" height="16" rx="1.2"/>
+        <rect x="10" y="1" width="7" height="7" rx="1.2"/>
+        <rect x="10" y="10" width="7" height="7" rx="1.2"/>
+      </svg>
+    </div>
+    <div class="label">面板分割</div>
+  </div>
+
+  <h2>② 层叠 / 样式类</h2>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1 13l8-4 8 4-8 4-8-4z"/>
+        <path d="M1 9l8-4 8 4"/>
+        <path d="M1 5l8-4 8 4"/>
+      </svg>
+    </div>
+    <div class="label">图层叠加</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="3" y="5" width="12" height="10" rx="1.5"/>
+        <rect x="1" y="3" width="12" height="10" rx="1.5"/>
+      </svg>
+    </div>
+    <div class="label">双卡叠放</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="4" y="6" width="13" height="10" rx="1.5"/>
+        <rect x="1" y="2" width="13" height="10" rx="1.5"/>
+        <line x1="5" y1="6" x2="5" y2="2"/>
+      </svg>
+    </div>
+    <div class="label">卡片堆</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="1" y="1" width="16" height="16" rx="2"/>
+        <circle cx="9" cy="9" r="4"/>
+        <line x1="9" y1="1" x2="9" y2="5"/>
+        <line x1="9" y1="13" x2="9" y2="17"/>
+      </svg>
+    </div>
+    <div class="label">样式环</div>
+  </div>
+
+  <h2>③ 切换 / 变换类</h2>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 6h11"/>
+        <path d="M10 3l3 3-3 3"/>
+        <path d="M16 12H5"/>
+        <path d="M8 15l-3-3 3-3"/>
+      </svg>
+    </div>
+    <div class="label">双向切换</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="1,6 5,2 9,6"/>
+        <line x1="5" y1="2" x2="5" y2="12"/>
+        <polyline points="9,12 13,16 17,12"/>
+        <line x1="13" y1="16" x2="13" y2="6"/>
+      </svg>
+    </div>
+    <div class="label">上下互换</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 5a6 6 0 0 1 10.2-1.8L15 5"/>
+        <path d="M15 13a6 6 0 0 1-10.2 1.8L3 13"/>
+        <polyline points="13,2 15,5 12,5"/>
+        <polyline points="5,16 3,13 6,13"/>
+      </svg>
+    </div>
+    <div class="label">循环刷新</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="1" y="5" width="8" height="8" rx="1.5"/>
+        <rect x="9" y="5" width="8" height="8" rx="1.5"/>
+        <line x1="5" y1="1" x2="5" y2="4"/>
+        <line x1="13" y1="1" x2="13" y2="4"/>
+        <line x1="5" y1="14" x2="5" y2="17"/>
+        <line x1="13" y1="14" x2="13" y2="17"/>
+      </svg>
+    </div>
+    <div class="label">双格比较</div>
+  </div>
+
+  <h2>④ 魔法棒 / 外观调整类</h2>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 2l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/>
+        <line x1="2" y1="16" x2="9" y2="9"/>
+        <line x1="2" y1="9" x2="4" y2="7"/>
+      </svg>
+    </div>
+    <div class="label">魔法棒</div>
+    <div class="badge">推荐</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <circle cx="9" cy="9" r="3"/>
+        <line x1="9" y1="1" x2="9" y2="4"/>
+        <line x1="9" y1="14" x2="9" y2="17"/>
+        <line x1="1" y1="9" x2="4" y2="9"/>
+        <line x1="14" y1="9" x2="17" y2="9"/>
+        <line x1="3.2" y1="3.2" x2="5.4" y2="5.4"/>
+        <line x1="12.6" y1="12.6" x2="14.8" y2="14.8"/>
+        <line x1="14.8" y1="3.2" x2="12.6" y2="5.4"/>
+        <line x1="5.4" y1="12.6" x2="3.2" y2="14.8"/>
+      </svg>
+    </div>
+    <div class="label">外观调节</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <path d="M3 14c0-2.5 2-4 6-4s6 1.5 6 4"/>
+        <path d="M2 6h4M7 3v6M12 3v6M14 6h-4"/>
+        <circle cx="9" cy="3.5" r="1.5"/>
+      </svg>
+    </div>
+    <div class="label">风格换装</div>
+  </div>
+
+  <div class="card">
+    <div class="icon-wrap">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <rect x="1" y="1" width="16" height="16" rx="2.5"/>
+        <path d="M5 9h8M5 6h5M5 12h6"/>
+      </svg>
+    </div>
+    <div class="label">卡片预览</div>
+  </div>
+
+</div>
+</body>
+</html>

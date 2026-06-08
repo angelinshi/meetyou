@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>表情归属方案探索</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#EDECEA;font-family:"PingFang SC","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    padding:32px 20px;}
+  h1{font-size:14px;font-weight:500;color:#999;margin-bottom:24px;letter-spacing:.5px;}
+  .row{display:flex;flex-direction:column;gap:10px;margin-bottom:32px;}
+  .label{font-size:12px;color:#aaa;margin-bottom:6px;}
+  .title{font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:3px;}
+  .desc{font-size:12px;color:#999;margin-bottom:12px;line-height:1.6;}
+  .card{background:#fff;border-radius:14px;padding:16px;
+    box-shadow:0 1px 1px rgba(0,0,0,0.10),0 3px 8px rgba(0,0,0,0.10),0 10px 28px rgba(0,0,0,0.08);}
+  .divider{height:1px;background:rgba(0,0,0,0.06);margin:24px 0;}
+  /* shared atoms */
+  .ava{width:28px;height:28px;border-radius:50%;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;flex-shrink:0;}
+  .ava-f{background:#FFB5C8;}
+  .ava-m{background:#A8C5E0;}
+  .meta{font-size:10.5px;color:#aaa;margin-top:1px;}
+  .name-f{color:#FF4D88;font-size:13px;font-weight:600;}
+  .name-m{color:#4A7AAF;font-size:13px;font-weight:600;}
+  .content{font-size:14px;color:#1a1a1a;line-height:22px;margin:8px 0 10px;}
+  .action-row{display:flex;align-items:center;gap:6px;margin-top:2px;}
+  .reply-btn{display:flex;align-items:center;gap:3px;font-size:12px;color:#999;cursor:pointer;margin-left:auto;}
+  .tag{font-size:10px;padding:2px 7px;border-radius:10px;}
+</style>
+</head>
+<body>
+<h1>表情归属 · 4种方案</h1>
+
+<!-- A -->
+<div class="title">A · 头像 + 表情</div>
+<div class="desc">表情左侧紧跟发送者头像缩略图，一眼知道是谁选的</div>
+<div class="card row">
+  <div class="label">对方的卡片 · 我已选❤️</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <!-- mini ava -->
+    <div style="display:flex;align-items:center;gap:4px;background:rgba(255,77,136,0.07);
+      border-radius:20px;padding:3px 8px 3px 4px;">
+      <div class="ava ava-f" style="width:18px;height:18px;font-size:10px;">🧑‍🦱</div>
+      <span style="font-size:16px;">❤️</span>
+    </div>
+    <div class="reply-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+      回复
+    </div>
+  </div>
+  <div class="label" style="margin-top:8px;">我的卡片 · 对方已选🥰</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div style="display:flex;align-items:center;gap:4px;background:rgba(74,122,175,0.07);
+      border-radius:20px;padding:3px 8px 3px 4px;">
+      <div class="ava ava-m" style="width:18px;height:18px;font-size:10px;">👦</div>
+      <span style="font-size:16px;">🥰</span>
+    </div>
+    <div class="reply-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+      回复
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- B -->
+<div class="title">B · 名字小标签</div>
+<div class="desc">表情后跟一个圆角标签显示名字，信息量更足，适合多人场景扩展</div>
+<div class="card row">
+  <div class="label">对方的卡片 · 我已选😊</div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span style="font-size:20px;">😊</span>
+    <span style="font-size:11px;color:#FF4D88;background:rgba(255,77,136,0.08);
+      padding:2px 8px;border-radius:10px;font-weight:500;">女友殿下</span>
+    <span style="font-size:11px;color:#aaa;cursor:pointer;opacity:0.5;margin-left:2px;">✎</span>
+    <div class="reply-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+      回复
+    </div>
+  </div>
+  <div class="label" style="margin-top:8px;">我的卡片 · 对方已选💕</div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span style="font-size:20px;">💕</span>
+    <span style="font-size:11px;color:#4A7AAF;background:rgba(74,122,175,0.08);
+      padding:2px 8px;border-radius:10px;font-weight:500;">男友先生</span>
+    <div class="reply-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+      回复
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- C -->
+<div class="title">C · 颜色底色区分</div>
+<div class="desc">用人物专属色底块包裹表情，女友=粉底，男友=蓝底，无需文字靠颜色即可区分</div>
+<div class="card row">
+  <div class="label">对方的卡片 · 我已选🫂</div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <div style="background:rgba(255,77,136,0.10);border-radius:12px;
+      padding:4px 10px;display:inline-flex;align-items:center;gap:3px;">
+      <span style="font-size:18px;">🫂</span>
+      <span style="font-size:11px;color:#FF4D88;opacity:0.65;cursor:pointer;">✎</span>
+    </div>
+    <div class="reply-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+      回复
+    </div>
+  </div>
+  <div class="label" style="margin-top:8px;">我的卡片 · 对方已选😂</div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <div style="background:rgba(74,122,175,0.10);border-radius:12px;
+      padding:4px 10px;display:inline-flex;align-items:center;">
+      <span style="font-size:18px;">😂</span>
+    </div>
+    <div class="reply-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+      回复
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- D -->
+<div class="title">D · 悬浮 tooltip</div>
+<div class="desc">表情本身保持最简，hover/长按弹出"女友殿下 选了这个"的浮层提示，不打扰常态</div>
+<div class="card row">
+  <div class="label">对方的卡片 · 我已选👍（hover 状态）</div>
+  <div style="display:flex;align-items:center;gap:6px;position:relative;">
+    <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;gap:3px;">
+      <!-- tooltip -->
+      <div style="background:rgba(0,0,0,0.68);color:white;font-size:10.5px;
+        padding:3px 9px;border-radius:8px;white-space:nowrap;
+        box-shadow:0 2px 8px rgba(0,0,0,0.15);">女友殿下 选了这个</div>
+      <span style="font-size:20px;cursor:pointer;">👍</span>
+    </div>
+    <span style="font-size:11px;color:#aaa;opacity:0.5;cursor:pointer;">✎</span>
+    <div class="reply-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+      回复
+    </div>
+  </div>
+  <div class="label" style="margin-top:8px;">常态（无 hover）</div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span style="font-size:20px;cursor:pointer;opacity:0.85;">👍</span>
+    <span style="font-size:11px;color:#aaa;opacity:0.45;cursor:pointer;">✎</span>
+    <div class="reply-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#999" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+      回复
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -540,7 +540,7 @@ function DiaryDayGroup({ day }) {
 function DiaryHomeModule({ onViewAll }) {
   return (
     <div style={{ background: MY.surface, borderRadius: MY.rmd, padding: '14px 14px 12px', boxShadow: MY.shadow1 }}>
-      <div style={{ fontSize: 15, fontWeight: 700, color: MY.textPri, marginBottom: 14 }}>恋爱日记</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: MY.textPri, marginBottom: 14 }}>恋爱记</div>
 
       {/* Clipped content area */}
       <div style={{ position: 'relative' }}>

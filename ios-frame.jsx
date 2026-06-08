@@ -1,3 +1,4 @@
+// @ds-adherence-ignore -- omelette starter scaffold (raw elements/hex/px by design)
 
 /* BEGIN USAGE */
 // iOS.jsx — Simplified iOS 26 (Liquid Glass) device frame
