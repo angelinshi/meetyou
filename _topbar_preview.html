@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#EDECEA;font-family:"PingFang SC",-apple-system,sans-serif;display:flex;gap:32px;padding:32px;justify-content:center;}
+.phone{width:280px;height:480px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 20px 48px rgba(0,0,0,0.18);position:relative;flex-shrink:0;}
+.label{text-align:center;font-size:12px;color:#666;margin-top:10px;}
+h3{font-size:13px;font-weight:600;color:#333;text-align:center;margin-bottom:6px;}
+
+/* 状态栏 */
+.statusbar{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:13px;font-weight:600;}
+
+/* 英雄渐变 */
+.hero{height:200px;background:linear-gradient(135deg,#FFD3E2 0%,#FFAAC8 45%,#E8A0C0 100%);position:relative;margin-top:-34px;}
+.hero-bottom{position:absolute;bottom:12px;left:14px;color:rgba(255,255,255,0.9);font-size:11px;}
+.hero-bottom b{font-size:13px;color:#fff;display:block;margin-bottom:3px;}
+
+/* 卡片内容 */
+.feed{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.card{background:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 1px 6px rgba(50,50,50,0.08);font-size:11.5px;color:#323232;}
+.card-sub{font-size:10.5px;color:#999;margin-top:4px;}
+
+/* 顶栏 */
+.topbar{position:absolute;top:0;left:0;right:0;height:34px;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 12px;}
+.topbar-inner{position:absolute;top:34px;left:0;right:0;height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;z-index:10;}
+
+/* 方案A：滚动后白色实底 */
+.topbar-a{background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);border-bottom:0.5px solid rgba(0,0,0,0.08);}
+/* 方案B：毛玻璃白底（更轻） */
+.topbar-b{background:rgba(255,255,255,0.82);backdrop-filter:blur(16px);border-bottom:0.5px solid rgba(255,255,255,0.4);}
+
+.icon{display:flex;align-items:center;justify-content:center;width:28px;height:28px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- 初始状态（透明顶栏+粉色hero） -->
+<div>
+  <h3>初始 · 粉色 Hero</h3>
+  <div class="phone">
+    <div class="statusbar" style="color:rgba(255,255,255,0.9);position:absolute;top:0;left:0;right:0;z-index:11;">
+      <span>9:41</span><span style="font-size:10px">●●●</span>
+    </div>
+    <div class="hero" style="position:absolute;top:0;left:0;right:0;height:210px;">
+      <div class="hero-bottom">
+        <b>女友殿下 ❤︎ 男友先生</b>
+        在一起 102 天 · 共记 12 篇
+      </div>
+    </div>
+    <!-- 透明顶栏 -->
+    <div class="topbar-inner" style="background:transparent;">
+      <div class="icon">
+        <svg width="9" height="16" viewBox="0 0 10 18" fill="none"><path d="M8.5 1L1 9l7.5 8" stroke="rgba(255,255,255,0.92)" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <circle cx="5" cy="12" r="1.5" fill="rgba(255,255,255,0.92)"/>
+          <circle cx="12" cy="12" r="1.5" fill="rgba(255,255,255,0.92)"/>
+          <circle cx="19" cy="12" r="1.5" fill="rgba(255,255,255,0.92)"/>
+        </svg>
+      </div>
+    </div>
+    <!-- Feed 内容在 hero 下方 -->
+    <div style="position:absolute;top:210px;left:0;right:0;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <div style="width:26px;height:26px;border-radius:50%;background:#FFB5C8;"></div>
+          <span style="font-size:11px;color:#999;">第102天 · 21:42</span>
+        </div>
+        拍主宰扇山，下山的时候腿都软了 😅 真的好有成就感！
+      </div>
+    </div>
+  </div>
+  <div class="label">顶栏透明，图标白色</div>
+</div>
+
+<!-- 滚动后：方案A 实底白 -->
+<div>
+  <h3>方案 A · 滚动后白底实色</h3>
+  <div class="phone" style="background:#f2f2f5;">
+    <div class="statusbar" style="background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);">
+      <span>9:41</span><span style="font-size:10px">●●●</span>
+    </div>
+    <!-- 滚动后顶栏 -->
+    <div class="topbar-inner topbar-a">
+      <div class="icon">
+        <svg width="9" height="16" viewBox="0 0 10 18" fill="none"><path d="M8.5 1L1 9l7.5 8" stroke="#323232" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <circle cx="5" cy="12" r="1.5" fill="#323232"/>
+          <circle cx="12" cy="12" r="1.5" fill="#323232"/>
+          <circle cx="19" cy="12" r="1.5" fill="#323232"/>
+        </svg>
+      </div>
+    </div>
+    <div style="position:absolute;top:72px;left:0;right:0;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <div style="width:26px;height:26px;border-radius:50%;background:#FFB5C8;"></div>
+          <span style="font-size:11px;color:#999;">第102天 · 21:42</span>
+        </div>
+        拍主宰扇山，下山的时候腿都软了 😅 真的好有成就感！
+      </div>
+      <div class="card">今天天气很好，出门溜达了一圈 ☀️<div class="card-sub">第101天 · 10:20</div></div>
+    </div>
+  </div>
+  <div class="label">白底 + 0.5px 分割线，内容遮挡 ✓</div>
+</div>
+
+<!-- 滚动后：方案B 毛玻璃 -->
+<div>
+  <h3>方案 B · 滚动后毛玻璃</h3>
+  <div class="phone" style="background:#f2f2f5;">
+    <div class="statusbar" style="background:rgba(255,255,255,0.82);backdrop-filter:blur(16px);">
+      <span>9:41</span><span style="font-size:10px">●●●</span>
+    </div>
+    <div class="topbar-inner topbar-b">
+      <div class="icon">
+        <svg width="9" height="16" viewBox="0 0 10 18" fill="none"><path d="M8.5 1L1 9l7.5 8" stroke="#323232" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <circle cx="5" cy="12" r="1.5" fill="#323232"/>
+          <circle cx="12" cy="12" r="1.5" fill="#323232"/>
+          <circle cx="19" cy="12" r="1.5" fill="#323232"/>
+        </svg>
+      </div>
+    </div>
+    <div style="position:absolute;top:72px;left:0;right:0;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <div style="width:26px;height:26px;border-radius:50%;background:#FFB5C8;"></div>
+          <span style="font-size:11px;color:#999;">第102天 · 21:42</span>
+        </div>
+        拍主宰扇山，下山的时候腿都软了 😅 真的好有成就感！
+      </div>
+      <div class="card">今天天气很好，出门溜达了一圈 ☀️<div class="card-sub">第101天 · 10:20</div></div>
+    </div>
+  </div>
+  <div class="label">毛玻璃半透明，轻盈感更强</div>
+</div>
+
+</body>
+</html>

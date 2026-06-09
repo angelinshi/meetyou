@@ -86,6 +86,20 @@ function DiaryVoiceBubble({ sec, playing, onPlay }) {
 }
 
 // ── 日记数据（v2）────────────────────────────────────────────────
+// ── 互动文案池 ────────────────────────────────────────────────────
+const INTERACT_COPY = {
+  '抱抱': ['张开双臂，收留你所有不安的片刻','把体温叠成一封信，寄到你怀里','拥抱是宇宙最短的回音，而你听见了'],
+  '亲亲': ['吻是落在额头的逗号，故事未完待续','从月亮上偷来一个吻，今晚好梦','风替我绕过山海，在你脸颊停了一秒'],
+  '贴贴': ['靠近一点，听我们的心跳在押韵','两朵云碰在一起时，人间下起了糖','脸颊挨着脸颊，像春天挨着春天'],
+  '想你': ['想你这件事，像云朵长在了天空里','月亮打喷嚏时，抖落了满天的想你','黄昏忽然有了重量，因为你在远方'],
+  '爱你': ['爱你是宇宙里最温柔的既定航向','把你的名字揉进春风，花开满余生','你是我在人间的韵脚，让句子完整'],
+};
+function getInteractCopy(label) {
+  const pool = INTERACT_COPY[label];
+  if (!pool) return '送出了一个' + label;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 const DIARY_POSTS_V2 = [
   { id: 'dv1',  authorKey: 'F', time: '21:42', daysTag: '第102天', kind: 'text',
     text: '一起走完雁荡山，下山的时候腿都软了 😂 真的好有成就感！', photos: 3,
@@ -95,10 +109,10 @@ const DIARY_POSTS_V2 = [
     comments: [] },
   { id: 'dv0a', authorKey: 'M', time: '10:15', daysTag: '第102天', kind: 'interact',
     interactEmoji: '🫂', interactLabel: '抱抱', interactColor: '#FF8C42',
-    comments: [] },
+    interactCopy: '张开双臂，收留你所有不安的片刻', comments: [] },
   { id: 'dv0b', authorKey: 'M', time: '09:30', daysTag: '第102天', kind: 'interact',
     interactEmoji: '❤️', interactLabel: '爱你', interactColor: '#FF4D4D',
-    comments: [] },
+    interactCopy: '爱你是宇宙里最温柔的既定航向', comments: [] },
   { id: 'dv2',  authorKey: 'M', time: '23:08', daysTag: '第101天', kind: 'voice',
     voiceSec: 18, photos: 0,
     comments: [{ authorKey: 'F', text: '没事啦，谢谢你这么细心 ❤︎' }] },
@@ -157,15 +171,12 @@ function DiaryPostCard({ post, showDayTag, isLast, playingId, onPlay, onReply, r
           </div>
           <div style={{ flex: 1, padding: '8px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 }}>
             <div style={{ fontSize: 12.5, fontWeight: 600, color: MY.textPri, lineHeight: 1.3 }}>
-              {isMe ? '送出了一个' + post.interactLabel : 'TA送来了一个' + post.interactLabel}
+              {post.interactCopy || (isMe ? '送出了一个' + post.interactLabel : 'TA送来了一个' + post.interactLabel)}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9.5, color: MY.textTer }}>
               <DiaryAva person={au} size={13}/>
               {au.name} · {post.time}
-              <span style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 600,
-                background: `${color}14`, color, borderRadius: 4, padding: '1px 5px' }}>
-                {isMe ? '已送出' : '收到了'}
-              </span>
+
             </div>
           </div>
         </div>
@@ -519,12 +530,246 @@ function DiaryVoiceRecorder({ onFinish, onCancel, onTranscribe }) {
   );
 }
 
+// ── 全屏发布页（同 Meetyou_diary_v7 PublishScreen）─────────────
+function DiaryPublishScreen({ onCancel, onSave }) {
+  const [text, setText]         = React.useState('');
+  const [selectedPhotos, setSelectedPhotos] = React.useState([]);
+  const [showEmoji, setShowEmoji] = React.useState(false);
+  const photoRef = React.useRef(null);
+  const attId = React.useRef(0);
+  const [uploadedPhotos, setUploadedPhotos] = React.useState([]);
+
+  const ALBUM = Array.from({ length: 16 }, (_, i) => ({
+    id: i,
+    bg: `hsl(0,0%,${82 - i % 4 * 4}%)`,
+  }));
+  const EMOJIS = ['❤️','🥰','😊','🫂','😂','🌹','✨','💕','🎉','💌','🌸','🫶'];
+
+  const toggleAlbum = (id) => {
+    setSelectedPhotos(ps =>
+      ps.includes(id) ? ps.filter(x => x !== id) : ps.length < 9 ? [...ps, id] : ps
+    );
+  };
+
+  const handleSave = () => {
+    const now = new Date();
+    onSave({
+      text: text.trim(),
+      photos: selectedPhotos.length + uploadedPhotos.length,
+      photoUrls: uploadedPhotos.map(p => p.url),
+      dateStr: now.toISOString().slice(0, 10),
+      time: now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    });
+  };
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, background: '#fff', zIndex: 60,
+      display: 'flex', flexDirection: 'column',
+      animation: 'diarySlideUp 0.28s cubic-bezier(0.32,0.72,0,1)',
+    }}>
+      {/* 隐藏文件上传 */}
+      <input ref={photoRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+        onChange={e => {
+          Array.from(e.target.files).forEach(f => {
+            setUploadedPhotos(ps => [...ps, { id: ++attId.current, url: URL.createObjectURL(f) }]);
+          });
+          e.target.value = '';
+        }}/>
+
+      {/* 状态栏由外层 Phone 提供，发布页不重复渲染 */}
+
+      {/* 顶部导航：取消 | (空) | 草稿 */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', height: 44, flexShrink: 0,
+        borderBottom: `.5px solid ${MY.line}`,
+      }}>
+        <button onClick={onCancel} style={{
+          background: 'none', border: 'none', fontSize: 16,
+          color: MY.textSec, cursor: 'pointer', padding: '4px 0', fontFamily: MY.font,
+        }}>取消</button>
+        <span style={{ fontSize: 16, fontWeight: 600, color: 'transparent' }}>记录</span>
+        <button onClick={handleSave} style={{
+          background: 'none', border: 'none', fontSize: 16,
+          color: MY.textSec, cursor: 'pointer', padding: '4px 0', fontFamily: MY.font,
+        }}>草稿</button>
+      </div>
+
+      {/* 内容区 */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+        {/* 文字输入 */}
+        <div style={{ padding: '14px 16px 10px', flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="写点什么…"
+            autoFocus
+            style={{
+              width: '100%', border: 'none', outline: 'none', resize: 'none',
+              fontSize: 16, lineHeight: '26px', color: MY.textPri,
+              background: 'transparent', fontFamily: MY.font,
+              flex: 1, minHeight: 80,
+            }}
+          />
+        </div>
+
+        {/* 已选图片预览条 */}
+        {(selectedPhotos.length > 0 || uploadedPhotos.length > 0) && (
+          <div style={{ padding: '0 16px 14px', borderTop: `.5px solid ${MY.line}` }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 12 }}>
+              {selectedPhotos.map((id, idx) => (
+                <div key={id} style={{ width: 80, height: 80, borderRadius: 8, position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', background: ALBUM[id].bg }}/>
+                  <div onClick={() => toggleAlbum(id)} style={{
+                    position: 'absolute', top: -7, right: -7, width: 20, height: 20,
+                    borderRadius: 10, background: '#8A8A8A', border: '2px solid #fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  }}>
+                    <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 1l6 6M7 1L1 7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                  </div>
+                  <div style={{
+                    position: 'absolute', bottom: 4, left: 4, width: 16, height: 16, borderRadius: 8,
+                    background: MY.brandRed, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10, fontWeight: 700, color: '#fff',
+                  }}>{idx + 1}</div>
+                </div>
+              ))}
+              {uploadedPhotos.map(p => (
+                <div key={p.id} style={{ width: 80, height: 80, borderRadius: 8, position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden' }}>
+                    <img src={p.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+                  </div>
+                  <div onClick={() => setUploadedPhotos(ps => ps.filter(x => x.id !== p.id))} style={{
+                    position: 'absolute', top: -7, right: -7, width: 20, height: 20,
+                    borderRadius: 10, background: '#8A8A8A', border: '2px solid #fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  }}>
+                    <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 1l6 6M7 1L1 7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                  </div>
+                </div>
+              ))}
+              {(selectedPhotos.length + uploadedPhotos.length) < 9 && (
+                <div onClick={() => photoRef.current?.click()} style={{
+                  width: 80, height: 80, borderRadius: 8, flexShrink: 0,
+                  background: '#F2F2F5', border: `1.5px dashed ${MY.line}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="#AEAAA4" strokeWidth="2.2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 工具栏 */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 0,
+          padding: '6px 12px', borderTop: `.5px solid ${MY.line}`,
+          borderBottom: `.5px solid ${MY.line}`, flexShrink: 0, background: '#fff',
+        }}>
+          <button onClick={() => photoRef.current?.click()} style={{
+            width: 42, height: 42, background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="5" width="20" height="15" rx="2.5" stroke={MY.textSec} strokeWidth="1.6"/>
+              <circle cx="12" cy="12.5" r="3.5" stroke={MY.textSec} strokeWidth="1.6"/>
+              <path d="M7 5l1.5-2h7L17 5" stroke={MY.textSec} strokeWidth="1.6" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <button onClick={() => setShowEmoji(s => !s)} style={{
+            width: 42, height: 42, background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke={showEmoji ? MY.brandRed : MY.textSec} strokeWidth="1.6"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke={showEmoji ? MY.brandRed : MY.textSec} strokeWidth="1.6" strokeLinecap="round"/>
+              <circle cx="9" cy="10" r="1.2" fill={showEmoji ? MY.brandRed : MY.textSec}/>
+              <circle cx="15" cy="10" r="1.2" fill={showEmoji ? MY.brandRed : MY.textSec}/>
+            </svg>
+          </button>
+          <button onClick={handleSave} style={{
+            marginLeft: 'auto', background: MY.brandRed, color: '#fff', border: 'none',
+            borderRadius: 20, padding: '7px 22px', fontSize: 14, fontWeight: 600,
+            cursor: 'pointer', boxShadow: '0 4px 12px rgba(255,77,136,0.30)',
+            fontFamily: MY.font,
+          }}>保存</button>
+        </div>
+
+        {/* Emoji 选择条 */}
+        {showEmoji && (
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: 4,
+            padding: '10px 14px', background: MY.bg,
+            borderBottom: `.5px solid ${MY.line}`, flexShrink: 0,
+          }}>
+            {EMOJIS.map(e => (
+              <span key={e} onClick={() => setText(t => t + e)}
+                style={{ fontSize: 22, cursor: 'pointer', padding: '4px 5px', borderRadius: 8 }}
+              >{e}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 相册网格（黑色背景，3行4列） */}
+      <div style={{ flexShrink: 0, background: '#000', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1.5 }}>
+          {/* 拍照格 */}
+          <div onClick={() => photoRef.current?.click()} style={{
+            aspectRatio: '1', background: '#2A2A2A',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', gap: 6, cursor: 'pointer',
+          }}>
+            <svg width="26" height="24" viewBox="0 0 24 22" fill="none">
+              <rect x="1" y="5" width="22" height="16" rx="2.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.6"/>
+              <circle cx="12" cy="13" r="4" stroke="rgba(255,255,255,0.6)" strokeWidth="1.6"/>
+              <path d="M7 5l2-3h6l2 3" stroke="rgba(255,255,255,0.6)" strokeWidth="1.6" strokeLinejoin="round"/>
+            </svg>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', fontWeight: 500 }}>点击拍照</span>
+          </div>
+          {ALBUM.slice(0, 11).map(p => {
+            const sel = selectedPhotos.includes(p.id);
+            return (
+              <div key={p.id} onClick={() => toggleAlbum(p.id)} style={{
+                aspectRatio: '1', background: p.bg,
+                position: 'relative', cursor: 'pointer',
+                opacity: sel ? 0.75 : 1, transition: 'opacity 0.15s',
+              }}>
+                {sel ? (
+                  <div style={{
+                    position: 'absolute', top: 5, left: 5, width: 22, height: 22,
+                    borderRadius: 11, background: MY.brandRed, border: '2px solid #fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 11, fontWeight: 700, color: '#fff',
+                  }}>{selectedPhotos.indexOf(p.id) + 1}</div>
+                ) : (
+                  <div style={{
+                    position: 'absolute', top: 5, left: 5, width: 22, height: 22,
+                    borderRadius: 11, background: 'rgba(0,0,0,0.18)',
+                    border: '1.5px solid rgba(255,255,255,0.6)',
+                  }}/>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── 日记屏幕主体（Screen5DiaryAll / BFDiary 共用）────────────────
 function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false, authorKey = 'F', showFilter = false, hideNav = false }) {
   const [posts, setPosts]         = React.useState(DIARY_POSTS_V2.map(p => ({ ...p })));
   const [replyingId, setReplyId]  = React.useState(null);
   const [replyText, setReplyText] = React.useState('');
   const [playingId, setPlayingId] = React.useState(null);
+  const [showPublish, setShowPublish] = React.useState(false);
   const [kbOpen, setKbOpen]       = React.useState(false);
   const [replyKb, setReplyKb]     = React.useState(false);
   const [kbText, setKbText]       = React.useState('');
@@ -558,6 +803,7 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false, 
   const handleInteract = (opt) => {
     const np = { id: Date.now(), authorKey, daysTag: '今天', kind: 'interact',
       interactEmoji: opt.emoji, interactLabel: opt.label, interactColor: opt.color,
+      interactCopy: getInteractCopy(opt.label),
       time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
       photos: 0, comments: [] };
     setPosts(ps => [np, ...ps]);
@@ -808,37 +1054,36 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false, 
 
       {/* ── 导航栏（透明→白，随滚动切换）── */}
       {!hideNav && (<div style={{
-        position: 'absolute', top: -36, left: 0, right: 0, height: 80,
+        position: 'absolute', top: -44, left: 0, right: 0, height: 88,
         zIndex: 10, pointerEvents: 'none',
-        background: navScrolled ? MY.surface : 'transparent',
-        borderBottom: navScrolled ? `1px solid ${MY.line}` : 'none',
+        background: navScrolled ? 'rgba(255,255,255,0.96)' : 'transparent',
+        backdropFilter: navScrolled ? 'blur(12px)' : 'none',
+        borderBottom: navScrolled ? `.5px solid ${MY.line}` : 'none',
         transition: 'background 0.25s, border-bottom 0.25s',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-        padding: '0 16px 10px',
+        padding: '0 12px 8px',
       }}>
         <div onClick={onBack} style={{
-          pointerEvents: 'auto', width: 36, height: 36, borderRadius: '50%',
-          background: navScrolled ? MY.bg : 'rgba(0,0,0,0.22)',
+          pointerEvents: 'auto', width: 36, height: 36,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', transition: 'background 0.25s',
+          cursor: 'pointer',
         }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M15 5l-7 7 7 7" stroke={navScrolled ? MY.textPri : '#fff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M15 5l-7 7 7 7" stroke={navScrolled ? MY.textPri : 'rgba(255,255,255,0.92)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
         <div style={{ flex: 1 }}/>
         <div style={{ position: 'relative', pointerEvents: 'auto' }}>
           {/* 更多按钮 */}
           <div onClick={() => setShowMore(v => !v)} style={{
-            width: 36, height: 36, borderRadius: '50%',
-            background: navScrolled ? MY.bg : 'rgba(0,0,0,0.22)',
+            width: 36, height: 36,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', transition: 'background 0.25s',
+            cursor: 'pointer',
           }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="5"  cy="12" r="1.8" fill={navScrolled ? MY.textPri : '#fff'}/>
-              <circle cx="12" cy="12" r="1.8" fill={navScrolled ? MY.textPri : '#fff'}/>
-              <circle cx="19" cy="12" r="1.8" fill={navScrolled ? MY.textPri : '#fff'}/>
+              <circle cx="5"  cy="12" r="1.8" fill={navScrolled ? MY.textPri : 'rgba(255,255,255,0.92)'}/>
+              <circle cx="12" cy="12" r="1.8" fill={navScrolled ? MY.textPri : 'rgba(255,255,255,0.92)'}/>
+              <circle cx="19" cy="12" r="1.8" fill={navScrolled ? MY.textPri : 'rgba(255,255,255,0.92)'}/>
             </svg>
           </div>
           {/* 下拉菜单 */}
@@ -889,7 +1134,7 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false, 
         </div>
       )}
 
-      {/* ── 美柚规范删除弹窗 ── */}}
+      {/* ── 美柚规范删除弹窗 ── */}
       {deleteConfirmId && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 60,
           background: 'rgba(0,0,0,0.45)',
@@ -957,8 +1202,8 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false, 
           { label: '互动', bg: `linear-gradient(135deg,${MY.brandRed},#FF8475)`, shadow: 'rgba(255,77,136,0.42)', delay: '0s',
             left: 4, top: -86, onClick: () => setInteractOpen(s => !s),
             icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21C6.5 15.5 2 11.5 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 4-4.5 8-10 13.5z" fill="#fff"/></svg>) },
-          { label: '日记', bg: 'linear-gradient(135deg,#6B9FD4,#4A7AAF)', shadow: 'rgba(74,122,175,0.42)', delay: '0.07s',
-            left: -58, top: -58, onClick: () => { setKbOpen(true); setFabOpen(false); setInteractOpen(false); },
+          { label: '图文', bg: 'linear-gradient(135deg,#6B9FD4,#4A7AAF)', shadow: 'rgba(74,122,175,0.42)', delay: '0.07s',
+            left: -58, top: -58, onClick: () => { setShowPublish(true); setFabOpen(false); setInteractOpen(false); },
             icon: (<svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="#fff" strokeWidth="2" strokeLinecap="round"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>) },
           { label: '语音', bg: 'linear-gradient(135deg,#A78BFA,#7C3AED)', shadow: 'rgba(124,58,237,0.38)', delay: '0.14s',
             left: -86, top: 4, onClick: () => { setVoice(true); setFabOpen(false); setInteractOpen(false); },
@@ -991,6 +1236,29 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false, 
           </svg>
         </div>
       </div>
+
+      {/* 全屏发布页 */}
+      {showPublish && (
+        <DiaryPublishScreen
+          onCancel={() => setShowPublish(false)}
+          onSave={(data) => {
+            if (data.text || data.photos > 0) {
+              const now = new Date();
+              const np = {
+                id: Date.now(), authorKey, daysTag: '今天', kind: 'text',
+                time: data.time || now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+                text: data.text || '',
+                photos: data.photos || 0,
+                photoUrls: data.photoUrls || [],
+                comments: [],
+              };
+              setPosts(ps => [np, ...ps]);
+              if (feedRef.current) feedRef.current.scrollTop = 0;
+            }
+            setShowPublish(false);
+          }}
+        />
+      )}
 
       {/* 发布键盘 */}
       {kbOpen && (
@@ -1080,7 +1348,7 @@ function DiaryHomeModule({ onViewAll, isEmpty = false }) {
                       </div>
                       <div style={{ flex: 1, padding: '6px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2 }}>
                         <div style={{ fontSize: 11.5, fontWeight: 600, color: MY.textPri }}>
-                          {post.authorKey === 'F' ? '你送出了一个' + post.interactLabel : 'TA送来了一个' + post.interactLabel}
+                          {post.interactCopy || (post.authorKey === 'F' ? '你送出了一个' + post.interactLabel : 'TA送来了一个' + post.interactLabel)}
                         </div>
                         <div style={{ fontSize: 9.5, color: MY.textTer }}>{au.name} · {post.time}</div>
                       </div>

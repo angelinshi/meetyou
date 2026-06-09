@@ -55,6 +55,7 @@ const PARTNER = { name: '男友先生', initial: '男', bg: '#A8C5E0' };
 // ─── 基础图形组件 ────────────────────────────────────────────────
 
 // ── 头像剪影 SVG（女 / 男，通用）────────────────────────────────
+// ── 头像剪影 SVG（女 / 男，通用）────────────────────────────────
 function _AvatarSVG({ isFemale, size }) {
   const w = size * 0.72, h = size * 0.82;
   if (isFemale) return (

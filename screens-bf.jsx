@@ -1030,18 +1030,21 @@ function BFDiaryTab({ onTabChange }) {
           authorKey='M' showFilter={false} hideNav={true}/>
       </div>
 
-      {/* 透明→白色顶栏（叠在 DiaryScreenInner 上） */}
+      {/* 顶栏 overlay：top:-44 覆盖状态栏区域，滚动后全部封底 */}
       <div style={{
-        position:'absolute', top:0, left:0, right:0, height:80, zIndex:20,
+        position:'absolute', top:-44, left:0, right:0, height:88, zIndex:20,
         pointerEvents:'none',
+        background: scrolled ? 'rgba(255,255,255,0.96)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(12px)' : 'none',
+        borderBottom: scrolled ? '.5px solid rgba(0,0,0,0.08)' : 'none',
+        transition:'background 0.2s ease',
       }}>
-        <div style={{ height:36 }}/>
+        {/* 状态栏高度占位 */}
+        <div style={{ height:44 }}/>
+        {/* 返回 + 更多按钮行 */}
         <div style={{
           height:44, display:'flex', alignItems:'center', justifyContent:'space-between',
           padding:'0 12px',
-          background: scrolled ? '#fff' : 'transparent',
-          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
-          transition:'background 0.2s ease',
           pointerEvents:'auto',
         }}>
           {/* 返回 */}

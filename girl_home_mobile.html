@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>美柚 · 女生视角</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: #EDECEA;
+      font-family: "PingFang SC", "PingFang", -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      overflow: hidden;
+    }
+    * { box-sizing: border-box; }
+    #root {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    #phone-stage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: center center;
+    }
+    ::-webkit-scrollbar { display: none; }
+    @keyframes diarySlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    @keyframes diaryBlink{0%,100%{opacity:1}50%{opacity:0}}
+    @keyframes diaryWave{0%,100%{height:4px}50%{height:14px}}
+    @keyframes diaryFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes emojiRainFall{0%{opacity:1}100%{opacity:0;transform:translateY(400px)}}
+    @keyframes fanPop{0%{transform:scale(0)}100%{transform:scale(1)}}
+  </style>
+</head>
+<body>
+<div id="root"><div id="phone-stage"></div></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="image-slot.js"></script>
+<script type="text/babel" src="screens-shared.jsx"></script>
+<script type="text/babel" src="screens-invite.jsx"></script>
+<script type="text/babel" src="screens-me.jsx"></script>
+<script type="text/babel" src="screens-bf.jsx"></script>
+<script type="text/babel" src="screens-diary-v2.jsx"></script>
+
+<script type="text/babel">
+const DESIGN_W = 375;
+const DESIGN_H = 780;
+
+function App() {
+  const [screen, setScreen] = React.useState('s1');
+  const [diaryEmpty, setDiaryEmpty] = React.useState(false);
+  const [scale, setScale] = React.useState(1);
+
+  React.useEffect(() => {
+    const fit = () => {
+      const s = Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H);
+      setScale(s);
+      const stage = document.getElementById('phone-stage');
+      if (stage) stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, []);
+
+  const go = (id) => setScreen(id);
+
+  const tabRoute = (tabId) => {
+    if (tabId === 'me') go('s6');
+    else if (tabId === 'home') go('s1');
+    else if (tabId === 'record') go('sR');
+  };
+
+  const screens = {
+    // ── Flow A: 女生发起邀请 ──
+    s1:  <Screen1Home onInviteClick={() => go('s2')} onDiary={() => go('s5')} onTabChange={tabRoute}/>,
+    sR:  <Screen_RecordInvite onInviteClick={() => go('s2')}/>,
+    s2:  <Screen2Invite onBack={() => go('s1')} onFaceToFace={() => go('s3')} onWeChatInvite={() => go('wc1')}/>,
+    s3:  <Screen3QR onBack={() => go('s2')} onPair={() => go('s4')}/>,
+
+    // ── Flow B: 邀请成功 ──
+    s4:  <Screen4HomePaired onViewAll={() => go('s5')} onTabChange={tabRoute} diaryEmpty={diaryEmpty}/>,
+    s5:  <Screen5DiaryAll onBack={() => go('s4')} onPublish={() => go('s9')} diaryEmpty={diaryEmpty}/>,
+    s9:  <Screen9DiaryPublish onCancel={() => go('s5')} onSave={() => go('s5')}/>,
+    s6:  <Screen6Me onAvatarClick={() => go('s8')} onProfileClick={() => go('s7')} onTabChange={tabRoute}/>,
+    s7:  <Screen7Profile onBack={() => go('s6')} onPartnerClick={() => go('s8')}/>,
+    s8:  <Screen8Partner onBack={() => go('s6')} onConfirmBreak={() => go('s1')}/>,
+
+    // ── Flow C: 男生接受邀请（微信锁道） ──
+    wc1: <Screen_WeChatMsg onOpenLink={() => go('wc2')}/>,
+    wc2: <Screen_InviteH5 onAccept={() => go('wc3')}/>,
+    wc3: <Screen_AcceptSuccess onOpen={() => go('wc4')}/>,
+    wc4: <Screen_ModeSelect onInvited={() => go('wc5')}/>,
+    wc5: <Screen_LoginPhone onLogin={() => go('bf1')}/>,
+
+    // ── Flow D: 男生视角 ──
+    bf1: <BFHome onSecretDetail={() => go('bf2')} onDiary={() => go('bf5')} onTabChange={(tab) => {
+      if (tab === 'diary') go('bf5');
+      else if (tab === 'record') go('bf4');
+      else if (tab === 'home') go('bf1');
+      else if (tab === 'me') go('bf6');
+    }} diaryEmpty={diaryEmpty}/>,
+    bf2: <BFSecretDetail onBack={() => go('bf1')}/>,
+    bf4: <BFRecord onTabChange={(tab) => {
+      if (tab === 'diary') go('bf5');
+      else if (tab === 'home') go('bf1');
+    }}/>,
+    bf5: <BFDiaryTab onTabChange={(tab) => {
+      if (tab === 'home') go('bf1');
+      else if (tab === 'record') go('bf4');
+    }}/>,
+  };
+
+  return (
+    <div style={{ width: DESIGN_W, height: DESIGN_H, position: 'relative', overflow: 'hidden' }}>
+      {screens[screen] || screens['s1']}
+    </div>
+  );
+}
+
+function mount() {
+  const ready = typeof Screen1Home !== 'undefined'
+    && typeof Screen2Invite !== 'undefined'
+    && typeof Screen3QR !== 'undefined'
+    && typeof Screen4HomePaired !== 'undefined'
+    && typeof Screen5DiaryAll !== 'undefined'
+    && typeof Screen6Me !== 'undefined'
+    && typeof Screen_WeChatMsg !== 'undefined'
+    && typeof BFHome !== 'undefined';
+  if (ready) {
+    ReactDOM.createRoot(document.getElementById('phone-stage')).render(<App/>);
+  } else {
+    setTimeout(mount, 80);
+  }
+}
+mount();
+</script>
+</body>
+</html>
