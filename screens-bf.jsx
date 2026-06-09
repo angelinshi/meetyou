@@ -106,18 +106,14 @@ function CycleRing({ size = 240 }) {
             <path d="M43 38 Q47 35 51 38" fill="none" stroke="#D06080" strokeWidth="2" strokeLinecap="round"/>
             <path d="M33 48 Q40 53 47 48" fill="none" stroke="#D06080" strokeWidth="2.2" strokeLinecap="round"/>
           </svg>
-          {/* 拖拽上传区叠在上面 */}
-          <image-slot
-            id="cycle-center-mascot"
-            shape="circle"
-            placeholder="拖入切图"
+          {/* 吉祥物固定图片 */}
+          <img src="assets/blob_mascot.jpg" alt="吉祥物"
             style={{
               position: 'absolute', inset: 0,
               width: '100%', height: '100%',
               borderRadius: '50%',
-              background: 'transparent',
-            }}
-          ></image-slot>
+              objectFit: 'cover',
+            }}/>
         </div>
       </div>
 
@@ -953,12 +949,14 @@ function BFTabBarNew({ active = 'home', onChange }) {
         }
       </svg>
     )},
-    { id: 'record', label: '记录', icon: (c) => (
+    { id: 'record', label: '日历', icon: (c, on) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <rect x="4" y="5" width="16" height="16" rx="3" stroke={c} strokeWidth="1.8"/>
-        <rect x="7" y="3" width="2" height="4" rx="1" fill={c}/>
-        <rect x="15" y="3" width="2" height="4" rx="1" fill={c}/>
-        <path d="M8 11h8M8 15h5" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
+        <rect x="3" y="4" width="18" height="17" rx="3" stroke={c} strokeWidth="1.8"/>
+        <rect x="7" y="2" width="2" height="4" rx="1" fill={c}/>
+        <rect x="15" y="2" width="2" height="4" rx="1" fill={c}/>
+        <path d="M3 9h18" stroke={c} strokeWidth="1.6" strokeLinecap="round"/>
+        {on && <><circle cx="8" cy="14" r="1.5" fill={c}/><circle cx="12" cy="14" r="1.5" fill={c}/><circle cx="16" cy="14" r="1.5" fill={c}/></>}
+        {!on && <><circle cx="8" cy="14" r="1.2" fill={c}/><circle cx="12" cy="14" r="1.2" fill={c}/><circle cx="16" cy="14" r="1.2" fill={c}/></>}
       </svg>
     )},
     { id: 'diary', label: '恋爱记', badge: true, icon: (c, on) => (
