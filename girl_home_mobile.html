@@ -94,7 +94,7 @@ function App() {
     s4:  <Screen4HomePaired onViewAll={() => go('s5')} onTabChange={tabRoute} diaryEmpty={diaryEmpty}/>,
     s5:  <Screen5DiaryAll onBack={() => go('s4')} onPublish={() => go('s9')} diaryEmpty={diaryEmpty}/>,
     s9:  <Screen9DiaryPublish onCancel={() => go('s5')} onSave={() => go('s5')}/>,
-    s6:  <Screen6Me onAvatarClick={() => go('s8')} onProfileClick={() => go('s7')} onTabChange={tabRoute}/>,
+    s6:  <Screen6Me onAvatarClick={() => go('s7')} onProfileClick={() => go('s7')} onTabChange={tabRoute}/>,
     s7:  <Screen7Profile onBack={() => go('s6')} onPartnerClick={() => go('s8')}/>,
     s8:  <Screen8Partner onBack={() => go('s6')} onConfirmBreak={() => go('s1')}/>,
 

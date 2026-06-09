@@ -207,8 +207,8 @@ function Phone({ children, bg = MY.surface, statusDark = false }) {
       fontFamily: MY.font, color: MY.textPri,
       WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale',
     }}>
-      {/* 内容层：inset 36px 为状态栏预留空间，去掉 overflow:hidden 使 hero 可延伸至 top:-36 */}
-      <div style={{ position: 'absolute', inset: '36px 0 24px' }}>
+      {/* 内容层：inset 44px 为状态栏预留空间，去掉 overflow:hidden 使 hero 可延伸至 top:-44 */}
+      <div style={{ position: 'absolute', inset: '44px 0 24px' }}>
         {children}
       </div>
       {/* 状态栏透明叠层：内容自然透出，图标始终在最上方 */}

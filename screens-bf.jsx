@@ -951,7 +951,7 @@ function BFTabBarNew({ active = 'home', onChange }) {
     onChange && onChange(id);
   };
   const items = [
-    { id: 'home', label: '推荐', icon: (c, on) => (
+    { id: 'home', label: '美柚', icon: (c, on) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         {on
           ? <g fill={c}><ellipse cx="12" cy="5.5" rx="3" ry="4"/><ellipse cx="18.5" cy="12" rx="4" ry="3"/><ellipse cx="12" cy="18.5" rx="3" ry="4"/><ellipse cx="5.5" cy="12" rx="4" ry="3"/><circle cx="12" cy="12" r="3" fill="#fff"/></g>
@@ -1031,7 +1031,7 @@ function BFDiaryTab({ onTabChange }) {
   const [scrolled, setScrolled] = React.useState(false);
   const TABBAR_H = 50 + 20; // BFTabBarNew height + bottom padding
   return (
-    <Phone bg={MY.surface} statusDark={!scrolled}>
+    <Phone bg={MY.surface} statusDark={false}>
       {/* DiaryScreenInner 占满，底部为 tabbar 留空 */}
       <div style={{ position:'absolute', inset:0, bottom: TABBAR_H }}>
         <DiaryScreenInner onBack={()=>{}} onPublish={()=>{}} onScrollChange={setScrolled}

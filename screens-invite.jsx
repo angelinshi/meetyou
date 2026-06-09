@@ -429,7 +429,7 @@ function Screen2Invite({ onFaceToFace, onBack, onWeChatInvite }) {
           {[
           { t: '经期提醒', s: '下次经期提前知', from: '#ffe0ec', to: '#ffc3d6' },
           { t: '懂你状态', s: '症状提醒不踩雷', from: '#f1e6fb', to: '#ddcaf0' },
-          { t: '恋爱记', s: '记录甜蜜日常', from: '#e0eeff', to: '#bfd4f5' }].
+          { t: '恋爱记录', s: '记录甜蜜日常', from: '#e0eeff', to: '#bfd4f5' }].
           map((c, i) =>
           <div key={i} style={{
             flex: 1, borderRadius: MY.rsm, minWidth: 0,

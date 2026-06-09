@@ -1409,7 +1409,7 @@ function DiaryHomeModule({ onViewAll, isEmpty = false }) {
 function Screen5DiaryAll({ onBack, onPublish, diaryEmpty = false }) {
   const [scrolled, setScrolled] = React.useState(false);
   return (
-    <Phone bg={MY.surface} statusDark={!scrolled}>
+    <Phone bg={MY.surface}>
       <DiaryScreenInner onBack={onBack} onPublish={onPublish} onScrollChange={setScrolled} isEmpty={diaryEmpty}/>
     </Phone>
   );
@@ -1419,7 +1419,7 @@ function Screen5DiaryAll({ onBack, onPublish, diaryEmpty = false }) {
 function BFDiary({ onBack, diaryEmpty = false }) {
   const [scrolled, setScrolled] = React.useState(false);
   return (
-    <Phone bg={MY.surface} statusDark={!scrolled}>
+    <Phone bg={MY.surface}>
       <DiaryScreenInner onBack={onBack} onPublish={() => {}} onScrollChange={setScrolled} isEmpty={diaryEmpty}/>
     </Phone>
   );
