@@ -100,13 +100,7 @@ cd "$REPO_DIR"
 
 git add -A
 
-if git diff --cached --quiet; then
-  echo ""
-  echo "⚠️  Nothing changed since last sync — skipping commit."
-  exit 0
-fi
-
-git commit -m "sync: $TIMESTAMP" --quiet
+git commit --allow-empty -m "sync: $TIMESTAMP" --quiet
 
 echo ""
 echo "🚀 Pushing to origin/main..."
