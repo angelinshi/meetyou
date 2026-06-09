@@ -295,15 +295,15 @@ function BFHome({ onSecretDetail, onDiary, onTabChange, diaryEmpty = false }) {
       <div style={{ position: 'absolute', inset: '44px 0 50px', overflowY: 'auto' }}>
         <div style={{ height: 8 }}/>
 
-        {/* 模块1：今日密报 hero — 点击进入密报页 */}
-        <div onClick={onSecretDetail} style={{
+        {/* 模块1：今日密报 hero */}
+        <div style={{
           margin: '0 16px', borderRadius: MY.rmd, padding: '16px 16px 56px',
           background: `linear-gradient(120deg, ${MY.brandRed} 0%, #ff80aa 55%, #ffafc8 100%)`,
-          color: '#fff', position: 'relative', overflow: 'hidden', cursor: 'pointer',
+          color: '#fff', position: 'relative', overflow: 'hidden',
           boxShadow: `0 6px 16px rgba(255,77,136,0.28)`,
         }}>
           <div style={{ fontSize: 21, fontWeight: 600, lineHeight: '28px' }}>距月经开始还有 3 天</div>
-          <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>预测经期开始日 5月30日 ›</div>
+          <div style={{ fontSize: 13, opacity: 0.9, marginTop: 4 }}>预测经期开始日 5月30日</div>
           {/* 怀孕几率花形 */}
           <div style={{ position: 'absolute', right: 14, top: 12, width: 82, height: 82 }}>
             <svg width="82" height="82" viewBox="0 0 82 82" style={{ position: 'absolute', inset: 0 }}>
@@ -1031,7 +1031,7 @@ function BFDiaryTab({ onTabChange }) {
   const [scrolled, setScrolled] = React.useState(false);
   const TABBAR_H = 50 + 20; // BFTabBarNew height + bottom padding
   return (
-    <Phone bg={MY.surface} statusDark={scrolled}>
+    <Phone bg={MY.surface} statusDark={!scrolled}>
       {/* DiaryScreenInner 占满，底部为 tabbar 留空 */}
       <div style={{ position:'absolute', inset:0, bottom: TABBAR_H }}>
         <DiaryScreenInner onBack={()=>{}} onPublish={()=>{}} onScrollChange={setScrolled}

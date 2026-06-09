@@ -908,9 +908,9 @@ function DiaryScreenInner({ onBack, onPublish, onScrollChange, isEmpty = false, 
           overflowY: 'auto', transition: 'bottom 0.25s cubic-bezier(0.32,0.72,0,1)',
           zIndex: 1,
         }}>
-        {/* 封面 — marginTop:-36 随 feed 滚动 */}
+        {/* 封面 — marginTop:-44 随 feed 滚动 */}
         <div style={{
-          marginTop: -36, height: 292, position: 'relative', overflow: 'hidden', flexShrink: 0,
+          marginTop: -44, height: 300, position: 'relative', overflow: 'hidden', flexShrink: 0,
           background: COVERS[coverIdx], transition: 'background 0.4s ease',
         }}>
           <div style={{ position: 'absolute', top: -40, right: -30, width: 180, height: 180,
