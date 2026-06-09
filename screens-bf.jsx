@@ -940,6 +940,16 @@ function Screen_BFChatDetail({ onBack }) {
 
 /* ── 男友版底栏：「返现」→「日记」(带小红点) ── */
 function BFTabBarNew({ active = 'home', onChange }) {
+  const [badgeDismissed, setBadgeDismissed] = React.useState(
+    () => localStorage.getItem('bf_diary_badge_seen') === '1'
+  );
+  const handleChange = (id) => {
+    if (id === 'diary') {
+      setBadgeDismissed(true);
+      localStorage.setItem('bf_diary_badge_seen', '1');
+    }
+    onChange && onChange(id);
+  };
   const items = [
     { id: 'home', label: '推荐', icon: (c, on) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -959,7 +969,7 @@ function BFTabBarNew({ active = 'home', onChange }) {
         {!on && <><circle cx="8" cy="14" r="1.2" fill={c}/><circle cx="12" cy="14" r="1.2" fill={c}/><circle cx="16" cy="14" r="1.2" fill={c}/></>}
       </svg>
     )},
-    { id: 'diary', label: '恋爱记', badge: true, icon: (c, on) => (
+    { id: 'diary', label: '恋爱记', badge: !badgeDismissed, icon: (c, on) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
         {on
           ? <><path d="M5 3h10l4 4v14H5V3z" fill={c} opacity=".18"/><path d="M5 3h10l4 4v14H5V3z" stroke={c} strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 9h6M9 13h6M9 17h4" stroke={c} strokeWidth="1.6" strokeLinecap="round"/></>
@@ -991,7 +1001,7 @@ function BFTabBarNew({ active = 'home', onChange }) {
         const on = it.id === active;
         const c = on ? MY.brandRed : '#7C7479';
         return (
-          <div key={it.id} onClick={() => onChange && onChange(it.id)} style={{
+          <div key={it.id} onClick={() => handleChange(it.id)} style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
             flex: 1, color: c, fontSize: 10, fontWeight: on ? 600 : 400,
             cursor: 'pointer', minHeight: 44, justifyContent: 'center',
