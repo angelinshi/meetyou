@@ -576,7 +576,7 @@ function Screen4HomePaired({ onViewAll, onTabChange, diaryEmpty = false }) {
 // ═══════════════════════════════════════════════════════════════════
 
 // ─── 女生记录页（含邀请 banner）— Flow A 第 2 张 ──────────────────
-function Screen_RecordInvite({ onInviteClick }) {
+function Screen_RecordInvite({ onInviteClick, onTabChange }) {
   const weeks = ['日', '一', '二', '三', '四', '五', '六'];
   const startDow = 4; // May 2026 starts on Thursday(4) - actually Friday 5? Let me use Friday
   const daysInMonth = 31;
@@ -756,7 +756,7 @@ function Screen_RecordInvite({ onInviteClick }) {
         </div>
       </div>
 
-      <TabBar active="record" firstLabel="美柚" />
+      <TabBar active="record" firstLabel="美柚" onChange={onTabChange} />
     </Phone>);
 
 }

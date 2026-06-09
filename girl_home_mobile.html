@@ -58,7 +58,8 @@ const DESIGN_W = 375;
 const DESIGN_H = 780;
 
 function App() {
-  const [screen, setScreen] = React.useState('s1');
+  const initScreen = new URLSearchParams(location.search).get('screen') || 's1';
+  const [screen, setScreen] = React.useState(initScreen);
   const [diaryEmpty, setDiaryEmpty] = React.useState(false);
   const [scale, setScale] = React.useState(1);
 
@@ -85,7 +86,7 @@ function App() {
   const screens = {
     // ── Flow A: 女生发起邀请 ──
     s1:  <Screen1Home onInviteClick={() => go('s2')} onDiary={() => go('s5')} onTabChange={tabRoute}/>,
-    sR:  <Screen_RecordInvite onInviteClick={() => go('s2')}/>,
+    sR:  <Screen_RecordInvite onInviteClick={() => go('s2')} onTabChange={tabRoute}/>,
     s2:  <Screen2Invite onBack={() => go('s1')} onFaceToFace={() => go('s3')} onWeChatInvite={() => go('wc1')}/>,
     s3:  <Screen3QR onBack={() => go('s2')} onPair={() => go('s4')}/>,
 

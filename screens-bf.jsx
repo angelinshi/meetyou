@@ -1047,14 +1047,8 @@ function BFDiaryTab({ onTabChange }) {
           padding:'0 12px',
           pointerEvents:'auto',
         }}>
-          {/* 返回 */}
-          <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-            <svg width="10" height="18" viewBox="0 0 10 18" fill="none">
-              <path d="M8.5 1L1 9l7.5 8"
-                stroke={scrolled ? '#323232' : 'rgba(255,255,255,0.92)'}
-                strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
+          {/* 返回已移除 — 一级导航页无需返回 */}
+          <div style={{ width:36, height:36 }}/>
           {/* 更多 */}
           <div style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
