@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>美柚「经期男友版」产品设计调研文档</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap');
+
+  :root {
+    --brand: #ff4d88;
+    --brand-soft: rgba(255,77,136,.08);
+    --bg: #f7f5f2;
+    --surface: #ffffff;
+    --text-pri: #1a1a1a;
+    --text-sec: #555;
+    --text-ter: #999;
+    --line: rgba(0,0,0,.08);
+    --success: #00b37d;
+    --blue: #3171cb;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(0,0,0,.07);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 15px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-pri);
+    font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Noto Serif SC", "Segoe UI", sans-serif;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ── */
+  .doc-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    padding: 64px 0 48px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 48px;
+  }
+  .cover-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--brand-soft);
+    color: var(--brand);
+    font-size: 12px; font-weight: 600;
+    padding: 4px 12px; border-radius: 99px;
+    margin-bottom: 20px;
+  }
+  .cover-tag svg { flex-shrink: 0; }
+  .cover h1 {
+    font-size: 36px; font-weight: 700;
+    letter-spacing: -.5px; line-height: 1.25;
+    margin-bottom: 16px;
+  }
+  .cover h1 em { color: var(--brand); font-style: normal; }
+  .cover-meta {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    font-size: 13px; color: var(--text-ter);
+  }
+  .cover-meta span { display: flex; align-items: center; gap: 5px; }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 48px;
+    box-shadow: var(--shadow);
+  }
+  .toc-title { font-size: 13px; font-weight: 600; color: var(--text-ter); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc li { counter-increment: toc; display: flex; align-items: baseline; gap: 10px; padding: 5px 0; }
+  .toc li::before {
+    content: counter(toc, decimal-leading-zero);
+    font-size: 11px; font-weight: 700; color: var(--brand);
+    min-width: 22px; flex-shrink: 0;
+  }
+  .toc a { color: var(--text-sec); text-decoration: none; font-size: 14px; }
+  .toc a:hover { color: var(--brand); }
+
+  /* ── Section ── */
+  .section { margin-bottom: 56px; }
+
+  h2 {
+    font-size: 22px; font-weight: 700;
+    color: var(--text-pri); margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--line);
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--brand); color: #fff;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+
+  h3 {
+    font-size: 16px; font-weight: 600;
+    color: var(--text-pri); margin: 24px 0 10px;
+  }
+
+  p { color: var(--text-sec); margin-bottom: 12px; font-size: 14.5px; }
+
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { color: var(--text-sec); font-size: 14px; margin-bottom: 5px; line-height: 1.65; }
+
+  strong { color: var(--text-pri); font-weight: 600; }
+
+  /* ── Cards ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px; font-size: 18px;
+  }
+  .card h4 { font-size: 14px; font-weight: 600; color: var(--text-pri); margin-bottom: 5px; }
+  .card p { font-size: 12.5px; color: var(--text-ter); margin: 0; }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13.5px; background: var(--surface);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  thead tr { background: #f9f7f5; }
+  th {
+    padding: 11px 16px; text-align: left;
+    font-size: 11px; font-weight: 700; color: var(--text-ter);
+    letter-spacing: .6px; text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: .5px solid var(--line);
+    color: var(--text-sec); vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+
+  /* ── Callout ── */
+  .callout {
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .callout p { margin: 0; font-size: 13.5px; }
+  .callout.brand { background: var(--brand-soft); }
+  .callout.brand .callout-icon, .callout.brand p { color: #c23065; }
+  .callout.info { background: rgba(49,113,203,.07); }
+  .callout.info p { color: #1d4d8e; }
+  .callout.success { background: rgba(0,179,125,.07); }
+  .callout.success p { color: #006b4d; }
+
+  /* ── Flow diagram ── */
+  .flow {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 0; margin: 16px 0;
+  }
+  .flow-step {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 10px; padding: 10px 16px;
+    font-size: 13px; color: var(--text-sec);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    min-width: 80px; text-align: center;
+  }
+  .flow-step strong { font-size: 11px; color: var(--brand); font-weight: 700; }
+  .flow-arrow { padding: 0 6px; color: #C8C4C0; font-size: 16px; }
+  .flow-step.active { border-color: var(--brand); background: var(--brand-soft); }
+
+  /* ── Scheme compare ── */
+  .scheme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px; margin: 16px 0;
+  }
+  .scheme {
+    background: var(--surface); border-radius: 10px;
+    border: 1.5px solid var(--line);
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+  .scheme .scheme-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--brand-soft); color: var(--brand);
+    font-size: 11px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .scheme h4 { font-size: 13.5px; font-weight: 600; color: var(--text-pri); margin-bottom: 5px; }
+  .scheme p { font-size: 12px; color: var(--text-ter); margin: 0; }
+  .scheme.selected { border-color: var(--brand); background: var(--brand-soft); }
+  .scheme.selected h4 { color: #c23065; }
+
+  /* ── Token row ── */
+  .token-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0; margin: 0; font-size: 13px;
+  }
+  .token-row > * {
+    padding: 8px 12px;
+    border-bottom: .5px solid var(--line);
+  }
+  .token-row .label { color: var(--text-ter); font-weight: 500; }
+  .token-row .val { color: var(--text-pri); font-family: 'SF Mono', 'Fira Code', monospace; }
+
+  /* ── Deliverable tag ── */
+  .file-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #f2f0ec; border: 1px solid var(--line);
+    border-radius: 6px; padding: 2px 8px;
+    font-size: 11.5px; color: var(--text-sec);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    white-space: nowrap;
+  }
+
+  /* ── Status pill ── */
+  .pill {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 99px;
+    font-size: 11px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .pill.done { background: rgba(0,179,125,.1); color: #006b4d; }
+  .pill.explore { background: rgba(49,113,203,.1); color: #1d4d8e; }
+
+  /* ── Checklist ── */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    display: flex; gap: 8px; align-items: flex-start;
+    padding: 6px 0;
+    border-bottom: .5px solid var(--line);
+    font-size: 13.5px;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist .check { color: var(--success); font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--line);
+    padding-top: 32px; margin-top: 64px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer p { font-size: 12px; color: var(--text-ter); margin: 0; }
+
+  @media (max-width: 640px) {
+    .cover h1 { font-size: 26px; }
+    h2 { font-size: 18px; }
+    .card-grid { grid-template-columns: 1fr 1fr; }
+    .scheme-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media print {
+    body { background: #fff; font-size: 12px; }
+    .doc-wrap { max-width: 100%; padding: 0 16px; }
+    .cover { padding: 32px 0 24px; }
+    .section { break-inside: avoid; }
+    h2 { break-after: avoid; }
+    table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="doc-wrap">
+
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-tag">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+        <path d="M12 21C6.5 15.5 2 11.5 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 4-4.5 8-10 13.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      </svg>
+      美柚产品设计 · 内部文档
+    </div>
+    <h1>美柚「<em>经期男友版</em>」<br/>产品设计调研文档</h1>
+    <div class="cover-meta">
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        2026年6月
+      </span>
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="7" r="5" stroke="currentColor" stroke-width="1.7"/><path d="M3 21c0-5 4-9 9-9s9 4 9 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        设计研究 · 交互原型
+      </span>
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        美柚设计规范 V1.0
+      </span>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">目录</div>
+    <ol>
+      <li><a href="#s1">项目背景与目标</a></li>
+      <li><a href="#s2">核心用户场景</a></li>
+      <li><a href="#s3">产品架构与流程</a></li>
+      <li><a href="#s4">功能模块详解</a></li>
+      <li><a href="#s5">设计探索与方案比较</a></li>
+      <li><a href="#s6">交互细节设计</a></li>
+      <li><a href="#s7">设计规范执行</a></li>
+      <li><a href="#s8">解绑与数据恢复机制</a></li>
+      <li><a href="#s9">交付物清单</a></li>
+      <li><a href="#s10">后续迭代方向</a></li>
+    </ol>
+  </div>
+
+  <!-- S1 -->
+  <div class="section" id="s1">
+    <h2><span class="num">01</span>项目背景与目标</h2>
+    <p>美柚作为国内头部经期健康管理 App，核心用户群为 18-35 岁女性。在用户研究中发现，大量用户希望将经期状态共享给伴侣，以便获得更贴心的关爱，同时减少因不了解对方身体状态而产生的误解与摩擦。</p>
+    <p>「经期男友版」以此为切入点，在美柚现有产品体系内，新增<strong>男女双视角的伴侣空间</strong>，让伴侣以男友身份加入，获取专属数据视图、发送互动关怀、共同记录恋爱生活。</p>
+
+    <div class="callout brand">
+      <span class="callout-icon">💡</span>
+      <p><strong>核心价值主张：</strong>不改变女生原有使用习惯，以最小侵入方式，为伴侣提供「懂她、陪她」的专属空间。</p>
+    </div>
+
+    <h3>设计目标</h3>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon" style="background:rgba(255,77,136,.1);">🔗</div>
+        <h4>降低沟通成本</h4>
+        <p>男友无需主动询问，周期状态主动呈现</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(0,179,125,.1);">💌</div>
+        <h4>增强情感连接</h4>
+        <p>互动卡片、恋爱记录沉淀两人共同记忆</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(49,113,203,.1);">🛡️</div>
+        <h4>保护女生隐私</h4>
+        <p>数据可控，解绑后记录归零或选择保留</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(255,149,0,.1);">🎯</div>
+        <h4>轻量化接入</h4>
+        <p>男友无需深度使用 App，微信一键邀请加入</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="section" id="s2">
+    <h2><span class="num">02</span>核心用户场景</h2>
+    <p>本次设计覆盖经期业务语境，围绕「发起关系→共同记录→关系维护→关系终止」的全生命周期展开。</p>
+
+    <h3>女生视角（发起方）</h3>
+    <ul>
+      <li>首页查看经期状态，主动发起伴侣邀请</li>
+      <li>邀请成功后，首页新增恋爱记模块入口，展示最近共同记录</li>
+      <li>在恋爱记页面发布图文、语音，接收男友互动，共同沉淀记录</li>
+      <li>在「我」Tab 管理个人信息及伴侣关系</li>
+    </ul>
+
+    <h3>男生视角（接受方）</h3>
+    <ul>
+      <li>微信收到邀请链接，授权登录后进入男友主页</li>
+      <li>主页展示「今日密报」卡片：周期阶段、怀孕几率等精简数据</li>
+      <li>底部导航：美柚 / 日历 / 恋爱记 / 消息 / 我</li>
+      <li>恋爱记 Tab 查看双方记录，可发布互动（抱抱/亲亲/贴贴/想你/爱你）及图文</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <p>男生视角核心设计原则：<strong>最低学习成本</strong>。男友无需了解经期专业知识，所有健康数据经过语义化处理，呈现为易懂的关心提示。</p>
+    </div>
+  </div>
+
+  <!-- S3 -->
+  <div class="section" id="s3">
+    <h2><span class="num">03</span>产品架构与流程</h2>
+
+    <h3>整体架构（双视角）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>层级</th><th>女生视角</th><th>男生视角</th></tr></thead>
+        <tbody>
+          <tr><td><strong>一级导航</strong></td><td>推荐 / 记录 / 消息 / 我</td><td>美柚 / 日历 / 恋爱记 / 消息 / 我</td></tr>
+          <tr><td><strong>主页</strong></td><td>周期 Hero 卡 + 内容流</td><td>今日密报卡片 + 恋爱记预览</td></tr>
+          <tr><td><strong>核心功能</strong></td><td>经期记录、发布图文/语音</td><td>查看密报、发送互动、共同记录</td></tr>
+          <tr><td><strong>关系管理</strong></td><td>我 Tab → 头像 → 伴侣 → 解绑</td><td>我 Tab → 个人资料 → 伴侣关系</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>伴侣绑定流程</h3>
+    <div class="flow">
+      <div class="flow-step active"><strong>女生</strong>首页/记录 Tab</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><strong>发起</strong>邀请码/二维码</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><strong>微信</strong>分享给男友</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><strong>男友</strong>点击链接</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><strong>授权</strong>登录美柚</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active"><strong>成功</strong>进入男友主页</div>
+    </div>
+
+    <h3>邀请前 vs 邀请后差异对比</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>位置</th><th>未绑定状态</th><th>已绑定状态</th></tr></thead>
+        <tbody>
+          <tr><td>女生首页</td><td>邀请伴侣胶囊 Banner</td><td>恋爱记首页模块（近期记录）</td></tr>
+          <tr><td>女生记录 Tab</td><td>邀请引导 Banner</td><td>正常内容流</td></tr>
+          <tr><td>女生顶部导航</td><td>搜索 + 美柚 Logo + 发帖</td><td>搜索 + 美柚 Logo + 发帖</td></tr>
+          <tr><td>男生主页</td><td>—（不存在）</td><td>今日密报 + 恋爱记入口</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- S4 -->
+  <div class="section" id="s4">
+    <h2><span class="num">04</span>功能模块详解</h2>
+
+    <h3>今日密报（男生主页核心卡片）</h3>
+    <p>以可视化方式呈现伴侣当日经期状态，避免数字化专业词汇，使用自然语言描述。</p>
+    <ul>
+      <li><strong>周期阶段环形图</strong>：以圆弧可视化展示女友所处经期阶段</li>
+      <li><strong>怀孕几率提示</strong>：精简语义化，如「今天很安全」</li>
+      <li><strong>情绪/症状提示</strong>：根据女生记录的症状，给出关心建议</li>
+    </ul>
+
+    <h3>恋爱记（双视角共享空间）</h3>
+    <p>时间轴 Feed 形式，展示双方发布的所有记录，类型包括：</p>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon" style="background:#FFF0F5;">📝</div>
+        <h4>图文记录</h4>
+        <p>支持文字 + 最多 9 张图片，选中序号显示</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#F0F7FF;">🎙️</div>
+        <h4>语音记录</h4>
+        <p>录音后可选发送语音或 AI 一键转文字</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#FFF5F0;">🫂</div>
+        <h4>互动卡片</h4>
+        <p>抱抱/亲亲/贴贴/想你/爱你，随机诗意文案</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#F0FFF8;">💬</div>
+        <h4>评论回应</h4>
+        <p>在卡片底部回复，引用原文，可选 6 种表情点赞</p>
+      </div>
+    </div>
+
+    <h3>互动表情体系</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>互动类型</th><th>Emoji</th><th>发出文案（示例）</th></tr></thead>
+        <tbody>
+          <tr><td>抱抱</td><td>🫂</td><td>「把你揣进口袋，就不怕失去了」</td></tr>
+          <tr><td>亲亲</td><td>💋</td><td>「把最甜的一颗星星摘下来，偷偷放进你口袋」</td></tr>
+          <tr><td>贴贴</td><td>🧸</td><td>「所有灯火里，最亮的那个是你」</td></tr>
+          <tr><td>想你</td><td>💭</td><td>「想你是一件很私密的事，却总被眼睛出卖」</td></tr>
+          <tr><td>爱你</td><td>❤️</td><td>「我把所有的运气，都用来遇见你了」</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout success">
+      <span class="callout-icon">✨</span>
+      <p>互动文案经过多轮迭代，最终确定「风向是会变的，总会吹向更加幸福的地方」等诗意风格，每种互动类型配备 6-8 条随机文案，避免重复感。</p>
+    </div>
+
+    <h3>点赞机制设计</h3>
+    <ul>
+      <li><strong>入口</strong>：点击卡片右下角 ❤ 图标，展开 6 个表情选择浮层（方案 B：半圆弧展开）</li>
+      <li><strong>自己的卡片</strong>：收到点赞后展示表情，点击表情触发掉落动效（非编辑）</li>
+      <li><strong>对方的卡片</strong>：点赞后不展示编辑按钮，再次点击取消点赞</li>
+      <li><strong>权限</strong>：只能点赞对方发布的内容，不能给自己点赞</li>
+    </ul>
+
+    <h3>AI 语音转文字</h3>
+    <p>录音停止后，进入「预览阶段」，底部展示三个操作：</p>
+    <div class="flow" style="flex-direction:row;gap:12px;">
+      <div class="flow-step">重录</div>
+      <div class="flow-step active">转文字<br/><small>AI 处理中</small></div>
+      <div class="flow-step">发送语音</div>
+    </div>
+    <p style="margin-top:8px;">转写完成后展示文字结果，用户可选「重录」或「使用文字」发布为图文帖。</p>
+  </div>
+
+  <!-- S5 -->
+  <div class="section" id="s5">
+    <h2><span class="num">05</span>设计探索与方案比较</h2>
+
+    <h3>5.1 发布器入口方案（4 轮探索）</h3>
+    <div class="scheme-grid">
+      <div class="scheme">
+        <div class="scheme-num">1</div>
+        <h4>直接进入发布页</h4>
+        <p>点击加号直接跳转全屏图文发布页，操作路径最短</p>
+      </div>
+      <div class="scheme">
+        <div class="scheme-num">2</div>
+        <h4>三键展开</h4>
+        <p>加号垂直展开「互动/图文/语音」，适合多功能入口</p>
+      </div>
+      <div class="scheme selected">
+        <div class="scheme-num">3 ★</div>
+        <h4>扇形展开</h4>
+        <p>仿参考网站动效，三按钮扇形弧出，视觉最优雅</p>
+      </div>
+      <div class="scheme">
+        <div class="scheme-num">4</div>
+        <h4>底部固定输入框</h4>
+        <p>仿微信样式，左侧语音切换+右侧互动按钮+大文本框弹起</p>
+      </div>
+    </div>
+
+    <h3>5.2 女生视角首页方案</h3>
+    <div class="scheme-grid">
+      <div class="scheme selected">
+        <div class="scheme-num">A ★</div>
+        <h4>毛玻璃 + 双头像</h4>
+        <p>顶部天气背景，女生头像叠在男生头像上方，毛玻璃效果</p>
+      </div>
+      <div class="scheme">
+        <div class="scheme-num">B</div>
+        <h4>无天气 · 模块入口</h4>
+        <p>不展示天气背景，已邀请后展示恋爱记首页模块（对比方案）</p>
+      </div>
+    </div>
+
+    <h3>5.3 发布器记录样式方案</h3>
+    <div class="scheme-grid">
+      <div class="scheme">
+        <div class="scheme-num">1</div>
+        <h4>信封样式</h4>
+        <p>卡片呈现为可翻折信封，有仪式感但交互复杂</p>
+      </div>
+      <div class="scheme selected">
+        <div class="scheme-num">2 ★</div>
+        <h4>卡片样式</h4>
+        <p>固化为简洁卡片，信息层级清晰，移除样式切换功能</p>
+      </div>
+    </div>
+
+    <h3>5.4 点赞入口方案</h3>
+    <div class="scheme-grid">
+      <div class="scheme">
+        <div class="scheme-num">A</div>
+        <h4>多表情直列</h4>
+        <p>5个表情直接展示在卡片上，手机端触控区偏小</p>
+      </div>
+      <div class="scheme selected">
+        <div class="scheme-num">B ★</div>
+        <h4>半圆弧展开</h4>
+        <p>单入口点开选择，半圆弧展开 6 表情，手机端体验更佳</p>
+      </div>
+    </div>
+
+    <h3>5.5 男生视角日记 Tab 探索</h3>
+    <p>针对男生视角的「恋爱记」Tab 做了专项探索（<span class="file-tag">bf_diary_tab_explore.html</span>），最终方案：</p>
+    <ul>
+      <li>保留顶部渐变 Hero 区，上滑后切换为不透明顶部导航栏（方案 A）</li>
+      <li>状态栏始终可见，滚动时顶部栏遮挡底层内容</li>
+      <li>移除返回按钮，作为一级 Tab 页面</li>
+    </ul>
+  </div>
+
+  <!-- S6 -->
+  <div class="section" id="s6">
+    <h2><span class="num">06</span>交互细节设计</h2>
+
+    <h3>表情雨动效</h3>
+    <p>发送互动或点赞时，触发全屏表情雨：</p>
+    <ul>
+      <li>对应 Emoji 从顶部随机位置落下，带旋转动画</li>
+      <li>穿插星星 ⭐ 和小爱心 💗 作为装饰粒子</li>
+      <li>粒子数量约 20-30 枚，持续约 2 秒后消失</li>
+    </ul>
+
+    <h3>删除二次确认弹窗</h3>
+    <p>删除记录时弹出标准弹窗，遵循美柚设计规范：</p>
+    <ul>
+      <li>主文案：「确认删除这条记录？」</li>
+      <li>副文案：「删除后不可恢复」</li>
+      <li>主按钮（红色）：确认删除；取消按钮在左侧弱化</li>
+    </ul>
+
+    <h3>解绑弹窗（女生视角）</h3>
+    <p>针对女生场景特殊定制副文案：</p>
+    <div class="callout brand">
+      <span class="callout-icon">⚠️</span>
+      <p>「伴侣将无法查看你的经期等信息，恋爱记的 <strong>N</strong> 条记录将被清除。」<br/>N 为实时读取当前记录条数。</p>
+    </div>
+
+    <h3>诗意互动文案随机机制</h3>
+    <p>每种互动类型内置 6-8 条文案，发送时 Fisher-Yates 洗牌后轮换，同一文案不连续出现两次，确保多样性。</p>
+
+    <h3>底部导航小红点</h3>
+    <ul>
+      <li>恋爱记 Tab 有未读记录时显示小红点</li>
+      <li>点击恋爱记 Tab 后小红点消失（清除未读状态）</li>
+      <li>日记 Tab 的小红点独立于点击状态，由内容更新驱动</li>
+    </ul>
+  </div>
+
+  <!-- S7 -->
+  <div class="section" id="s7">
+    <h2><span class="num">07</span>设计规范执行</h2>
+    <p>全程严格遵循<strong>美柚设计语言 V1.0</strong>（<span class="file-tag">meiyou-ui-kit-519.html</span>），核心执行项如下：</p>
+
+    <h3>核心 Token</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Token</th><th>值</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td>品牌红</td><td style="font-family:monospace;color:#ff4d88;">#ff4d88</td><td>主操作、Tab 选中、焦点、核心数据强调</td></tr>
+          <tr><td>页面背景</td><td style="font-family:monospace;">#f2f2f5</td><td>App 底色</td></tr>
+          <tr><td>卡片白</td><td style="font-family:monospace;">#ffffff</td><td>卡片、弹窗、输入框</td></tr>
+          <tr><td>主文字</td><td style="font-family:monospace;">#323232</td><td>标题、正文</td></tr>
+          <tr><td>次文字</td><td style="font-family:monospace;">#666666</td><td>描述、辅助信息</td></tr>
+          <tr><td>弱文字</td><td style="font-family:monospace;">#999999</td><td>时间、弱提示</td></tr>
+          <tr><td>分割线</td><td style="font-family:monospace;">rgba(0,0,0,.08)</td><td>列表、模块分割</td></tr>
+          <tr><td>阴影</td><td style="font-family:monospace;">0 0 10px rgba(50,50,50,.08)</td><td>卡片投影</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>规范执行清单</h3>
+    <ul class="checklist">
+      <li><span class="check">✓</span> iOS 状态栏 44px，含信号格/WiFi/电池图标</li>
+      <li><span class="check">✓</span> 顶部导航栏 44px，.5px 下边框 + 毛玻璃背景</li>
+      <li><span class="check">✓</span> 底部 TabBar 64px，grid 5列，字号 11px</li>
+      <li><span class="check">✓</span> 图标笔画统一 stroke-width: 1.8</li>
+      <li><span class="check">✓</span> 分割线统一 .5px（原 1px 全面替换）</li>
+      <li><span class="check">✓</span> 触控区 ≥ 44×44px（所有按钮已验证）</li>
+      <li><span class="check">✓</span> 卡片圆角：小 8px / 普通 12px / 大 16px</li>
+      <li><span class="check">✓</span> 字体栈：PingFang SC → -apple-system → BlinkMacSystemFont</li>
+      <li><span class="check">✓</span> 数字使用 font-variant-numeric: tabular-nums</li>
+      <li><span class="check">✓</span> 8dp 网格，外间距 ≥ 内间距</li>
+      <li><span class="check">✓</span> 完整状态：加载/空/错误/禁用 均已设计</li>
+    </ul>
+  </div>
+
+  <!-- S8 -->
+  <div class="section" id="s8">
+    <h2><span class="num">08</span>解绑与数据恢复机制</h2>
+    <p>用户研究表明，伴侣关系的终止是一个敏感且高风险的操作。本次设计为解绑流程专门设计了完整的 14 屏流程原型（<span class="file-tag">Meetyou_Unlink_Flow.html</span>）。</p>
+
+    <h3>解绑流程（9步）</h3>
+    <div class="flow" style="flex-wrap:wrap;gap:8px;">
+      <div class="flow-step">S1<br/><small>确认解绑</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">S2<br/><small>原因选择</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active">S3<br/><small>数据处理</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">S4<br/><small>冷静期</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">S5<br/><small>最终确认</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">S6<br/><small>解绑完成</small></div>
+    </div>
+
+    <h3>数据存储方案</h3>
+    <div class="callout info">
+      <span class="callout-icon">💾</span>
+      <p>解绑后数据可选择保留在「感情存档」中，有效期 90 天。若双方在有效期内重新绑定，可选择<strong>恢复所有历史记录</strong>（包括互动、图文、语音）。</p>
+    </div>
+
+    <h3>恢复流程（5步）</h3>
+    <div class="flow" style="flex-wrap:wrap;gap:8px;">
+      <div class="flow-step">R1<br/><small>发起恢复</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active">R2<br/><small>选择记录</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">R3<br/><small>双方确认</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">R4<br/><small>恢复完成</small></div>
+    </div>
+  </div>
+
+  <!-- S9 -->
+  <div class="section" id="s9">
+    <h2><span class="num">09</span>交付物清单</h2>
+
+    <h3>主要原型文件</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>文件名</th><th>内容</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="file-tag">Meetyou_boyfriend_v3.html</span></td>
+            <td>全流程设计稿画布（男友版，双视角，可并排对比）</td>
+            <td><span class="pill done">已完成</span></td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">Meetyou_Interactive_v3.html</span></td>
+            <td>可点击交互原型，5条完整用户流程（A~E）</td>
+            <td><span class="pill done">已完成</span></td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">Meetyou_diary_v7.html</span></td>
+            <td>恋爱记独立完整原型，含 4 种发布器方案对比</td>
+            <td><span class="pill done">已完成</span></td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">girl_home_v3.html</span></td>
+            <td>女生视角首页（含天气/胶囊入口方案）</td>
+            <td><span class="pill done">已完成</span></td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">girl_home_compare.html</span></td>
+            <td>女生首页双方案对比（有天气 vs 无天气）</td>
+            <td><span class="pill done">已完成</span></td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">Meetyou_Unlink_Flow.html</span></td>
+            <td>解绑→存档→恢复完整 14 屏流程原型</td>
+            <td><span class="pill done">已完成</span></td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">me_tab_diary_CE.html</span></td>
+            <td>女生「我」Tab 两种方案对比（CE 版）</td>
+            <td><span class="pill done">已完成</span></td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">bf_diary_tab_explore.html</span></td>
+            <td>男生视角恋爱记 Tab 探索定稿</td>
+            <td><span class="pill done">已完成</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>手机端演示文件</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>文件名</th><th>内容</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="file-tag">mobile_nav.html</span></td>
+            <td>手机端导航页，入口分发（女生未邀请/已邀请/男生）</td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">girl_home_mobile.html</span></td>
+            <td>女生视角全流程手机端演示，支持 ?screen= 参数跳转</td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">diary_v7_mobile.html</span></td>
+            <td>恋爱记手机端演示，4 种发布器方案可切换</td>
+          </tr>
+          <tr>
+            <td><span class="file-tag">girl_home_compare_mobile.html</span></td>
+            <td>女生首页方案手机端对比，Tab 切换</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>探索过程文件</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>文件名</th><th>探索方向</th></tr></thead>
+        <tbody>
+          <tr><td><span class="file-tag">interact_copy_preview.html</span></td><td>互动文案多版本预览（含最终文案库）</td></tr>
+          <tr><td><span class="file-tag">reaction_options.html</span></td><td>点赞入口方案对比</td></tr>
+          <tr><td><span class="file-tag">emoji_options_preview.html</span></td><td>互动 Emoji 选项比较</td></tr>
+          <tr><td><span class="file-tag">couple_space_explore.html</span></td><td>恋爱空间整体概念探索</td></tr>
+          <tr><td><span class="file-tag">diary-header-options.html</span></td><td>恋爱记顶部栏滚动效果探索</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>设计资产</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>文件名</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><span class="file-tag">meiyou-ui-kit-519.html</span></td><td>美柚 UI Kit V1（组件库、Token 参考）</td></tr>
+          <tr><td><span class="file-tag">screens-shared.jsx</span></td><td>共享基础组件（Phone、StatusBar、TopBar、TabBar、Avatar）</td></tr>
+          <tr><td><span class="file-tag">screens-invite.jsx</span></td><td>女生视角全部页面组件（S1-S9）</td></tr>
+          <tr><td><span class="file-tag">screens-bf.jsx</span></td><td>男生视角全部页面组件（BF1-BF5）</td></tr>
+          <tr><td><span class="file-tag">screens-diary-v2.jsx</span></td><td>恋爱记共用组件（发布器、卡片、互动、表情雨）</td></tr>
+          <tr><td><span class="file-tag">screens-me.jsx</span></td><td>我 Tab / 个人信息 / 伴侣关系页面</td></tr>
+          <tr><td><span class="file-tag">index.html</span></td><td>项目导航页（含清除缓存功能）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- S10 -->
+  <div class="section" id="s10">
+    <h2><span class="num">10</span>后续迭代方向</h2>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon" style="background:rgba(255,77,136,.1);">📅</div>
+        <h4>日历 Tab</h4>
+        <p>男生视角日历 Tab 内容（已切换入口 label），待填充周期可视化日历页面</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(49,113,203,.1);">🔔</div>
+        <h4>消息通知</h4>
+        <p>互动/点赞/评论的消息 Tab 及通知详情页待设计</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(0,179,125,.1);">📊</div>
+        <h4>周期报告</h4>
+        <p>男生视角专属的月度/季度恋爱数据报告</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(141,84,255,.1);">👑</div>
+        <h4>会员权益</h4>
+        <p>伴侣空间的会员专属功能（如无限存储、定制主题）</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(255,149,0,.1);">📸</div>
+        <h4>真实头像</h4>
+        <p>头像占位图替换为用户上传的真实照片流程</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(255,77,136,.1);">🎵</div>
+        <h4>语音优化</h4>
+        <p>语音录制接入真实 ASR，替换当前模拟转文字</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>
+      <p style="font-weight:600;color:var(--text-sec);font-size:13px;">美柚「经期男友版」产品设计调研文档</p>
+      <p>基于美柚设计规范 V1.0 · 2026年6月</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#FF7EB3,#FF4D88);display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M12 21C6.5 15.5 2 11.5 2 7.5 2 4.42 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.42 22 7.5c0 4-4.5 8-10 13.5z" fill="#fff" opacity=".9"/>
+        </svg>
+      </div>
+      <span style="font-size:13px;font-weight:600;color:var(--text-sec);">Meetyou</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
